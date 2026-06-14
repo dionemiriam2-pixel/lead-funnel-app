@@ -35,8 +35,9 @@ export async function POST(req) {
     };
 
     const sb = supabaseAdmin();
-    const { error } = await sb.from("leads").upsert(row, { onConflict: "company_name" });
-    if (error) throw error;
+    const { error } = await sb.from("leads").insert(row);
+    // 23505 = Eintrag mit gleichem company_name existiert schon -> als OK behandeln
+    if (error && error.code !== "23505") throw error;
 
     return NextResponse.json({ ok: true });
   } catch (e) {
