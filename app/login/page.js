@@ -12,7 +12,7 @@ export default function LoginPage() {
     e.preventDefault();
     const r = await fetch("/api/auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pw }) });
     const d = await r.json();
-    if (d.ok) { localStorage.setItem("lf_auth", "ok"); router.replace("/dashboard"); }
+    if (d.ok) { localStorage.setItem("lf_auth", "ok"); localStorage.setItem("lf_auth_pw", pw); router.replace("/dashboard"); }
     else { setErr("Falsches Passwort."); }
   }
 

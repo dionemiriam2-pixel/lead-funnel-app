@@ -1,6 +1,8 @@
 "use client";
-import { useState } from "react";
+export const dynamic = "force-dynamic";
+import { useState, useEffect } from "react";
 import AppShell from "@/components/AppShell";
+import { authHeaders } from "@/lib/api";
 
 function parseCSV(text) {
   const lines = text.trim().split("\n").filter(Boolean);
@@ -20,7 +22,12 @@ export default function ImportPage() {
   const [preview, setPreview] = useState([]);
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState(null);
-  const h = { "x-pw": localStorage.getItem("lf_auth_pw") || "", "Content-Type": "application/json" };
+  const [webhookUrl, setWebhookUrl] = useState("");
+
+  useEffect(() => {
+    const pw = localStorage.getItem("lf_auth_pw") || "DEIN_PASSWORT";
+    setWebhookUrl(window.location.origin + "/api/webhook?key=" + pw);
+  }, []);
 
   function onFile(e) {
     const file = e.target.files[0];
@@ -34,13 +41,11 @@ export default function ImportPage() {
     const rows = parseCSV(csv);
     if (!rows.length) return;
     setImporting(true);
-    const r = await fetch("/api/import", { method: "POST", headers: h, body: JSON.stringify({ rows, client, source }) });
+    const r = await fetch("/api/import", { method: "POST", headers: authHeaders(), body: JSON.stringify({ rows, client, source }) });
     const d = await r.json();
     setResult(d);
     setImporting(false);
   }
-
-  const webhookUrl = typeof window !== "undefined" ? window.location.origin + "/api/webhook?key=" + (localStorage.getItem("lf_auth_pw") || "DEIN_PASSWORT") : "";
 
   return (
     <AppShell>
@@ -57,12 +62,11 @@ export default function ImportPage() {
           ))}
         </div>
 
-        {/* CSV */}
         {tab === "csv" && (
           <div style={{ maxWidth: 700 }}>
-            <div style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 1px 8px rgba(0,0,0,.06)", marginBottom: 16 }}>
+            <div style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 1px 8px rgba(0,0,0,.06)" }}>
               <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>CSV-Datei hochladen</h2>
-              <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 16 }}>Spalten: <code>company_name, email, phone, city, website, industry, notes</code> (weitere optional)</p>
+              <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 16 }}>Spalten: <code>company_name, email, phone, city, website, industry, notes</code></p>
               <input type="file" accept=".csv,.txt" onChange={onFile} style={{ marginBottom: 14 }} />
               {preview.length > 0 && (
                 <div style={{ marginBottom: 14, overflowX: "auto" }}>
@@ -94,54 +98,47 @@ export default function ImportPage() {
           </div>
         )}
 
-        {/* Webhook */}
         {tab === "webhook" && (
           <div style={{ maxWidth: 700 }}>
             <div style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 1px 8px rgba(0,0,0,.06)", marginBottom: 16 }}>
               <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Webhook-URL</h2>
-              <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 16 }}>Diese URL in n8n, Make oder Zapier eintragen — jeder POST-Request wird als Lead gespeichert.</p>
-              <div style={{ background: "#f9fafb", borderRadius: 10, padding: "12px 16px", fontFamily: "monospace", fontSize: 13, wordBreak: "break-all", border: "1px solid #e5e7eb", marginBottom: 16 }}>
-                {webhookUrl}
-              </div>
-              <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>Erwartete JSON-Felder:</h3>
+              <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 16 }}>In n8n, Make oder Zapier eintragen — jeder POST wird als Lead gespeichert.</p>
+              <div style={{ background: "#f9fafb", borderRadius: 10, padding: "12px 16px", fontFamily: "monospace", fontSize: 13, wordBreak: "break-all", border: "1px solid #e5e7eb", marginBottom: 16 }}>{webhookUrl}</div>
+              <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>JSON-Felder:</h3>
               <pre style={{ background: "#f9fafb", borderRadius: 10, padding: 16, fontSize: 12, overflowX: "auto", border: "1px solid #e5e7eb" }}>{`{
-  "company_name": "Musterfirma GmbH",    // Pflicht
+  "company_name": "Musterfirma GmbH",
   "email": "info@musterfirma.de",
   "phone": "+49 89 123456",
   "city": "München",
   "website": "https://musterfirma.de",
   "industry": "Gastronomie",
-  "source": "facebook-ads",              // z.B. linkedin, instagram, ...
-  "client": "KOMIKO",                    // welchem Kunden zuordnen
+  "source": "facebook-ads",
+  "client": "KOMIKO",
   "product": "Ladenbau",
   "score": 8,
   "notes": "Hat Interesse gezeigt"
 }`}</pre>
             </div>
             <div style={{ background: "#eff6ff", borderRadius: 16, padding: 20, border: "1px solid #bfdbfe" }}>
-              <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8, color: "#1d4ed8" }}>💡 Tipp für n8n:</h3>
-              <p style={{ fontSize: 13, color: "#1e40af", lineHeight: 1.6 }}>
-                In n8n: HTTP Request Node → Method: POST → URL: obige Webhook-URL → Body: JSON mit den Feldern oben.<br />
-                Funktioniert mit: Facebook Lead Ads, LinkedIn, Google Ads, Typeform, Calendly, und allen anderen Tools die Webhooks unterstützen.
-              </p>
+              <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8, color: "#1d4ed8" }}>💡 n8n Tipp:</h3>
+              <p style={{ fontSize: 13, color: "#1e40af", lineHeight: 1.6 }}>HTTP Request Node → Method: POST → URL: obige Webhook-URL → Body: JSON.<br />Funktioniert mit Facebook Lead Ads, LinkedIn, Google Ads, Typeform, Calendly und mehr.</p>
             </div>
           </div>
         )}
 
-        {/* Quellen */}
         {tab === "sources" && (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
             {[
-              { icon: "🤖", name: "Google Maps Bot", status: "Aktiv", color: "#22c55e", desc: "Sucht täglich um 07:00 Uhr automatisch nach Firmen. Manuelle Auslösung im Bot-Dashboard." },
-              { icon: "📄", name: "Landing Pages", status: "Aktiv", color: "#22c55e", desc: "3 Landing Pages live. Formular-Einsendungen kommen direkt als Leads rein." },
-              { icon: "🔗", name: "Webhook", status: "Bereit", color: "#f59e0b", desc: "URL bereit. In n8n oder Make eintragen um Leads von Facebook, LinkedIn etc. einzuspeisen." },
-              { icon: "📊", name: "CSV-Import", status: "Bereit", color: "#f59e0b", desc: "CSV-Datei hochladen und Leads manuell importieren." },
-              { icon: "📱", name: "Facebook Lead Ads", status: "Via Webhook", color: "#6366f1", desc: "In n8n: Facebook Lead Ads Trigger → HTTP Request → Webhook-URL." },
-              { icon: "💼", name: "LinkedIn", status: "Via Webhook", color: "#6366f1", desc: "Sales Navigator Export als CSV importieren oder via n8n Webhook einspeisen." },
-              { icon: "📒", name: "Gelbe Seiten Bot", status: "Geplant", color: "#9ca3af", desc: "Zweite Bot-Quelle für Branchenverzeichnisse. In Entwicklung." },
-              { icon: "🔍", name: "Google Suche Bot", status: "Geplant", color: "#9ca3af", desc: "Sucht nach Firmen-Websites in Google. In Entwicklung." },
-              { icon: "📧", name: "E-Mail Weiterleitung", status: "Geplant", color: "#9ca3af", desc: "Lead-Anfragen per E-Mail automatisch einlesen. Via n8n möglich." },
-              { icon: "✍️", name: "Manuelle Eingabe", status: "Im Dashboard", color: "#22c55e", desc: "Lead direkt im Dashboard anlegen — jederzeit möglich." },
+              { icon: "🤖", name: "Google Maps Bot", status: "Aktiv", color: "#22c55e", desc: "Sucht täglich um 07:00 Uhr automatisch. Manuell auslösbar." },
+              { icon: "📄", name: "Landing Pages", status: "Aktiv", color: "#22c55e", desc: "3 Landing Pages live. Formular → Lead direkt in Supabase." },
+              { icon: "🔗", name: "Webhook", status: "Bereit", color: "#f59e0b", desc: "URL oben eintragen in n8n oder Make." },
+              { icon: "📊", name: "CSV-Import", status: "Bereit", color: "#f59e0b", desc: "CSV hochladen und Leads manuell importieren." },
+              { icon: "📱", name: "Facebook Lead Ads", status: "Via Webhook", color: "#6366f1", desc: "In n8n: Facebook Lead Ads Trigger → Webhook-URL." },
+              { icon: "💼", name: "LinkedIn", status: "Via Webhook", color: "#6366f1", desc: "Sales Navigator Export als CSV oder via n8n Webhook." },
+              { icon: "📒", name: "Gelbe Seiten Bot", status: "Geplant", color: "#9ca3af", desc: "Zweite Bot-Quelle. In Entwicklung." },
+              { icon: "🔍", name: "Google Suche Bot", status: "Geplant", color: "#9ca3af", desc: "Firmen-Websites aus Google-Suche. In Entwicklung." },
+              { icon: "📧", name: "E-Mail Weiterleitung", status: "Via n8n", color: "#6366f1", desc: "Lead-Anfragen per E-Mail über n8n einlesen." },
+              { icon: "✍️", name: "Manuelle Eingabe", status: "Im Dashboard", color: "#22c55e", desc: "Lead direkt im Dashboard anlegen — jederzeit." },
             ].map(s => (
               <div key={s.name} style={{ background: "#fff", borderRadius: 14, padding: 18, boxShadow: "0 1px 8px rgba(0,0,0,.06)" }}>
                 <div style={{ fontSize: 28, marginBottom: 8 }}>{s.icon}</div>

@@ -1,17 +1,18 @@
 "use client";
+export const dynamic = "force-dynamic";
 import { useEffect, useState, useCallback } from "react";
 import AppShell from "@/components/AppShell";
+import { apiFetch, authHeaders } from "@/lib/api";
+
 
 const PIPELINE = ["neu", "kontaktiert", "angebot", "gewonnen", "verloren"];
 const PIPELINE_COLOR = { neu: "#6366f1", kontaktiert: "#f59e0b", angebot: "#0ea5e9", gewonnen: "#22c55e", verloren: "#ef4444" };
 const SOURCES = ["google-maps", "landing-page", "webhook", "csv-import", "manuell"];
 
-function pw() { return typeof window !== "undefined" ? localStorage.getItem("lf_auth_pw") || "" : ""; }
-
 function ScoreBadge({ s }) {
   s = Number(s) || 0;
-  const c = s >= 8 ? "#dcfce7,#15803d" : s >= 6 ? "#fef9c3,#854d0e" : "#fee2e2,#991b1b";
-  const [bg, col] = c.split(",");
+  const bg = s >= 8 ? "#dcfce7" : s >= 6 ? "#fef9c3" : "#fee2e2";
+  const col = s >= 8 ? "#15803d" : s >= 6 ? "#854d0e" : "#991b1b";
   return <span style={{ background: bg, color: col, padding: "2px 8px", borderRadius: 999, fontSize: 12, fontWeight: 700 }}>{s}</span>;
 }
 
@@ -28,7 +29,7 @@ function PipelineBadge({ status, onChange }) {
         <div style={{ position: "absolute", top: "100%", left: 0, background: "#fff", border: "1px solid #e5e7eb", borderRadius: 10, padding: 6, zIndex: 99, minWidth: 130, boxShadow: "0 4px 20px rgba(0,0,0,.12)" }}>
           {PIPELINE.map(p => (
             <div key={p} onClick={() => { onChange(p); setOpen(false); }}
-              style={{ padding: "7px 10px", cursor: "pointer", borderRadius: 7, fontSize: 13, color: PIPELINE_COLOR[p], fontWeight: 600, background: status === p ? "#f5f5f5" : "transparent" }}>
+              style={{ padding: "7px 10px", cursor: "pointer", borderRadius: 7, fontSize: 13, color: PIPELINE_COLOR[p], fontWeight: 600 }}>
               {p}
             </div>
           ))}
@@ -47,8 +48,7 @@ export default function DashboardPage() {
   const [noteVal, setNoteVal] = useState("");
   const [outreach, setOutreach] = useState({});
   const [generating, setGenerating] = useState(null);
-
-  const h = { "x-pw": localStorage.getItem("lf_auth_pw") || "" };
+  const [clientForOutreach, setClientForOutreach] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -58,35 +58,33 @@ export default function DashboardPage() {
     if (filters.status) params.set("status", filters.status);
     if (filters.q) params.set("q", filters.q);
     const [lr, cr] = await Promise.all([
-      fetch("/api/leads?" + params, { headers: h }).then(r => r.json()),
-      fetch("/api/clients", { headers: h }).then(r => r.json()),
+      apiFetch("/api/leads?" + params),
+      apiFetch("/api/clients"),
     ]);
     setLeads(lr.data || []);
     setClients(cr.data || []);
+    setClientForOutreach((cr.data || [])[0]?.id || null);
     setLoading(false);
   }, [filters]);
 
   useEffect(() => { load(); }, [load]);
 
   async function updateLead(id, fields) {
-    await fetch("/api/leads", { method: "PATCH", headers: { ...h, "Content-Type": "application/json" }, body: JSON.stringify({ id, ...fields }) });
+    await fetch("/api/leads", { method: "PATCH", headers: authHeaders(), body: JSON.stringify({ id, ...fields }) });
     setLeads(ls => ls.map(l => l.id === id ? { ...l, ...fields } : l));
   }
 
   async function deleteLead(id) {
     if (!confirm("Lead wirklich löschen?")) return;
-    await fetch("/api/leads?id=" + id, { method: "DELETE", headers: h });
+    await fetch("/api/leads?id=" + id, { method: "DELETE", headers: authHeaders() });
     setLeads(ls => ls.filter(l => l.id !== id));
   }
 
   async function genOutreach(lead) {
+    if (!clientForOutreach) { alert("Bitte zuerst einen Kunden unter /kunden anlegen."); return; }
     setGenerating(lead.id);
-    const r = await fetch("/api/outreach", {
-      method: "POST", headers: { ...h, "Content-Type": "application/json" },
-      body: JSON.stringify({ lead_id: lead.id, client_id: clients[0]?.id }),
-    });
-    const d = await r.json();
-    if (d.text) { setOutreach(o => ({ ...o, [lead.id]: d.text })); }
+    const d = await apiFetch("/api/outreach", { method: "POST", body: JSON.stringify({ lead_id: lead.id, client_id: clientForOutreach }) });
+    if (d.text) setOutreach(o => ({ ...o, [lead.id]: d.text }));
     setGenerating(null);
   }
 
@@ -100,22 +98,13 @@ export default function DashboardPage() {
   return (
     <AppShell>
       <div style={{ padding: "28px 32px" }}>
-        {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
-          <div>
-            <h1 style={{ fontSize: 24, fontWeight: 800, color: "#1a1a2e", margin: 0 }}>📊 Lead-Dashboard</h1>
-            <p style={{ color: "#6b7280", fontSize: 14, marginTop: 4 }}>Alle Leads aus allen Quellen</p>
-          </div>
+        <div style={{ marginBottom: 24 }}>
+          <h1 style={{ fontSize: 24, fontWeight: 800, color: "#1a1a2e", margin: 0 }}>📊 Lead-Dashboard</h1>
+          <p style={{ color: "#6b7280", fontSize: 14, marginTop: 4 }}>Alle Leads aus allen Quellen</p>
         </div>
 
-        {/* Stats */}
         <div style={{ display: "flex", gap: 16, marginBottom: 24, flexWrap: "wrap" }}>
-          {[
-            { label: "Gesamt", val: stats.total, color: "#6366f1" },
-            { label: "Neu", val: stats.neu, color: "#f59e0b" },
-            { label: "Gewonnen", val: stats.gewonnen, color: "#22c55e" },
-            { label: "Ø Score", val: stats.score, color: "#0ea5e9" },
-          ].map(s => (
+          {[{ label: "Gesamt", val: stats.total, color: "#6366f1" }, { label: "Neu", val: stats.neu, color: "#f59e0b" }, { label: "Gewonnen", val: stats.gewonnen, color: "#22c55e" }, { label: "Ø Score", val: stats.score, color: "#0ea5e9" }].map(s => (
             <div key={s.label} style={{ background: "#fff", borderRadius: 14, padding: "16px 22px", flex: "1 1 120px", boxShadow: "0 1px 8px rgba(0,0,0,.06)", borderLeft: "4px solid " + s.color }}>
               <div style={{ fontSize: 26, fontWeight: 800, color: s.color }}>{s.val}</div>
               <div style={{ fontSize: 13, color: "#6b7280", marginTop: 2 }}>{s.label}</div>
@@ -123,7 +112,6 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        {/* Filter */}
         <div style={{ background: "#fff", borderRadius: 14, padding: "16px 20px", marginBottom: 20, boxShadow: "0 1px 8px rgba(0,0,0,.06)", display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
           <input placeholder="🔍 Suche Firma…" value={filters.q} onChange={e => setFilters(f => ({ ...f, q: e.target.value }))}
             style={{ padding: "9px 13px", border: "1px solid #e5e7eb", borderRadius: 9, fontSize: 14, minWidth: 200 }} />
@@ -148,7 +136,6 @@ export default function DashboardPage() {
           </button>
         </div>
 
-        {/* Tabelle */}
         <div style={{ background: "#fff", borderRadius: 14, boxShadow: "0 1px 8px rgba(0,0,0,.06)", overflow: "hidden" }}>
           {loading ? (
             <div style={{ padding: 40, textAlign: "center", color: "#6b7280" }}>Lade…</div>
@@ -166,7 +153,8 @@ export default function DashboardPage() {
               <tbody>
                 {leads.map(l => (
                   <>
-                    <tr key={l.id} style={{ borderTop: "1px solid #f3f4f6", cursor: "pointer" }} onClick={() => { setExpanded(expanded === l.id ? null : l.id); setNoteVal(l.notes || ""); }}>
+                    <tr key={l.id} style={{ borderTop: "1px solid #f3f4f6", cursor: "pointer" }}
+                      onClick={() => { setExpanded(expanded === l.id ? null : l.id); setNoteVal(l.notes || ""); }}>
                       <td style={{ padding: "12px 14px", fontWeight: 700, fontSize: 14 }}>
                         {l.company_name}
                         {l.website && <a href={l.website} target="_blank" onClick={e => e.stopPropagation()} style={{ marginLeft: 6, color: "#6366f1", fontSize: 11 }}>↗</a>}
@@ -188,21 +176,18 @@ export default function DashboardPage() {
                       <tr key={l.id + "_exp"}>
                         <td colSpan={7} style={{ background: "#f9fafb", padding: "16px 20px", borderTop: "1px solid #f3f4f6" }}>
                           <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-                            {/* Details */}
                             <div style={{ flex: "1 1 200px" }}>
                               <div style={{ fontSize: 12, color: "#6b7280", fontWeight: 700, marginBottom: 8 }}>DETAILS</div>
                               {l.email && <div style={{ fontSize: 13, marginBottom: 4 }}>📧 {l.email}</div>}
                               {l.phone && <div style={{ fontSize: 13, marginBottom: 4 }}>📞 {l.phone}</div>}
                               {l.industry && <div style={{ fontSize: 13, marginBottom: 4 }}>🏷 {l.industry}</div>}
-                              {l.client && <div style={{ fontSize: 13, marginBottom: 4 }}>👤 Kunde: {l.client}</div>}
-                              {l.source_detail && <div style={{ fontSize: 13, color: "#6b7280" }}>Quelle: {l.source_detail}</div>}
+                              {l.client && <div style={{ fontSize: 13, marginBottom: 4 }}>👤 {l.client}</div>}
                             </div>
-                            {/* Notizen */}
                             <div style={{ flex: "1 1 220px" }}>
                               <div style={{ fontSize: 12, color: "#6b7280", fontWeight: 700, marginBottom: 8 }}>NOTIZEN</div>
                               <textarea value={noteVal} onChange={e => setNoteVal(e.target.value)} rows={3}
                                 style={{ width: "100%", padding: "9px 11px", border: "1px solid #e5e7eb", borderRadius: 9, fontSize: 13, fontFamily: "inherit", resize: "vertical", boxSizing: "border-box" }} />
-                              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                              <div style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "center" }}>
                                 <button onClick={() => updateLead(l.id, { notes: noteVal })}
                                   style={{ padding: "7px 14px", background: "#1a1a2e", color: "#fff", border: "none", borderRadius: 8, fontSize: 12, cursor: "pointer" }}>
                                   Speichern
@@ -211,13 +196,12 @@ export default function DashboardPage() {
                                   style={{ padding: "7px 11px", border: "1px solid #e5e7eb", borderRadius: 8, fontSize: 12 }} />
                               </div>
                             </div>
-                            {/* KI-Anschreiben */}
                             <div style={{ flex: "1 1 260px" }}>
                               <div style={{ fontSize: 12, color: "#6b7280", fontWeight: 700, marginBottom: 8 }}>KI-ANSCHREIBEN</div>
-                              {outreach[l.id] || l.outreach_text ? (
+                              {(outreach[l.id] || l.outreach_text) && (
                                 <textarea readOnly value={outreach[l.id] || l.outreach_text} rows={5}
                                   style={{ width: "100%", padding: "9px 11px", border: "1px solid #e5e7eb", borderRadius: 9, fontSize: 12, fontFamily: "inherit", resize: "vertical", boxSizing: "border-box", background: "#fff" }} />
-                              ) : null}
+                              )}
                               <button onClick={() => genOutreach(l)} disabled={generating === l.id}
                                 style={{ marginTop: 8, padding: "7px 14px", background: "#6366f1", color: "#fff", border: "none", borderRadius: 8, fontSize: 12, cursor: "pointer" }}>
                                 {generating === l.id ? "⏳ Wird erstellt…" : "✍️ Anschreiben generieren"}
