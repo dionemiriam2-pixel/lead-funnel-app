@@ -1,47 +1,50 @@
 import LeadForm from "./LeadForm";
 
-// ── Subkomponenten ─────────────────────────────────────────────
-
 function StarRow({ n = 5 }) {
   return <span style={{ color: "#f59e0b", letterSpacing: 2, fontSize: 17 }}>{"★".repeat(n)}</span>;
 }
 
-function CheckItem({ text }) {
+function CheckItem({ text, dark }) {
   return (
-    <li style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "7px 0", fontSize: 16 }}>
-      <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: "50%", background: "rgba(255,255,255,.22)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 13 }}>✓</span>
-      <span>{text}</span>
+    <li style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "8px 0", fontSize: 16 }}>
+      <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: "50%", background: "#10b981", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 12, color: "#fff", marginTop: 1 }}>✓</span>
+      <span style={{ color: dark ? "rgba(255,255,255,.9)" : "#374151", lineHeight: 1.5 }}>{text}</span>
     </li>
   );
 }
 
 function SectionTitle({ children, sub }) {
   return (
-    <div style={{ textAlign: "center", marginBottom: 48 }}>
-      <h2 style={{ fontSize: 30, fontWeight: 800, color: "#111827", marginBottom: 10 }}>{children}</h2>
-      {sub && <p style={{ fontSize: 17, color: "#6b7280", maxWidth: 540, margin: "0 auto" }}>{sub}</p>}
+    <div style={{ textAlign: "center", marginBottom: 52 }}>
+      <h2 style={{ fontSize: "clamp(24px,3.5vw,34px)", fontWeight: 800, color: "#111827", marginBottom: 12, lineHeight: 1.25 }}>{children}</h2>
+      {sub && <p style={{ fontSize: 17, color: "#6b7280", maxWidth: 540, margin: "0 auto", lineHeight: 1.6 }}>{sub}</p>}
     </div>
   );
 }
 
 function BenefitCard({ icon, title, text }) {
   return (
-    <div style={{ flex: "1 1 220px", background: "#fff", borderRadius: 16, padding: 28, boxShadow: "0 2px 16px rgba(0,0,0,.07)", border: "1px solid #f3f4f6" }}>
-      <div style={{ fontSize: 36, marginBottom: 14 }}>{icon}</div>
-      <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, color: "#111827" }}>{title}</h3>
-      <p style={{ fontSize: 15, color: "#6b7280", lineHeight: 1.6 }}>{text}</p>
+    <div style={{ flex: "1 1 220px", background: "#fff", borderRadius: 16, padding: 32, boxShadow: "0 2px 20px rgba(0,0,0,.06)", border: "1px solid #f3f4f6" }}>
+      <div style={{ fontSize: 36, marginBottom: 16 }}>{icon}</div>
+      <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 10, color: "#111827" }}>{title}</h3>
+      <p style={{ fontSize: 15, color: "#6b7280", lineHeight: 1.65 }}>{text}</p>
     </div>
   );
 }
 
 function TestimonialCard({ name, company, text, stars = 5 }) {
   return (
-    <div style={{ flex: "1 1 260px", background: "#fff", borderRadius: 16, padding: 28, boxShadow: "0 2px 16px rgba(0,0,0,.07)", border: "1px solid #f3f4f6" }}>
+    <div style={{ flex: "1 1 260px", background: "#fff", borderRadius: 16, padding: 28, boxShadow: "0 2px 20px rgba(0,0,0,.06)", border: "1px solid #f3f4f6" }}>
       <StarRow n={stars} />
-      <p style={{ fontSize: 15, color: "#374151", margin: "14px 0 18px", lineHeight: 1.65, fontStyle: "italic" }}>„{text}"</p>
-      <div>
-        <span style={{ fontWeight: 700, fontSize: 14, color: "#111827" }}>{name}</span>
-        {company && <span style={{ fontSize: 13, color: "#9ca3af" }}> · {company}</span>}
+      <p style={{ fontSize: 15, color: "#374151", margin: "14px 0 20px", lineHeight: 1.7, fontStyle: "italic" }}>„{text}"</p>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ width: 38, height: 38, borderRadius: "50%", background: "#111827", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 15 }}>
+          {name[0]}
+        </div>
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 14, color: "#111827" }}>{name}</div>
+          {company && <div style={{ fontSize: 12, color: "#9ca3af" }}>{company}</div>}
+        </div>
       </div>
     </div>
   );
@@ -49,17 +52,15 @@ function TestimonialCard({ name, company, text, stars = 5 }) {
 
 function FaqItem({ q, a }) {
   return (
-    <details style={{ borderBottom: "1px solid #f3f4f6", padding: "18px 0" }}>
+    <details style={{ borderBottom: "1px solid #f3f4f6", padding: "20px 0" }}>
       <summary style={{ fontWeight: 700, fontSize: 16, color: "#111827", cursor: "pointer", listStyle: "none", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         {q}
-        <span style={{ fontSize: 22, color: "#9ca3af", userSelect: "none", marginLeft: 16, flexShrink: 0 }}>＋</span>
+        <span style={{ fontSize: 20, color: "#10b981", userSelect: "none", marginLeft: 16, flexShrink: 0, fontWeight: 900 }}>+</span>
       </summary>
-      <p style={{ marginTop: 12, color: "#6b7280", fontSize: 15, lineHeight: 1.7 }}>{a}</p>
+      <p style={{ marginTop: 14, color: "#6b7280", fontSize: 15, lineHeight: 1.75 }}>{a}</p>
     </details>
   );
 }
-
-// ── Hauptkomponente ────────────────────────────────────────────
 
 export default function LandingPage({ lp }) {
 
@@ -82,7 +83,7 @@ export default function LandingPage({ lp }) {
     { q: "Macht ihr auch kleinere Umbauten?", a: "Absolut. Ob komplette Neueröffnung oder einzelne Umbaumaßnahme — wir helfen bei jedem Projektumfang." },
   ];
 
-  const urgency = lp.urgencyText || "Nur noch wenige freie Beratungstermine im Juni — jetzt Platz sichern.";
+  const urgency = lp.urgencyText || "Nur noch wenige freie Beratungstermine — jetzt Platz sichern.";
   const reviewCount = lp.reviewCount || "50+";
   const reviewText = lp.reviewText || "zufriedene Kunden";
 
@@ -90,47 +91,47 @@ export default function LandingPage({ lp }) {
     <main style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif", color: "#111827" }}>
 
       {/* ── 1. HERO ─────────────────────────────────────────── */}
-      <section style={{ background: "linear-gradient(135deg,#1e3a8a 0%,#2563eb 55%,#0284c7 100%)", color: "#fff", padding: "64px 20px 72px" }}>
-        <div style={{ maxWidth: 1040, margin: "0 auto", display: "flex", flexWrap: "wrap", gap: 48, alignItems: "flex-start" }}>
+      <section style={{ background: "#111827", color: "#fff", padding: "72px 20px 80px" }}>
+        <div style={{ maxWidth: 1060, margin: "0 auto", display: "flex", flexWrap: "wrap", gap: 52, alignItems: "flex-start" }}>
 
           {/* Left: Copy */}
           <div style={{ flex: "1 1 340px", minWidth: 280 }}>
             {lp.badge && (
-              <span style={{ display: "inline-block", background: "rgba(255,255,255,.18)", border: "1px solid rgba(255,255,255,.3)", padding: "6px 14px", borderRadius: 999, fontSize: 13, fontWeight: 700, marginBottom: 22, letterSpacing: .3 }}>
+              <span style={{ display: "inline-block", background: "#10b981", color: "#fff", padding: "6px 16px", borderRadius: 999, fontSize: 13, fontWeight: 700, marginBottom: 24, letterSpacing: .3 }}>
                 {lp.badge}
               </span>
             )}
-            <h1 style={{ fontSize: "clamp(26px,4vw,40px)", lineHeight: 1.18, fontWeight: 900, marginBottom: 18 }}>{lp.headline}</h1>
-            <p style={{ fontSize: 18, opacity: .9, marginBottom: 28, lineHeight: 1.6 }}>{lp.subline}</p>
-            <ul style={{ listStyle: "none", marginBottom: 36 }}>
-              {(lp.bullets || []).map((b, i) => <CheckItem key={i} text={b} />)}
+            <h1 style={{ fontSize: "clamp(28px,4vw,44px)", lineHeight: 1.15, fontWeight: 900, marginBottom: 20, letterSpacing: -.5 }}>{lp.headline}</h1>
+            <p style={{ fontSize: 18, color: "rgba(255,255,255,.75)", marginBottom: 32, lineHeight: 1.65 }}>{lp.subline}</p>
+            <ul style={{ listStyle: "none", marginBottom: 40 }}>
+              {(lp.bullets || []).map((b, i) => <CheckItem key={i} text={b} dark />)}
             </ul>
 
             {/* Social proof bar */}
-            <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", background: "rgba(255,255,255,.12)", borderRadius: 12, padding: "14px 18px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap", background: "rgba(255,255,255,.07)", borderRadius: 14, padding: "16px 20px", border: "1px solid rgba(255,255,255,.1)" }}>
               <div>
                 <StarRow n={5} />
-                <div style={{ fontSize: 13, opacity: .85, marginTop: 2 }}>{reviewCount} {reviewText}</div>
+                <div style={{ fontSize: 13, color: "rgba(255,255,255,.6)", marginTop: 3 }}>{reviewCount} {reviewText}</div>
               </div>
-              <div style={{ width: 1, height: 36, background: "rgba(255,255,255,.25)" }} />
-              <div style={{ fontSize: 13, opacity: .85, lineHeight: 1.5 }}>
-                ✓ Kostenlos &nbsp;·&nbsp; ✓ Unverbindlich &nbsp;·&nbsp; ✓ Schnelle Antwort
+              <div style={{ width: 1, height: 38, background: "rgba(255,255,255,.15)" }} />
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,.65)", lineHeight: 1.6 }}>
+                ✓ Kostenlos &nbsp;·&nbsp; ✓ Unverbindlich &nbsp;·&nbsp; ✓ Antwort in 24h
               </div>
             </div>
           </div>
 
           {/* Right: Form card */}
-          <div style={{ flex: "0 1 360px", minWidth: 280, background: "#fff", color: "#111827", borderRadius: 20, padding: "32px 28px", boxShadow: "0 16px 48px rgba(0,0,0,.22)" }}>
-            <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 4 }}>{lp.formTitle || "Jetzt anfragen"}</h2>
-            {lp.formSub && <p style={{ fontSize: 14, color: "#6b7280", marginBottom: 20 }}>{lp.formSub}</p>}
+          <div style={{ flex: "0 1 370px", minWidth: 280, background: "#fff", color: "#111827", borderRadius: 20, padding: "36px 30px", boxShadow: "0 24px 64px rgba(0,0,0,.35)" }}>
+            <h2 style={{ fontSize: 21, fontWeight: 800, marginBottom: 4, color: "#111827" }}>{lp.formTitle || "Jetzt anfragen"}</h2>
+            {lp.formSub && <p style={{ fontSize: 14, color: "#6b7280", marginBottom: 22 }}>{lp.formSub}</p>}
             <LeadForm lp={lp} />
           </div>
         </div>
       </section>
 
       {/* ── 2. VERTRAUENSLEISTE ─────────────────────────────── */}
-      <section style={{ background: "#f9fafb", borderBottom: "1px solid #f3f4f6", padding: "20px" }}>
-        <div style={{ maxWidth: 1040, margin: "0 auto", display: "flex", justifyContent: "center", gap: "16px 40px", flexWrap: "wrap", alignItems: "center" }}>
+      <section style={{ background: "#f9fafb", borderBottom: "1px solid #f3f4f6", padding: "22px 20px" }}>
+        <div style={{ maxWidth: 1060, margin: "0 auto", display: "flex", justifyContent: "center", gap: "14px 44px", flexWrap: "wrap", alignItems: "center" }}>
           {[
             { icon: "🔒", text: "SSL-verschlüsselt" },
             { icon: "🚫", text: "Kein Spam" },
@@ -145,8 +146,8 @@ export default function LandingPage({ lp }) {
       </section>
 
       {/* ── 3. VORTEILE ─────────────────────────────────────── */}
-      <section style={{ padding: "72px 20px" }}>
-        <div style={{ maxWidth: 1040, margin: "0 auto" }}>
+      <section style={{ padding: "80px 20px", background: "#fff" }}>
+        <div style={{ maxWidth: 1060, margin: "0 auto" }}>
           <SectionTitle sub="Was du von der Zusammenarbeit mit uns bekommst.">
             Dein Vorteil auf einen Blick
           </SectionTitle>
@@ -157,20 +158,23 @@ export default function LandingPage({ lp }) {
       </section>
 
       {/* ── 4. SO LÄUFT ES AB ───────────────────────────────── */}
-      <section style={{ background: "#eff6ff", padding: "72px 20px" }}>
-        <div style={{ maxWidth: 780, margin: "0 auto" }}>
+      <section style={{ background: "#f9fafb", padding: "80px 20px" }}>
+        <div style={{ maxWidth: 760, margin: "0 auto" }}>
           <SectionTitle sub="In 3 einfachen Schritten zum Ergebnis.">So funktioniert es</SectionTitle>
-          <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
             {(lp.steps || [
-              { n: "1", title: "Anfrage stellen", text: "Trag dich in das Formular ein — dauert unter 2 Minuten." },
-              { n: "2", title: "Kostenloses Erstgespräch", text: "Wir melden uns innerhalb von 24h und klären dein Vorhaben." },
-              { n: "3", title: "Maßgeschneidertes Angebot", text: "Du bekommst ein klares Angebot — ohne Überraschungen." },
-            ]).map(s => (
-              <div key={s.n} style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
-                <div style={{ flexShrink: 0, width: 48, height: 48, borderRadius: "50%", background: "#2563eb", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 20 }}>{s.n}</div>
-                <div style={{ paddingTop: 6 }}>
-                  <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 4, color: "#111827" }}>{s.title}</h3>
-                  <p style={{ fontSize: 15, color: "#6b7280", lineHeight: 1.6 }}>{s.text}</p>
+              { n: "01", title: "Anfrage stellen", text: "Trag dich in das Formular ein — dauert unter 2 Minuten." },
+              { n: "02", title: "Kostenloses Erstgespräch", text: "Wir melden uns innerhalb von 24h und klären dein Vorhaben." },
+              { n: "03", title: "Maßgeschneidertes Angebot", text: "Du bekommst ein klares Angebot — ohne Überraschungen." },
+            ]).map((s, idx, arr) => (
+              <div key={s.n} style={{ display: "flex", gap: 0, alignItems: "stretch" }}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginRight: 24 }}>
+                  <div style={{ flexShrink: 0, width: 52, height: 52, borderRadius: "50%", background: "#111827", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 16, letterSpacing: -1 }}>{s.n}</div>
+                  {idx < arr.length - 1 && <div style={{ width: 2, flex: 1, background: "#e5e7eb", minHeight: 40, margin: "8px 0" }} />}
+                </div>
+                <div style={{ paddingTop: 12, paddingBottom: idx < arr.length - 1 ? 36 : 0 }}>
+                  <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 6, color: "#111827" }}>{s.title}</h3>
+                  <p style={{ fontSize: 15, color: "#6b7280", lineHeight: 1.65 }}>{s.text}</p>
                 </div>
               </div>
             ))}
@@ -179,8 +183,8 @@ export default function LandingPage({ lp }) {
       </section>
 
       {/* ── 5. TESTIMONIALS ─────────────────────────────────── */}
-      <section style={{ padding: "72px 20px" }}>
-        <div style={{ maxWidth: 1040, margin: "0 auto" }}>
+      <section style={{ padding: "80px 20px", background: "#fff" }}>
+        <div style={{ maxWidth: 1060, margin: "0 auto" }}>
           <SectionTitle sub="Das sagen unsere Kunden über die Zusammenarbeit.">
             Echte Erfahrungen, echte Ergebnisse
           </SectionTitle>
@@ -191,40 +195,40 @@ export default function LandingPage({ lp }) {
       </section>
 
       {/* ── 6. FAQ ──────────────────────────────────────────── */}
-      <section style={{ background: "#f9fafb", padding: "72px 20px" }}>
+      <section style={{ background: "#f9fafb", padding: "80px 20px" }}>
         <div style={{ maxWidth: 720, margin: "0 auto" }}>
           <SectionTitle sub="Häufig gestellte Fragen — ehrlich beantwortet.">
             Deine Fragen, unsere Antworten
           </SectionTitle>
-          <div style={{ background: "#fff", borderRadius: 16, padding: "8px 28px", boxShadow: "0 2px 16px rgba(0,0,0,.06)" }}>
+          <div style={{ background: "#fff", borderRadius: 16, padding: "8px 32px", boxShadow: "0 2px 20px rgba(0,0,0,.06)" }}>
             {faqs.map((f, i) => <FaqItem key={i} {...f} />)}
           </div>
         </div>
       </section>
 
       {/* ── 7. FINAL CTA ────────────────────────────────────── */}
-      <section style={{ background: "linear-gradient(135deg,#1e3a8a,#2563eb)", color: "#fff", padding: "72px 20px", textAlign: "center" }}>
+      <section style={{ background: "#111827", color: "#fff", padding: "80px 20px", textAlign: "center" }}>
         <div style={{ maxWidth: 640, margin: "0 auto" }}>
-          <div style={{ display: "inline-block", background: "#ef4444", color: "#fff", padding: "8px 18px", borderRadius: 999, fontSize: 13, fontWeight: 700, marginBottom: 28, letterSpacing: .3 }}>
+          <div style={{ display: "inline-block", background: "#10b981", color: "#fff", padding: "8px 20px", borderRadius: 999, fontSize: 13, fontWeight: 700, marginBottom: 28, letterSpacing: .3 }}>
             ⏰ {urgency}
           </div>
-          <h2 style={{ fontSize: "clamp(22px,3.5vw,34px)", fontWeight: 900, marginBottom: 16 }}>
+          <h2 style={{ fontSize: "clamp(22px,3.5vw,36px)", fontWeight: 900, marginBottom: 16, letterSpacing: -.5 }}>
             {lp.ctaTitle || "Jetzt kostenlosen Termin sichern"}
           </h2>
-          <p style={{ fontSize: 17, opacity: .9, marginBottom: 36 }}>
+          <p style={{ fontSize: 17, color: "rgba(255,255,255,.7)", marginBottom: 40, lineHeight: 1.6 }}>
             {lp.ctaSub || "Kostenlos · Unverbindlich · Antwort innerhalb von 24 Stunden"}
           </p>
-          <div style={{ background: "#fff", color: "#111827", borderRadius: 20, padding: "32px 28px", maxWidth: 400, margin: "0 auto", boxShadow: "0 16px 48px rgba(0,0,0,.25)", textAlign: "left" }}>
+          <div style={{ background: "#fff", color: "#111827", borderRadius: 20, padding: "36px 32px", maxWidth: 420, margin: "0 auto", boxShadow: "0 24px 64px rgba(0,0,0,.35)", textAlign: "left" }}>
             <LeadForm lp={lp} />
           </div>
-          <p style={{ marginTop: 24, fontSize: 13, opacity: .7 }}>
+          <p style={{ marginTop: 24, fontSize: 13, color: "rgba(255,255,255,.4)" }}>
             🔒 Deine Daten werden vertraulich behandelt und nicht weitergegeben.
           </p>
         </div>
       </section>
 
       {/* ── Footer ──────────────────────────────────────────── */}
-      <footer style={{ background: "#111827", color: "#9ca3af", padding: "24px 20px", textAlign: "center", fontSize: 13 }}>
+      <footer style={{ background: "#0f172a", color: "#4b5563", padding: "28px 20px", textAlign: "center", fontSize: 13, borderTop: "1px solid #1f2937" }}>
         © {new Date().getFullYear()} · {lp.footerText || "Alle Angaben ohne Gewähr · Datenschutz · Impressum"}
       </footer>
 

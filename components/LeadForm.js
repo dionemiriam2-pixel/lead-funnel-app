@@ -59,8 +59,8 @@ export default function LeadForm({ lp }) {
           <span>Schritt {step} von {TOTAL}</span>
           <span>{pct}% abgeschlossen</span>
         </div>
-        <div style={{ height: 6, background: "#e5e7eb", borderRadius: 999 }}>
-          <div style={{ height: 6, width: pct + "%", background: "linear-gradient(90deg,#2563eb,#0ea5e9)", borderRadius: 999, transition: "width .35s ease" }} />
+        <div style={{ height: 5, background: "#e5e7eb", borderRadius: 999 }}>
+          <div style={{ height: 5, width: pct + "%", background: "#10b981", borderRadius: 999, transition: "width .35s ease" }} />
         </div>
       </div>
 
@@ -74,13 +74,13 @@ export default function LeadForm({ lp }) {
             {intents.map(opt => (
               <button key={opt} onClick={() => { setIntent(opt); setStep(2); }}
                 style={{
-                  padding: "13px 16px", border: "2px solid " + (intent === opt ? "#2563eb" : "#e5e7eb"),
-                  borderRadius: 10, background: intent === opt ? "#eff6ff" : "#fff",
+                  padding: "13px 16px", border: "2px solid " + (intent === opt ? "#10b981" : "#e5e7eb"),
+                  borderRadius: 10, background: intent === opt ? "#f0fdf4" : "#fff",
                   color: "#111827", fontSize: 15, textAlign: "left", cursor: "pointer",
                   fontWeight: intent === opt ? 700 : 400, transition: "all .15s",
                   display: "flex", alignItems: "center", gap: 10,
                 }}>
-                <span style={{ width: 20, height: 20, borderRadius: "50%", border: "2px solid " + (intent === opt ? "#2563eb" : "#d1d5db"), background: intent === opt ? "#2563eb" : "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <span style={{ width: 20, height: 20, borderRadius: "50%", border: "2px solid " + (intent === opt ? "#10b981" : "#d1d5db"), background: intent === opt ? "#10b981" : "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   {intent === opt && <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#fff" }} />}
                 </span>
                 {opt}
@@ -135,7 +135,7 @@ export default function LeadForm({ lp }) {
             <button onClick={() => setStep(2)} style={backBtn}>← Zurück</button>
             <button onClick={() => fields.email.trim() ? submit() : setErr("Bitte E-Mail eingeben.")}
               disabled={sending}
-              style={{ ...nextBtn, flex: 1, background: "linear-gradient(135deg,#2563eb,#0ea5e9)", padding: 14, fontSize: 16, fontWeight: 800 }}>
+              style={{ ...nextBtn, flex: 1, background: "#10b981", padding: 14, fontSize: 16, fontWeight: 800 }}>
               {sending ? "⏳ Wird gesendet…" : (lp.cta || "Jetzt anfragen")}
             </button>
           </div>
@@ -152,7 +152,7 @@ const inp = {
   fontFamily: "inherit",
 };
 const nextBtn = {
-  flex: 1, padding: "13px 18px", background: "#1d4ed8", color: "#fff",
+  flex: 1, padding: "13px 18px", background: "#111827", color: "#fff",
   border: "none", borderRadius: 10, fontSize: 15, fontWeight: 700,
   cursor: "pointer",
 };
