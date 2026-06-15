@@ -48,6 +48,8 @@ export default function DashboardPage() {
   const [noteVal, setNoteVal] = useState("");
   const [outreach, setOutreach] = useState({});
   const [generating, setGenerating] = useState(null);
+  const [enriching, setEnriching] = useState(null);
+  const [sequencing, setSequencing] = useState(null);
   const [clientForOutreach, setClientForOutreach] = useState(null);
 
   const load = useCallback(async () => {
@@ -78,6 +80,30 @@ export default function DashboardPage() {
     if (!confirm("Lead wirklich löschen?")) return;
     await fetch("/api/leads?id=" + id, { method: "DELETE", headers: authHeaders() });
     setLeads(ls => ls.filter(l => l.id !== id));
+  }
+
+  async function enrichLead(lead) {
+    setEnriching(lead.id);
+    const r = await fetch("/api/enrich", { method: "POST", headers: authHeaders(), body: JSON.stringify({ lead_id: lead.id }) });
+    const d = await r.json();
+    if (d.ok) {
+      setLeads(ls => ls.map(l => l.id === lead.id ? { ...l, enriched_data: d.enriched, score: d.enriched.score_suggestion || l.score } : l));
+    }
+    setEnriching(null);
+  }
+
+  async function startSequence(lead) {
+    setSequencing(lead.id);
+    const r = await fetch("/api/sequence", { method: "POST", headers: authHeaders(), body: JSON.stringify({ lead_id: lead.id }) });
+    const d = await r.json();
+    if (d.ok) setLeads(ls => ls.map(l => l.id === lead.id ? { ...l, sequence: d.steps, sequence_started_at: new Date().toISOString() } : l));
+    setSequencing(null);
+  }
+
+  async function updateStep(lead, stepId, status) {
+    const r = await fetch("/api/sequence", { method: "PATCH", headers: authHeaders(), body: JSON.stringify({ lead_id: lead.id, step_id: stepId, status }) });
+    const d = await r.json();
+    if (d.ok) setLeads(ls => ls.map(l => l.id === lead.id ? { ...l, sequence: d.steps } : l));
   }
 
   async function genOutreach(lead) {
@@ -182,6 +208,22 @@ export default function DashboardPage() {
                               {l.phone && <div style={{ fontSize: 13, marginBottom: 4 }}>📞 {l.phone}</div>}
                               {l.industry && <div style={{ fontSize: 13, marginBottom: 4 }}>🏷 {l.industry}</div>}
                               {l.client && <div style={{ fontSize: 13, marginBottom: 4 }}>👤 {l.client}</div>}
+
+                              {/* KI-ANREICHERUNG */}
+                              <div style={{ marginTop: 12 }}>
+                                <button onClick={() => enrichLead(l)} disabled={enriching === l.id}
+                                  style={{ padding: "7px 13px", background: enriching === l.id ? "#e5e7eb" : "#f5f3ff", color: enriching === l.id ? "#9ca3af" : "#4338ca", border: "1px solid #ddd6fe", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: enriching === l.id ? "not-allowed" : "pointer" }}>
+                                  {enriching === l.id ? "⏳ KI analysiert…" : "🔍 KI-Analyse"}
+                                </button>
+                              </div>
+                              {l.enriched_data?.main_offering && (
+                                <div style={{ marginTop: 10, background: "#f5f3ff", borderRadius: 10, padding: "10px 12px" }}>
+                                  <div style={{ fontSize: 11, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", marginBottom: 6 }}>KI-Einschätzung</div>
+                                  <div style={{ fontSize: 12, color: "#374151", marginBottom: 4 }}>🏢 {l.enriched_data.main_offering}</div>
+                                  {l.enriched_data.pain_points && <div style={{ fontSize: 12, color: "#374151", marginBottom: 4 }}>⚡ {l.enriched_data.pain_points}</div>}
+                                  {l.enriched_data.outreach_angle && <div style={{ fontSize: 12, color: "#4338ca", fontWeight: 600 }}>💡 {l.enriched_data.outreach_angle}</div>}
+                                </div>
+                              )}
                             </div>
                             <div style={{ flex: "1 1 220px" }}>
                               <div style={{ fontSize: 12, color: "#6b7280", fontWeight: 700, marginBottom: 8 }}>NOTIZEN</div>
@@ -196,27 +238,47 @@ export default function DashboardPage() {
                                   style={{ padding: "7px 11px", border: "1px solid #e5e7eb", borderRadius: 8, fontSize: 12 }} />
                               </div>
                             </div>
-                            <div style={{ flex: "1 1 200px" }}>
-                              <div style={{ fontSize: 12, color: "#6b7280", fontWeight: 700, marginBottom: 8 }}>OUTREACH-KANÄLE</div>
-                              {[
-                                { key: "ads", icon: "🎯", label: "Ads hochgeladen" },
-                                { key: "linkedin", icon: "💼", label: "LinkedIn kontaktiert" },
-                                { key: "email", icon: "📧", label: "E-Mail geschickt" },
-                              ].map(ch => {
-                                const ch_data = l.channels || {};
-                                const done = ch_data[ch.key] || false;
-                                return (
-                                  <div key={ch.key}
-                                    onClick={() => updateLead(l.id, { channels: { ...ch_data, [ch.key]: !done } })}
-                                    style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 9, border: `1px solid ${done ? "#6366f1" : "#e5e7eb"}`, background: done ? "#f5f3ff" : "#fff", cursor: "pointer", marginBottom: 8 }}>
-                                    <div style={{ width: 18, height: 18, borderRadius: 4, border: `2px solid ${done ? "#6366f1" : "#d1d5db"}`, background: done ? "#6366f1" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                                      {done && <span style={{ color: "#fff", fontSize: 11 }}>✓</span>}
-                                    </div>
-                                    <span style={{ fontSize: 14 }}>{ch.icon}</span>
-                                    <span style={{ fontSize: 13, color: done ? "#4338ca" : "#374151", fontWeight: done ? 700 : 400 }}>{ch.label}</span>
+                            <div style={{ flex: "1 1 220px" }}>
+                              <div style={{ fontSize: 12, color: "#6b7280", fontWeight: 700, marginBottom: 8 }}>FOLLOW-UP SEQUENZ</div>
+                              {!(l.sequence?.length > 0) ? (
+                                <div>
+                                  <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 10, lineHeight: 1.5 }}>Automatischer Plan: E-Mail → LinkedIn (Tag 3) → Follow-up (Tag 7) → Ads (Tag 14)</div>
+                                  <button onClick={() => startSequence(l)} disabled={sequencing === l.id}
+                                    style={{ padding: "8px 14px", background: "#1a1a2e", color: "#fff", border: "none", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: sequencing === l.id ? "not-allowed" : "pointer" }}>
+                                    {sequencing === l.id ? "⏳ Startet…" : "▶ Sequenz starten"}
+                                  </button>
+                                </div>
+                              ) : (
+                                <div>
+                                  {l.sequence.map(step => {
+                                    const done = step.status === "done";
+                                    const skipped = step.status === "skipped";
+                                    const startedAt = l.sequence_started_at ? new Date(l.sequence_started_at) : null;
+                                    const dueDate = startedAt ? new Date(startedAt.getTime() + step.day * 86400000) : null;
+                                    const overdue = dueDate && !done && new Date() > dueDate;
+                                    return (
+                                      <div key={step.id} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 7 }}>
+                                        <div onClick={() => updateStep(l, step.id, done ? "pending" : "done")}
+                                          style={{ width: 18, height: 18, borderRadius: 4, border: `2px solid ${done ? "#22c55e" : overdue ? "#ef4444" : "#d1d5db"}`, background: done ? "#22c55e" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: "pointer" }}>
+                                          {done && <span style={{ color: "#fff", fontSize: 11 }}>✓</span>}
+                                        </div>
+                                        <span style={{ fontSize: 14 }}>{step.icon}</span>
+                                        <div style={{ flex: 1 }}>
+                                          <span style={{ fontSize: 12, color: done ? "#9ca3af" : "#374151", fontWeight: done ? 400 : 600, textDecoration: done ? "line-through" : "none" }}>{step.label}</span>
+                                          {dueDate && !done && <div style={{ fontSize: 11, color: overdue ? "#ef4444" : "#9ca3af" }}>{overdue ? "⚠ überfällig" : `Tag ${step.day}`}</div>}
+                                        </div>
+                                        {!done && !skipped && (
+                                          <button onClick={() => updateStep(l, step.id, "skipped")}
+                                            style={{ background: "none", border: "none", color: "#d1d5db", cursor: "pointer", fontSize: 11 }}>skip</button>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                  <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 6 }}>
+                                    {l.sequence.filter(s => s.status === "done").length}/{l.sequence.length} erledigt
                                   </div>
-                                );
-                              })}
+                                </div>
+                              )}
                             </div>
                             <div style={{ flex: "1 1 260px" }}>
                               <div style={{ fontSize: 12, color: "#6b7280", fontWeight: 700, marginBottom: 8 }}>KI-ANSCHREIBEN</div>
