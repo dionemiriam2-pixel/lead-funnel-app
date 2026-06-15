@@ -6,10 +6,10 @@ function auth(req) {
 }
 
 const DEFAULT_STEPS = [
-  { id: 1, day: 0, type: "email", label: "E-Mail senden", icon: "📧", status: "pending" },
-  { id: 2, day: 3, type: "linkedin", label: "LinkedIn kontaktieren", icon: "💼", status: "pending" },
-  { id: 3, day: 7, type: "email_followup", label: "Follow-up E-Mail", icon: "📧", status: "pending" },
-  { id: 4, day: 14, type: "ads", label: "Custom Audience hochladen", icon: "🎯", status: "pending" },
+  { id: 1, day: 0,  type: "email",          label: "E-Mail senden",             status: "pending" },
+  { id: 2, day: 3,  type: "linkedin",       label: "LinkedIn kontaktieren",     status: "pending" },
+  { id: 3, day: 7,  type: "email_followup", label: "Follow-up E-Mail",          status: "pending" },
+  { id: 4, day: 14, type: "ads",            label: "Custom Audience hochladen", status: "pending" },
 ];
 
 // Sequenz starten
