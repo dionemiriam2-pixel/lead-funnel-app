@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { isLoggedIn, logout } from "@/lib/auth";
+import BotButton from "@/components/BotButton";
 
 const NAV = [
   { href: "/dashboard", label: "📊 Leads" },
@@ -49,6 +50,7 @@ export default function AppShell({ children }) {
             style={{ display: "block", padding: "9px 14px", borderRadius: 10, color: "rgba(255,255,255,.5)", fontSize: 12, textDecoration: "none", marginBottom: 6 }}>
             🔗 Landing Pages ↗
           </a>
+          <BotButton />
           <button onClick={() => { logout(); router.replace("/login"); }}
             style={{ width: "100%", padding: "9px 14px", background: "rgba(255,255,255,.08)", border: "none", borderRadius: 10, color: "rgba(255,255,255,.5)", fontSize: 12, cursor: "pointer", textAlign: "left" }}>
             🚪 Abmelden
