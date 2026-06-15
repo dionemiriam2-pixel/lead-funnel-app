@@ -196,6 +196,28 @@ export default function DashboardPage() {
                                   style={{ padding: "7px 11px", border: "1px solid #e5e7eb", borderRadius: 8, fontSize: 12 }} />
                               </div>
                             </div>
+                            <div style={{ flex: "1 1 200px" }}>
+                              <div style={{ fontSize: 12, color: "#6b7280", fontWeight: 700, marginBottom: 8 }}>OUTREACH-KANÄLE</div>
+                              {[
+                                { key: "ads", icon: "🎯", label: "Ads hochgeladen" },
+                                { key: "linkedin", icon: "💼", label: "LinkedIn kontaktiert" },
+                                { key: "email", icon: "📧", label: "E-Mail geschickt" },
+                              ].map(ch => {
+                                const ch_data = l.channels || {};
+                                const done = ch_data[ch.key] || false;
+                                return (
+                                  <div key={ch.key}
+                                    onClick={() => updateLead(l.id, { channels: { ...ch_data, [ch.key]: !done } })}
+                                    style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 9, border: `1px solid ${done ? "#6366f1" : "#e5e7eb"}`, background: done ? "#f5f3ff" : "#fff", cursor: "pointer", marginBottom: 8 }}>
+                                    <div style={{ width: 18, height: 18, borderRadius: 4, border: `2px solid ${done ? "#6366f1" : "#d1d5db"}`, background: done ? "#6366f1" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                                      {done && <span style={{ color: "#fff", fontSize: 11 }}>✓</span>}
+                                    </div>
+                                    <span style={{ fontSize: 14 }}>{ch.icon}</span>
+                                    <span style={{ fontSize: 13, color: done ? "#4338ca" : "#374151", fontWeight: done ? 700 : 400 }}>{ch.label}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
                             <div style={{ flex: "1 1 260px" }}>
                               <div style={{ fontSize: 12, color: "#6b7280", fontWeight: 700, marginBottom: 8 }}>KI-ANSCHREIBEN</div>
                               {(outreach[l.id] || l.outreach_text) && (

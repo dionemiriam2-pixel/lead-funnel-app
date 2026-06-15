@@ -83,29 +83,63 @@ export default function KundeDetailPage() {
 
         {/* PROFIL */}
         {tab === "Profil" && (
-          <div style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 1px 8px rgba(0,0,0,.06)", maxWidth: 700 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-              {[["name", "Firmenname"], ["website", "Website"], ["region", "Region"], ["contact", "Ansprechpartner"]].map(([k, l]) => (
-                <div key={k}>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: "#6b7280", display: "block", marginBottom: 4 }}>{l}</label>
-                  <input value={form[k] || ""} onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))}
-                    style={{ width: "100%", padding: "10px 12px", border: "1px solid #e5e7eb", borderRadius: 9, fontSize: 14, boxSizing: "border-box" }} />
-                </div>
-              ))}
-              {[["description", "Was bietet der Kunde an?"], ["usp", "Was macht ihn besonders? (USP)"]].map(([k, l]) => (
-                <div key={k} style={{ gridColumn: "1/-1" }}>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: "#6b7280", display: "block", marginBottom: 4 }}>{l}</label>
-                  <textarea value={form[k] || ""} onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))} rows={3}
-                    style={{ width: "100%", padding: "10px 12px", border: "1px solid #e5e7eb", borderRadius: 9, fontSize: 14, boxSizing: "border-box", fontFamily: "inherit", resize: "vertical" }} />
-                </div>
-              ))}
+          <div style={{ maxWidth: 700 }}>
+            <div style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 1px 8px rgba(0,0,0,.06)", marginBottom: 16 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                {[["name", "Firmenname"], ["website", "Website"], ["region", "Region"], ["contact", "Ansprechpartner"]].map(([k, l]) => (
+                  <div key={k}>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: "#6b7280", display: "block", marginBottom: 4 }}>{l}</label>
+                    <input value={form[k] || ""} onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))}
+                      style={{ width: "100%", padding: "10px 12px", border: "1px solid #e5e7eb", borderRadius: 9, fontSize: 14, boxSizing: "border-box" }} />
+                  </div>
+                ))}
+                {[["description", "Was bietet der Kunde an?"], ["usp", "Was macht ihn besonders? (USP)"]].map(([k, l]) => (
+                  <div key={k} style={{ gridColumn: "1/-1" }}>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: "#6b7280", display: "block", marginBottom: 4 }}>{l}</label>
+                    <textarea value={form[k] || ""} onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))} rows={3}
+                      style={{ width: "100%", padding: "10px 12px", border: "1px solid #e5e7eb", borderRadius: 9, fontSize: 14, boxSizing: "border-box", fontFamily: "inherit", resize: "vertical" }} />
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 16, display: "flex", gap: 10, alignItems: "center" }}>
+                <button onClick={saveClient}
+                  style={{ padding: "10px 22px", background: "#1a1a2e", color: "#fff", border: "none", borderRadius: 9, fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+                  Speichern
+                </button>
+                {msg && <span style={{ color: "#22c55e", fontSize: 13, fontWeight: 600 }}>{msg}</span>}
+              </div>
             </div>
-            <div style={{ marginTop: 16, display: "flex", gap: 10, alignItems: "center" }}>
-              <button onClick={saveClient}
-                style={{ padding: "10px 22px", background: "#1a1a2e", color: "#fff", border: "none", borderRadius: 9, fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
-                Speichern
+
+            {/* KANAL-EINSTELLUNGEN */}
+            <div style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 1px 8px rgba(0,0,0,.06)" }}>
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: "#1a1a2e", marginBottom: 6 }}>📣 Outreach-Kanäle</h3>
+              <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 18 }}>Welche Kanäle nutzt du für diesen Kunden? Die Checkliste erscheint dann bei jedem Lead.</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                {[
+                  { key: "ads", icon: "🎯", label: "Custom Audience Ads", desc: "Kontakte bei Google oder Meta hochladen — Firma sieht deine Werbung" },
+                  { key: "linkedin", icon: "💼", label: "LinkedIn Outreach", desc: "Persönliche Nachricht über LinkedIn schicken" },
+                  { key: "email", icon: "📧", label: "E-Mail", desc: "Personalisiertes Angebot per E-Mail (KI schreibt es automatisch)" },
+                ].map(ch => {
+                  const active = form.channels?.[ch.key] ?? false;
+                  return (
+                    <div key={ch.key} onClick={() => setForm(f => ({ ...f, channels: { ...(f.channels || {}), [ch.key]: !active } }))}
+                      style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderRadius: 12, border: `2px solid ${active ? "#6366f1" : "#e5e7eb"}`, background: active ? "#f5f3ff" : "#fafafa", cursor: "pointer", transition: "all .15s" }}>
+                      <div style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${active ? "#6366f1" : "#d1d5db"}`, background: active ? "#6366f1" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        {active && <span style={{ color: "#fff", fontSize: 14, lineHeight: 1 }}>✓</span>}
+                      </div>
+                      <div style={{ fontSize: 20 }}>{ch.icon}</div>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 14, color: active ? "#4338ca" : "#1a1a2e" }}>{ch.label}</div>
+                        <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>{ch.desc}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <button onClick={saveClient} style={{ marginTop: 16, padding: "10px 22px", background: "#1a1a2e", color: "#fff", border: "none", borderRadius: 9, fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+                Kanäle speichern
               </button>
-              {msg && <span style={{ color: "#22c55e", fontSize: 13, fontWeight: 600 }}>{msg}</span>}
+              {msg && <span style={{ color: "#22c55e", fontSize: 13, fontWeight: 600, marginLeft: 10 }}>{msg}</span>}
             </div>
           </div>
         )}
