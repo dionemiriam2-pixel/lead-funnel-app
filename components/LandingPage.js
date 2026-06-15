@@ -1,68 +1,28 @@
+"use client";
+import { useState } from "react";
 import LeadForm from "./LeadForm";
 
+// ── Subkomponenten ──────────────────────────────────────────────
+
 function StarRow({ n = 5 }) {
-  return <span style={{ color: "#f59e0b", letterSpacing: 2, fontSize: 17 }}>{"★".repeat(n)}</span>;
+  return <span style={{ color: "#f59e0b", letterSpacing: 2, fontSize: 16 }}>{"★".repeat(n)}</span>;
 }
 
-function CheckItem({ text, dark }) {
+function Avatar({ name }) {
   return (
-    <li style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "8px 0", fontSize: 16 }}>
-      <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: "50%", background: "#10b981", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 12, color: "#fff", marginTop: 1 }}>✓</span>
-      <span style={{ color: dark ? "rgba(255,255,255,.9)" : "#374151", lineHeight: 1.5 }}>{text}</span>
-    </li>
-  );
-}
-
-function SectionTitle({ children, sub }) {
-  return (
-    <div style={{ textAlign: "center", marginBottom: 52 }}>
-      <h2 style={{ fontSize: "clamp(24px,3.5vw,34px)", fontWeight: 800, color: "#111827", marginBottom: 12, lineHeight: 1.25 }}>{children}</h2>
-      {sub && <p style={{ fontSize: 17, color: "#6b7280", maxWidth: 540, margin: "0 auto", lineHeight: 1.6 }}>{sub}</p>}
+    <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#1a1a2e", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 17, flexShrink: 0 }}>
+      {name?.[0] || "?"}
     </div>
   );
 }
 
-function BenefitCard({ icon, title, text }) {
-  return (
-    <div style={{ flex: "1 1 220px", background: "#fff", borderRadius: 16, padding: 32, boxShadow: "0 2px 20px rgba(0,0,0,.06)", border: "1px solid #f3f4f6" }}>
-      <div style={{ fontSize: 36, marginBottom: 16 }}>{icon}</div>
-      <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 10, color: "#111827" }}>{title}</h3>
-      <p style={{ fontSize: 15, color: "#6b7280", lineHeight: 1.65 }}>{text}</p>
-    </div>
-  );
-}
-
-function TestimonialCard({ name, company, text, stars = 5 }) {
-  return (
-    <div style={{ flex: "1 1 260px", background: "#fff", borderRadius: 16, padding: 28, boxShadow: "0 2px 20px rgba(0,0,0,.06)", border: "1px solid #f3f4f6" }}>
-      <StarRow n={stars} />
-      <p style={{ fontSize: 15, color: "#374151", margin: "14px 0 20px", lineHeight: 1.7, fontStyle: "italic" }}>„{text}"</p>
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <div style={{ width: 38, height: 38, borderRadius: "50%", background: "#111827", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 15 }}>
-          {name[0]}
-        </div>
-        <div>
-          <div style={{ fontWeight: 700, fontSize: 14, color: "#111827" }}>{name}</div>
-          {company && <div style={{ fontSize: 12, color: "#9ca3af" }}>{company}</div>}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function FaqItem({ q, a }) {
-  return (
-    <details style={{ borderBottom: "1px solid #f3f4f6", padding: "20px 0" }}>
-      <summary style={{ fontWeight: 700, fontSize: 16, color: "#111827", cursor: "pointer", listStyle: "none", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        {q}
-        <span style={{ fontSize: 20, color: "#10b981", userSelect: "none", marginLeft: 16, flexShrink: 0, fontWeight: 900 }}>+</span>
-      </summary>
-      <p style={{ marginTop: 14, color: "#6b7280", fontSize: 15, lineHeight: 1.75 }}>{a}</p>
-    </details>
-  );
-}
+// ── Hauptkomponente ─────────────────────────────────────────────
 
 export default function LandingPage({ lp }) {
+  const [navOpen, setNavOpen] = useState(false);
+
+  const accent = lp.accentColor || "#e8600a";
+  const dark = "#111111";
 
   const benefits = lp.benefits || [
     { icon: "⚡", title: "Schnelle Umsetzung", text: "Klare Abläufe und eingespieltes Team — dein Projekt bleibt im Zeitplan." },
@@ -74,107 +34,143 @@ export default function LandingPage({ lp }) {
     { name: "Sabine K.", company: "Boutique München", text: "Professionell, pünktlich und wirklich mitdenkend. Unser Laden sieht besser aus als erträumt.", stars: 5 },
     { name: "Thomas M.", company: "Café am Markt", text: "Das Team hat alle Kosten im Griff gehalten. Keine bösen Überraschungen — das war Gold wert.", stars: 5 },
     { name: "Julia F.", company: "Mode & Mehr GmbH", text: "Innerhalb von 6 Wochen war alles fertig. Ich hätte es nie allein so schnell geschafft.", stars: 5 },
+    { name: "Kevin B.", company: "Fitnessstudio Köln", text: "Von der ersten Idee bis zur Eröffnung — rundum betreut. Ich würde es sofort wieder so machen.", stars: 5 },
   ];
 
   const faqs = lp.faqs || [
     { q: "Wie lange dauert eine typische Beratung?", a: "Das erste Gespräch dauert etwa 30 Minuten — kostenlos und unverbindlich. Danach bekommst du ein konkretes Angebot." },
-    { q: "Was kostet ein Ladenbau-Projekt ungefähr?", a: "Das hängt von Größe und Ausstattung ab. Wir geben dir nach dem Erstgespräch eine realistische Einschätzung, bevor du irgendetwas unterschreibst." },
+    { q: "Was kostet ein Projekt ungefähr?", a: "Das hängt von Größe und Ausstattung ab. Wir geben dir nach dem Erstgespräch eine realistische Einschätzung, bevor du irgendetwas unterschreibst." },
     { q: "Übernehmt ihr auch die Genehmigungen?", a: "Ja, wir begleiten dich durch den gesamten Prozess — inklusive Behördengängen und Terminkoordination." },
     { q: "Macht ihr auch kleinere Umbauten?", a: "Absolut. Ob komplette Neueröffnung oder einzelne Umbaumaßnahme — wir helfen bei jedem Projektumfang." },
   ];
 
-  const urgency = lp.urgencyText || "Nur noch wenige freie Beratungstermine — jetzt Platz sichern.";
-  const reviewCount = lp.reviewCount || "50+";
-  const reviewText = lp.reviewText || "zufriedene Kunden";
+  const stats = lp.stats || [
+    { n: "+260", label: "Realisierte Projekte" },
+    { n: "+60", label: "Zufriedene Kunden" },
+    { n: "5★", label: "Google-Bewertung" },
+    { n: "< 24h", label: "Antwortzeit" },
+  ];
+
+  const compareRows = lp.compareRows || [
+    { topic: "Planungssicherheit", without: "Unklare Kosten und Zeitplan", with: "Fester Preis, fester Termin" },
+    { topic: "Koordination", without: "Du organisierst alles selbst", with: "Wir übernehmen alle Gewerke" },
+    { topic: "Erfahrung", without: "Viel ausprobieren, viel lernen", with: "50+ Projekte Erfahrung direkt für dich" },
+    { topic: "Stress", without: "Nächte mit Angeboten und Emails", with: "Ein Ansprechpartner, alles klar" },
+    { topic: "Ergebnis", without: "Kompromisse überall", with: "Genau das, was du dir vorgestellt hast" },
+  ];
+
+  const phases = lp.steps || [
+    { n: "01", title: "Anfrage & Erstgespräch", text: "Du trägst dich ein — wir melden uns innerhalb von 24 Stunden für ein kostenloses Erstgespräch." },
+    { n: "02", title: "Analyse & Konzept", text: "Wir schauen uns deine Situation genau an und entwickeln einen klaren Plan für dein Projekt." },
+    { n: "03", title: "Angebot & Freigabe", text: "Du bekommst ein transparentes Angebot ohne Überraschungen. Erst wenn du ja sagst, geht es los." },
+    { n: "04", title: "Umsetzung & Eröffnung", text: "Wir koordinieren alles — du kannst dich auf dein Kerngeschäft konzentrieren." },
+  ];
+
+  const urgency = lp.urgencyText || "Nur noch wenige freie Termine — jetzt sichern.";
 
   return (
-    <main style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif", color: "#111827" }}>
+    <main style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif", color: "#111111" }}>
 
-      {/* ── 1. HERO ─────────────────────────────────────────── */}
-      <section style={{ background: "#111827", color: "#fff", padding: "72px 20px 80px" }}>
-        <div style={{ maxWidth: 1060, margin: "0 auto", display: "flex", flexWrap: "wrap", gap: 52, alignItems: "flex-start" }}>
+      {/* ── STICKY NAV ───────────────────────────────────────── */}
+      <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "#fff", borderBottom: "1px solid #e5e7eb", padding: "14px 20px" }}>
+        <div style={{ maxWidth: 1060, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ fontWeight: 900, fontSize: 20, color: dark, letterSpacing: -0.5 }}>
+            {lp.brand || lp.client || "Ihre Marke"}
+          </div>
+          <a href="#form-cta"
+            style={{ padding: "10px 22px", background: accent, color: "#fff", borderRadius: 8, fontSize: 14, fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
+            Kostenloses Erstgespräch →
+          </a>
+        </div>
+      </nav>
 
-          {/* Left: Copy */}
-          <div style={{ flex: "1 1 340px", minWidth: 280 }}>
+      {/* ── HERO ─────────────────────────────────────────────── */}
+      <section style={{ background: dark, color: "#fff", padding: "80px 20px 88px" }}>
+        <div style={{ maxWidth: 1060, margin: "0 auto", display: "flex", flexWrap: "wrap", gap: 56, alignItems: "flex-start" }}>
+
+          <div style={{ flex: "1 1 360px", minWidth: 280 }}>
             {lp.badge && (
-              <span style={{ display: "inline-block", background: "#10b981", color: "#fff", padding: "6px 16px", borderRadius: 999, fontSize: 13, fontWeight: 700, marginBottom: 24, letterSpacing: .3 }}>
+              <span style={{ display: "inline-block", background: accent, color: "#fff", padding: "6px 16px", borderRadius: 999, fontSize: 13, fontWeight: 700, marginBottom: 24 }}>
                 {lp.badge}
               </span>
             )}
-            <h1 style={{ fontSize: "clamp(28px,4vw,44px)", lineHeight: 1.15, fontWeight: 900, marginBottom: 20, letterSpacing: -.5 }}>{lp.headline}</h1>
-            <p style={{ fontSize: 18, color: "rgba(255,255,255,.75)", marginBottom: 32, lineHeight: 1.65 }}>{lp.subline}</p>
-            <ul style={{ listStyle: "none", marginBottom: 40 }}>
-              {(lp.bullets || []).map((b, i) => <CheckItem key={i} text={b} dark />)}
+            <h1 style={{ fontSize: "clamp(30px,4.5vw,50px)", lineHeight: 1.12, fontWeight: 900, marginBottom: 22, letterSpacing: -1 }}>
+              {lp.headline}
+            </h1>
+            <p style={{ fontSize: 18, color: "rgba(255,255,255,.72)", marginBottom: 36, lineHeight: 1.65 }}>
+              {lp.subline}
+            </p>
+            <ul style={{ listStyle: "none", marginBottom: 44 }}>
+              {(lp.bullets || []).map((b, i) => (
+                <li key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "9px 0", fontSize: 16, color: "rgba(255,255,255,.85)", borderBottom: "1px solid rgba(255,255,255,.07)" }}>
+                  <span style={{ flexShrink: 0, color: accent, fontWeight: 900, fontSize: 18, marginTop: 1 }}>✓</span>
+                  {b}
+                </li>
+              ))}
             </ul>
-
-            {/* Social proof bar */}
-            <div style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap", background: "rgba(255,255,255,.07)", borderRadius: 14, padding: "16px 20px", border: "1px solid rgba(255,255,255,.1)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
               <div>
                 <StarRow n={5} />
-                <div style={{ fontSize: 13, color: "rgba(255,255,255,.6)", marginTop: 3 }}>{reviewCount} {reviewText}</div>
+                <div style={{ fontSize: 13, color: "rgba(255,255,255,.55)", marginTop: 3 }}>
+                  {lp.reviewCount || "50+"} {lp.reviewText || "zufriedene Kunden"}
+                </div>
               </div>
-              <div style={{ width: 1, height: 38, background: "rgba(255,255,255,.15)" }} />
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,.65)", lineHeight: 1.6 }}>
-                ✓ Kostenlos &nbsp;·&nbsp; ✓ Unverbindlich &nbsp;·&nbsp; ✓ Antwort in 24h
+              <div style={{ width: 1, height: 36, background: "rgba(255,255,255,.15)" }} />
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,.55)", lineHeight: 1.6 }}>
+                Kostenlos · Unverbindlich · Vertraulich
               </div>
             </div>
           </div>
 
-          {/* Right: Form card */}
-          <div style={{ flex: "0 1 370px", minWidth: 280, background: "#fff", color: "#111827", borderRadius: 20, padding: "36px 30px", boxShadow: "0 24px 64px rgba(0,0,0,.35)" }}>
-            <h2 style={{ fontSize: 21, fontWeight: 800, marginBottom: 4, color: "#111827" }}>{lp.formTitle || "Jetzt anfragen"}</h2>
-            {lp.formSub && <p style={{ fontSize: 14, color: "#6b7280", marginBottom: 22 }}>{lp.formSub}</p>}
-            <LeadForm lp={lp} />
+          {/* Form */}
+          <div id="form-top" style={{ flex: "0 1 380px", minWidth: 280, background: "#fff", color: "#111", borderRadius: 18, padding: "36px 30px", boxShadow: "0 24px 72px rgba(0,0,0,.4)" }}>
+            <h2 style={{ fontSize: 21, fontWeight: 800, marginBottom: 4, color: dark }}>
+              {lp.formTitle || "Jetzt kostenloses Erstgespräch sichern"}
+            </h2>
+            {lp.formSub && <p style={{ fontSize: 14, color: "#6b7280", marginBottom: 20 }}>{lp.formSub}</p>}
+            <LeadForm lp={lp} accent={accent} />
+            <p style={{ fontSize: 12, color: "#9ca3af", marginTop: 14, textAlign: "center" }}>
+              🔒 Kostenlos · Unverbindlich · Vertraulich
+            </p>
           </div>
         </div>
       </section>
 
-      {/* ── 2. VERTRAUENSLEISTE ─────────────────────────────── */}
-      <section style={{ background: "#f9fafb", borderBottom: "1px solid #f3f4f6", padding: "22px 20px" }}>
-        <div style={{ maxWidth: 1060, margin: "0 auto", display: "flex", justifyContent: "center", gap: "14px 44px", flexWrap: "wrap", alignItems: "center" }}>
-          {[
-            { icon: "🔒", text: "SSL-verschlüsselt" },
-            { icon: "🚫", text: "Kein Spam" },
-            { icon: "📞", text: "Antwort in 24h" },
-            { icon: "🤝", text: "100% unverbindlich" },
-          ].map(t => (
-            <span key={t.text} style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 14, color: "#6b7280", fontWeight: 600 }}>
-              {t.icon} {t.text}
-            </span>
+      {/* ── STATS ────────────────────────────────────────────── */}
+      <section style={{ background: "#f9fafb", borderBottom: "1px solid #f3f4f6", padding: "40px 20px" }}>
+        <div style={{ maxWidth: 1060, margin: "0 auto", display: "flex", justifyContent: "center", gap: "0", flexWrap: "wrap" }}>
+          {stats.map((s, i) => (
+            <div key={i} style={{ flex: "1 1 160px", textAlign: "center", padding: "16px 24px", borderRight: i < stats.length - 1 ? "1px solid #e5e7eb" : "none" }}>
+              <div style={{ fontSize: 34, fontWeight: 900, color: dark, letterSpacing: -1 }}>{s.n}</div>
+              <div style={{ fontSize: 13, color: "#6b7280", marginTop: 4, fontWeight: 600 }}>{s.label}</div>
+            </div>
           ))}
         </div>
       </section>
 
-      {/* ── 3. VORTEILE ─────────────────────────────────────── */}
-      <section style={{ padding: "80px 20px", background: "#fff" }}>
-        <div style={{ maxWidth: 1060, margin: "0 auto" }}>
-          <SectionTitle sub="Was du von der Zusammenarbeit mit uns bekommst.">
-            Dein Vorteil auf einen Blick
-          </SectionTitle>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 24 }}>
-            {benefits.map((b, i) => <BenefitCard key={i} {...b} />)}
+      {/* ── PHASEN (01-04) ───────────────────────────────────── */}
+      <section style={{ background: "#fff", padding: "88px 20px" }}>
+        <div style={{ maxWidth: 820, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 56 }}>
+            <h2 style={{ fontSize: "clamp(24px,3.5vw,36px)", fontWeight: 900, color: dark, marginBottom: 12, letterSpacing: -0.5 }}>
+              {lp.processTitle || "So läuft es ab"}
+            </h2>
+            <p style={{ fontSize: 17, color: "#6b7280", lineHeight: 1.6 }}>In 4 klaren Schritten vom ersten Gespräch bis zum Ergebnis.</p>
           </div>
-        </div>
-      </section>
-
-      {/* ── 4. SO LÄUFT ES AB ───────────────────────────────── */}
-      <section style={{ background: "#f9fafb", padding: "80px 20px" }}>
-        <div style={{ maxWidth: 760, margin: "0 auto" }}>
-          <SectionTitle sub="In 3 einfachen Schritten zum Ergebnis.">So funktioniert es</SectionTitle>
           <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-            {(lp.steps || [
-              { n: "01", title: "Anfrage stellen", text: "Trag dich in das Formular ein — dauert unter 2 Minuten." },
-              { n: "02", title: "Kostenloses Erstgespräch", text: "Wir melden uns innerhalb von 24h und klären dein Vorhaben." },
-              { n: "03", title: "Maßgeschneidertes Angebot", text: "Du bekommst ein klares Angebot — ohne Überraschungen." },
-            ]).map((s, idx, arr) => (
-              <div key={s.n} style={{ display: "flex", gap: 0, alignItems: "stretch" }}>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginRight: 24 }}>
-                  <div style={{ flexShrink: 0, width: 52, height: 52, borderRadius: "50%", background: "#111827", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 16, letterSpacing: -1 }}>{s.n}</div>
-                  {idx < arr.length - 1 && <div style={{ width: 2, flex: 1, background: "#e5e7eb", minHeight: 40, margin: "8px 0" }} />}
+            {phases.map((p, idx) => (
+              <div key={p.n} style={{ display: "flex", gap: 0, alignItems: "stretch" }}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 72, flexShrink: 0 }}>
+                  <div style={{ width: 52, height: 52, borderRadius: "50%", background: dark, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 14, letterSpacing: -0.5, flexShrink: 0 }}>
+                    {p.n}
+                  </div>
+                  {idx < phases.length - 1 && (
+                    <div style={{ width: 2, flex: 1, background: "#e5e7eb", minHeight: 48, margin: "10px 0" }} />
+                  )}
                 </div>
-                <div style={{ paddingTop: 12, paddingBottom: idx < arr.length - 1 ? 36 : 0 }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 6, color: "#111827" }}>{s.title}</h3>
-                  <p style={{ fontSize: 15, color: "#6b7280", lineHeight: 1.65 }}>{s.text}</p>
+                <div style={{ paddingBottom: idx < phases.length - 1 ? 44 : 0, paddingTop: 12, flex: 1 }}>
+                  <h3 style={{ fontSize: 19, fontWeight: 800, color: dark, marginBottom: 8 }}>{p.title}</h3>
+                  <p style={{ fontSize: 15, color: "#6b7280", lineHeight: 1.7 }}>{p.text}</p>
                 </div>
               </div>
             ))}
@@ -182,55 +178,138 @@ export default function LandingPage({ lp }) {
         </div>
       </section>
 
-      {/* ── 5. TESTIMONIALS ─────────────────────────────────── */}
-      <section style={{ padding: "80px 20px", background: "#fff" }}>
+      {/* ── VERGLEICHSTABELLE ────────────────────────────────── */}
+      <section style={{ background: "#f9fafb", padding: "88px 20px" }}>
+        <div style={{ maxWidth: 860, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 48 }}>
+            <h2 style={{ fontSize: "clamp(24px,3.5vw,36px)", fontWeight: 900, color: dark, marginBottom: 12, letterSpacing: -0.5 }}>
+              Der Unterschied auf einen Blick
+            </h2>
+          </div>
+          <div style={{ background: "#fff", borderRadius: 18, overflow: "hidden", boxShadow: "0 4px 32px rgba(0,0,0,.08)", border: "1px solid #f3f4f6" }}>
+            {/* Header */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", background: dark, color: "#fff" }}>
+              <div style={{ padding: "16px 20px", fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,.5)", textTransform: "uppercase" }}></div>
+              <div style={{ padding: "16px 20px", fontSize: 14, fontWeight: 800, textAlign: "center", color: "rgba(255,255,255,.6)" }}>Ohne uns</div>
+              <div style={{ padding: "16px 20px", fontSize: 14, fontWeight: 800, textAlign: "center", color: accent }}>Mit {lp.brand || "uns"} ✓</div>
+            </div>
+            {compareRows.map((r, i) => (
+              <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", borderBottom: i < compareRows.length - 1 ? "1px solid #f3f4f6" : "none", background: i % 2 === 0 ? "#fff" : "#fafafa" }}>
+                <div style={{ padding: "18px 20px", fontWeight: 700, fontSize: 14, color: dark }}>{r.topic}</div>
+                <div style={{ padding: "18px 20px", fontSize: 14, color: "#9ca3af", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                  <span style={{ color: "#ef4444", fontWeight: 700 }}>✕</span> {r.without}
+                </div>
+                <div style={{ padding: "18px 20px", fontSize: 14, color: "#111", fontWeight: 600, textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                  <span style={{ color: accent, fontWeight: 700 }}>✓</span> {r.with}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── TESTIMONIALS ─────────────────────────────────────── */}
+      <section style={{ background: "#fff", padding: "88px 20px" }}>
         <div style={{ maxWidth: 1060, margin: "0 auto" }}>
-          <SectionTitle sub="Das sagen unsere Kunden über die Zusammenarbeit.">
-            Echte Erfahrungen, echte Ergebnisse
-          </SectionTitle>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 24 }}>
-            {testimonials.map((t, i) => <TestimonialCard key={i} {...t} />)}
+          <div style={{ textAlign: "center", marginBottom: 52 }}>
+            <h2 style={{ fontSize: "clamp(24px,3.5vw,36px)", fontWeight: 900, color: dark, marginBottom: 12, letterSpacing: -0.5 }}>
+              Das sagen unsere Kunden
+            </h2>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 24 }}>
+            {testimonials.map((t, i) => (
+              <div key={i} style={{ background: "#f9fafb", borderRadius: 16, padding: 28, border: "1px solid #f3f4f6" }}>
+                <StarRow n={t.stars || 5} />
+                <p style={{ fontSize: 15, color: "#374151", margin: "14px 0 22px", lineHeight: 1.7, fontStyle: "italic" }}>
+                  „{t.text}"
+                </p>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <Avatar name={t.name} />
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: dark }}>{t.name}</div>
+                    {t.company && <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 1 }}>{t.company}</div>}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ── 6. FAQ ──────────────────────────────────────────── */}
-      <section style={{ background: "#f9fafb", padding: "80px 20px" }}>
+      {/* ── FAQ ──────────────────────────────────────────────── */}
+      <section style={{ background: "#f9fafb", padding: "88px 20px" }}>
         <div style={{ maxWidth: 720, margin: "0 auto" }}>
-          <SectionTitle sub="Häufig gestellte Fragen — ehrlich beantwortet.">
-            Deine Fragen, unsere Antworten
-          </SectionTitle>
-          <div style={{ background: "#fff", borderRadius: 16, padding: "8px 32px", boxShadow: "0 2px 20px rgba(0,0,0,.06)" }}>
-            {faqs.map((f, i) => <FaqItem key={i} {...f} />)}
+          <div style={{ textAlign: "center", marginBottom: 52 }}>
+            <h2 style={{ fontSize: "clamp(24px,3.5vw,36px)", fontWeight: 900, color: dark, marginBottom: 12, letterSpacing: -0.5 }}>
+              Häufige Fragen
+            </h2>
+          </div>
+          <div style={{ background: "#fff", borderRadius: 18, padding: "8px 32px", boxShadow: "0 4px 32px rgba(0,0,0,.06)" }}>
+            {faqs.map((f, i) => (
+              <details key={i} style={{ borderBottom: i < faqs.length - 1 ? "1px solid #f3f4f6" : "none", padding: "22px 0" }}>
+                <summary style={{ fontWeight: 700, fontSize: 16, color: dark, cursor: "pointer", listStyle: "none", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
+                  <span style={{ color: accent, fontWeight: 900, marginRight: 10, flexShrink: 0 }}>
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  {f.q}
+                  <span style={{ fontSize: 22, color: "#9ca3af", flexShrink: 0 }}>+</span>
+                </summary>
+                <p style={{ marginTop: 14, color: "#6b7280", fontSize: 15, lineHeight: 1.75, paddingLeft: 32 }}>{f.a}</p>
+              </details>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ── 7. FINAL CTA ────────────────────────────────────── */}
-      <section style={{ background: "#111827", color: "#fff", padding: "80px 20px", textAlign: "center" }}>
-        <div style={{ maxWidth: 640, margin: "0 auto" }}>
-          <div style={{ display: "inline-block", background: "#10b981", color: "#fff", padding: "8px 20px", borderRadius: 999, fontSize: 13, fontWeight: 700, marginBottom: 28, letterSpacing: .3 }}>
-            ⏰ {urgency}
+      {/* ── FINAL CTA SECTION ────────────────────────────────── */}
+      <section id="form-cta" style={{ background: dark, color: "#fff", padding: "88px 20px" }}>
+        <div style={{ maxWidth: 1060, margin: "0 auto", display: "flex", flexWrap: "wrap", gap: 56, alignItems: "center" }}>
+          <div style={{ flex: "1 1 300px" }}>
+            <div style={{ display: "inline-block", background: accent, color: "#fff", padding: "6px 16px", borderRadius: 999, fontSize: 13, fontWeight: 700, marginBottom: 24 }}>
+              ⏰ {urgency}
+            </div>
+            <h2 style={{ fontSize: "clamp(26px,4vw,42px)", fontWeight: 900, marginBottom: 18, lineHeight: 1.15, letterSpacing: -0.5 }}>
+              {lp.ctaTitle || "Jetzt kostenloses Erstgespräch sichern"}
+            </h2>
+            <p style={{ fontSize: 17, color: "rgba(255,255,255,.65)", lineHeight: 1.65 }}>
+              {lp.ctaSub || "Kostenlos · Unverbindlich · Antwort innerhalb von 24 Stunden"}
+            </p>
+            <div style={{ marginTop: 36, display: "flex", flexDirection: "column", gap: 12 }}>
+              {["Persönliche Beratung ohne Druck", "Klares Angebot danach", "Über 50 erfolgreich abgeschlossene Projekte"].map((t, i) => (
+                <div key={i} style={{ display: "flex", gap: 12, alignItems: "center", fontSize: 15, color: "rgba(255,255,255,.8)" }}>
+                  <span style={{ color: accent, fontWeight: 900 }}>✓</span> {t}
+                </div>
+              ))}
+            </div>
           </div>
-          <h2 style={{ fontSize: "clamp(22px,3.5vw,36px)", fontWeight: 900, marginBottom: 16, letterSpacing: -.5 }}>
-            {lp.ctaTitle || "Jetzt kostenlosen Termin sichern"}
-          </h2>
-          <p style={{ fontSize: 17, color: "rgba(255,255,255,.7)", marginBottom: 40, lineHeight: 1.6 }}>
-            {lp.ctaSub || "Kostenlos · Unverbindlich · Antwort innerhalb von 24 Stunden"}
-          </p>
-          <div style={{ background: "#fff", color: "#111827", borderRadius: 20, padding: "36px 32px", maxWidth: 420, margin: "0 auto", boxShadow: "0 24px 64px rgba(0,0,0,.35)", textAlign: "left" }}>
-            <LeadForm lp={lp} />
+          <div style={{ flex: "0 1 400px", minWidth: 280, background: "#fff", color: "#111", borderRadius: 18, padding: "36px 30px", boxShadow: "0 24px 72px rgba(0,0,0,.4)" }}>
+            <h3 style={{ fontSize: 19, fontWeight: 800, marginBottom: 20, color: dark }}>
+              {lp.formTitle || "Jetzt anfragen"}
+            </h3>
+            <LeadForm lp={lp} accent={accent} />
+            <p style={{ fontSize: 12, color: "#9ca3af", marginTop: 14, textAlign: "center" }}>
+              🔒 Kostenlos · Unverbindlich · Vertraulich
+            </p>
           </div>
-          <p style={{ marginTop: 24, fontSize: 13, color: "rgba(255,255,255,.4)" }}>
-            🔒 Deine Daten werden vertraulich behandelt und nicht weitergegeben.
-          </p>
         </div>
       </section>
 
-      {/* ── Footer ──────────────────────────────────────────── */}
-      <footer style={{ background: "#0f172a", color: "#4b5563", padding: "28px 20px", textAlign: "center", fontSize: 13, borderTop: "1px solid #1f2937" }}>
-        © {new Date().getFullYear()} · {lp.footerText || "Alle Angaben ohne Gewähr · Datenschutz · Impressum"}
+      {/* ── FOOTER ───────────────────────────────────────────── */}
+      <footer style={{ background: "#0a0a0a", color: "#4b5563", padding: "32px 20px", textAlign: "center", fontSize: 13, borderTop: "1px solid #1a1a1a" }}>
+        <div style={{ maxWidth: 1060, margin: "0 auto" }}>
+          <div style={{ fontWeight: 700, color: "#6b7280", marginBottom: 8 }}>{lp.brand || lp.client || ""}</div>
+          <div>{lp.footerText || "Alle Angaben ohne Gewähr · Datenschutz · Impressum"}</div>
+        </div>
       </footer>
+
+      {/* ── WHATSAPP BUTTON ──────────────────────────────────── */}
+      {lp.whatsapp && (
+        <a href={"https://wa.me/" + lp.whatsapp.replace(/\D/g, "")}
+          target="_blank" rel="noopener"
+          style={{ position: "fixed", bottom: 24, right: 24, width: 56, height: 56, borderRadius: "50%", background: "#25d366", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, boxShadow: "0 4px 20px rgba(0,0,0,.25)", zIndex: 999, textDecoration: "none" }}>
+          💬
+        </a>
+      )}
 
     </main>
   );
