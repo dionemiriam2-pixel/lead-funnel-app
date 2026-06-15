@@ -6,6 +6,7 @@ import { isLoggedIn, logout } from "@/lib/auth";
 const NAV = [
   { href: "/dashboard", label: "📊 Leads" },
   { href: "/kunden", label: "🏢 Kunden" },
+  { href: "/outreach", label: "📨 Outreach" },
   { href: "/analytics", label: "📈 Analytics" },
   { href: "/import", label: "📥 Import" },
 ];
