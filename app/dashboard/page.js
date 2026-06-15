@@ -11,18 +11,18 @@ import {
 
 const PIPELINE = ["neu", "kontaktiert", "angebot", "gewonnen", "verloren"];
 const PIPELINE_COLOR = {
-  neu:         "#94a3b8",
-  kontaktiert: "#f59e0b",
-  angebot:     "#7c3aed",
-  gewonnen:    "#059669",
-  verloren:    "#dc2626",
+  neu:         "#cbd5e1",   // sehr hell — Ausgangszustand
+  kontaktiert: "#94a3b8",   // hellgrau
+  angebot:     "#64748b",   // mittelgrau
+  gewonnen:    "#1e293b",   // fast schwarz
+  verloren:    "#C8322C",   // einzige Akzentfarbe — Verlust = Alarm
 };
 const SOURCES = ["google-maps", "landing-page", "webhook", "csv-import", "manuell"];
 
 function ScoreBadge({ s }) {
   s = Number(s) || 0;
   const bg  = s >= 8 ? "#dcfce7" : s >= 6 ? "#fef9c3" : "#f3f4f6";
-  const col = s >= 8 ? "#15803d" : s >= 6 ? "#854d0e" : "var(--text-secondary)";
+  const col = s >= 8 ? "#15803d" : s >= 6 ? "#854d0e" : "var(--text-tertiary)";
   return (
     <span style={{ background: bg, color: col, padding: "2px 8px", borderRadius: 99, fontSize: 12, fontWeight: 700 }}>
       {s}
@@ -419,7 +419,7 @@ export default function DashboardPage() {
                                 ) : null;
                               })()}
                               <button onClick={() => genLinkedin(l)} disabled={generatingLinkedin === l.id}
-                                style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", background: "#0a66c2", color: "#fff", border: "none", borderRadius: 8, fontSize: 12, cursor: "pointer", fontWeight: 600, opacity: generatingLinkedin === l.id ? .5 : 1 }}>
+                                style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", background: "transparent", color: "var(--ink)", border: "1px solid var(--border-strong)", borderRadius: 8, fontSize: 12, cursor: "pointer", fontWeight: 500, opacity: generatingLinkedin === l.id ? .5 : 1 }}>
                                 <Link2 size={13} strokeWidth={1.5} />
                                 {generatingLinkedin === l.id ? "Wird erstellt…" : "LinkedIn-Nachricht generieren"}
                               </button>
