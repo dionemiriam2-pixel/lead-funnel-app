@@ -1,14 +1,18 @@
+import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
 
+const serif = Fraunces({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-serif" });
+const sans  = Inter({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-sans" });
+
 export const metadata = {
-  title: "LeadFlow",
+  title: "LeadOS",
   description: "Deine Lead-Plattform",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="de">
-      <body style={{ margin: 0, fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif", background: "#f7f8fa" }}>
+      <body className={`${serif.variable} ${sans.variable}`}>
         {children}
       </body>
     </html>
