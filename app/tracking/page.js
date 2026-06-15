@@ -74,7 +74,7 @@ function UtmGenerator() {
               {result}
             </div>
             <button onClick={copy}
-              style={{ padding: "9px 14px", background: copied ? "#dcfce7" : "transparent", color: copied ? "#15803d" : "var(--ink)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12, fontWeight: 500, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0, display: "flex", alignItems: "center", gap: 5 }}>
+              style={{ padding: "9px 14px", background: copied ? "var(--ink)" : "transparent", color: copied ? "#fff" : "var(--ink)", border: "1px solid var(--border-strong)", borderRadius: 8, fontSize: 12, fontWeight: 500, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0, display: "flex", alignItems: "center", gap: 5 }}>
               <Copy size={13} strokeWidth={1.5} />
               {copied ? "Kopiert" : "Kopieren"}
             </button>
