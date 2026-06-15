@@ -50,6 +50,8 @@ export default function DashboardPage() {
   const [generating, setGenerating] = useState(null);
   const [enriching, setEnriching] = useState(null);
   const [sequencing, setSequencing] = useState(null);
+  const [linkedinMsg, setLinkedinMsg] = useState({});
+  const [generatingLinkedin, setGeneratingLinkedin] = useState(null);
   const [clientForOutreach, setClientForOutreach] = useState(null);
 
   const load = useCallback(async () => {
@@ -104,6 +106,14 @@ export default function DashboardPage() {
     const r = await fetch("/api/sequence", { method: "PATCH", headers: authHeaders(), body: JSON.stringify({ lead_id: lead.id, step_id: stepId, status }) });
     const d = await r.json();
     if (d.ok) setLeads(ls => ls.map(l => l.id === lead.id ? { ...l, sequence: d.steps } : l));
+  }
+
+  async function genLinkedin(lead) {
+    setGeneratingLinkedin(lead.id);
+    const r = await fetch("/api/linkedin-msg", { method: "POST", headers: authHeaders(), body: JSON.stringify({ lead_id: lead.id, client_id: clientForOutreach }) });
+    const d = await r.json();
+    if (d.ok) setLinkedinMsg(m => ({ ...m, [lead.id]: d }));
+    setGeneratingLinkedin(null);
   }
 
   async function genOutreach(lead) {
@@ -281,14 +291,42 @@ export default function DashboardPage() {
                               )}
                             </div>
                             <div style={{ flex: "1 1 260px" }}>
-                              <div style={{ fontSize: 12, color: "#6b7280", fontWeight: 700, marginBottom: 8 }}>KI-ANSCHREIBEN</div>
+                              <div style={{ fontSize: 12, color: "#6b7280", fontWeight: 700, marginBottom: 8 }}>📧 E-MAIL ANSCHREIBEN</div>
                               {(outreach[l.id] || l.outreach_text) && (
-                                <textarea readOnly value={outreach[l.id] || l.outreach_text} rows={5}
+                                <textarea readOnly value={outreach[l.id] || l.outreach_text} rows={4}
                                   style={{ width: "100%", padding: "9px 11px", border: "1px solid #e5e7eb", borderRadius: 9, fontSize: 12, fontFamily: "inherit", resize: "vertical", boxSizing: "border-box", background: "#fff" }} />
                               )}
                               <button onClick={() => genOutreach(l)} disabled={generating === l.id}
-                                style={{ marginTop: 8, padding: "7px 14px", background: "#6366f1", color: "#fff", border: "none", borderRadius: 8, fontSize: 12, cursor: "pointer" }}>
-                                {generating === l.id ? "⏳ Wird erstellt…" : "✍️ Anschreiben generieren"}
+                                style={{ marginTop: 6, padding: "7px 14px", background: "#6366f1", color: "#fff", border: "none", borderRadius: 8, fontSize: 12, cursor: "pointer" }}>
+                                {generating === l.id ? "⏳ Wird erstellt…" : "✍️ E-Mail generieren"}
+                              </button>
+
+                              <div style={{ fontSize: 12, color: "#6b7280", fontWeight: 700, margin: "16px 0 8px" }}>💼 LINKEDIN-NACHRICHT</div>
+                              {(() => {
+                                const lm = linkedinMsg[l.id] || l.linkedin_msg;
+                                return lm?.connection_request ? (
+                                  <div>
+                                    <div style={{ fontSize: 11, color: "#6b7280", fontWeight: 700, marginBottom: 4 }}>1. Vernetzungsanfrage ({lm.connection_request.length}/250 Zeichen)</div>
+                                    <textarea readOnly value={lm.connection_request} rows={3}
+                                      style={{ width: "100%", padding: "9px 11px", border: "1px solid #ddd6fe", borderRadius: 9, fontSize: 12, fontFamily: "inherit", resize: "vertical", boxSizing: "border-box", background: "#f5f3ff" }} />
+                                    <button onClick={() => navigator.clipboard.writeText(lm.connection_request)}
+                                      style={{ marginTop: 4, padding: "4px 10px", background: "none", border: "1px solid #ddd6fe", borderRadius: 6, fontSize: 11, cursor: "pointer", color: "#6366f1" }}>
+                                      📋 Kopieren
+                                    </button>
+                                    <div style={{ fontSize: 11, color: "#6b7280", fontWeight: 700, margin: "10px 0 4px" }}>2. Follow-up nach Vernetzung</div>
+                                    <textarea readOnly value={lm.followup_message} rows={4}
+                                      style={{ width: "100%", padding: "9px 11px", border: "1px solid #ddd6fe", borderRadius: 9, fontSize: 12, fontFamily: "inherit", resize: "vertical", boxSizing: "border-box", background: "#f5f3ff" }} />
+                                    <button onClick={() => navigator.clipboard.writeText(lm.followup_message)}
+                                      style={{ marginTop: 4, padding: "4px 10px", background: "none", border: "1px solid #ddd6fe", borderRadius: 6, fontSize: 11, cursor: "pointer", color: "#6366f1" }}>
+                                      📋 Kopieren
+                                    </button>
+                                    {lm.search_tip && <div style={{ marginTop: 8, fontSize: 12, color: "#6b7280", fontStyle: "italic" }}>💡 {lm.search_tip}</div>}
+                                  </div>
+                                ) : null;
+                              })()}
+                              <button onClick={() => genLinkedin(l)} disabled={generatingLinkedin === l.id}
+                                style={{ marginTop: 8, padding: "7px 14px", background: "#0a66c2", color: "#fff", border: "none", borderRadius: 8, fontSize: 12, cursor: "pointer", fontWeight: 700 }}>
+                                {generatingLinkedin === l.id ? "⏳ Wird erstellt…" : "💼 LinkedIn-Nachricht generieren"}
                               </button>
                             </div>
                           </div>
