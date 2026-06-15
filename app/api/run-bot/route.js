@@ -19,7 +19,7 @@ export async function POST(req) {
   const r = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workflow}/dispatches`, {
     method: "POST",
     headers: { Authorization: "token " + token, Accept: "application/vnd.github.v3+json", "Content-Type": "application/json" },
-    body: JSON.stringify({ ref: "main" }),
+    body: JSON.stringify({ ref: "master" }),
   });
 
   if (r.status === 204) return NextResponse.json({ ok: true });

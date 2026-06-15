@@ -1,0 +1,33 @@
+name: Lead-Bot (Google Maps Scraper)
+
+on:
+  workflow_dispatch:           # nur manuell startbar per Knopfdruck
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: bots/requirements.txt
+
+      - name: Abhängigkeiten installieren
+        run: pip install -r bots/requirements.txt
+
+      - name: Playwright Chromium installieren
+        run: python -m playwright install chromium --with-deps
+
+      - name: Offene Suchaufträge abarbeiten
+        run: python bots/maps_scraper.py
+        continue-on-error: true
