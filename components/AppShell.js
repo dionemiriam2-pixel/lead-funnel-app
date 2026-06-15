@@ -7,6 +7,7 @@ import BotButton from "@/components/BotButton";
 const NAV = [
   { href: "/dashboard", label: "📊 Leads" },
   { href: "/kunden", label: "🏢 Kunden" },
+  { href: "/outreach", label: "📨 Outreach" },
   { href: "/analytics", label: "📈 Analytics" },
   { href: "/import", label: "📥 Import" },
 ];
