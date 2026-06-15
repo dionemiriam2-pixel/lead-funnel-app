@@ -13,7 +13,7 @@ const STEP_LABELS = {
   ads:            "Custom Audience hochladen",
 };
 
-const inp = { padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: 13, color: "var(--ink)", background: "#fff", fontFamily: "inherit", boxSizing: "border-box" };
+const inp = { padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: 13, color: "var(--ink)", background: "var(--surface)", fontFamily: "inherit", boxSizing: "border-box" };
 const btnFill    = { padding: "7px 14px", background: "var(--ink)", color: "#fff", border: "none", borderRadius: 7, fontSize: 12, fontWeight: 500, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 };
 const btnOutline = { padding: "7px 14px", background: "transparent", color: "var(--ink)", border: "1px solid var(--border-strong)", borderRadius: 7, fontSize: 12, fontWeight: 500, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 };
 
@@ -88,7 +88,7 @@ function LeadRow({ lead, clients, onUpdate }) {
   }
 
   return (
-    <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 10, marginBottom: 8, overflow: "hidden" }}>
+    <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10, marginBottom: 8, overflow: "hidden" }}>
       {/* Kopfzeile */}
       <div onClick={() => setExpanded(v => !v)}
         style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", cursor: "pointer" }}>
@@ -96,7 +96,7 @@ function LeadRow({ lead, clients, onUpdate }) {
           <span style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)" }}>{lead.company_name}</span>
           {lead.city && <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>{lead.city}</span>}
           {client && (
-            <span style={{ fontSize: 11, background: "#fef2f2", color: "var(--accent)", border: "1px solid #fecaca", borderRadius: 5, padding: "2px 7px", fontWeight: 600 }}>
+            <span style={{ fontSize: 11, background: "var(--bg)", color: "var(--text-secondary)", border: "1px solid var(--border)", borderRadius: 5, padding: "2px 7px", fontWeight: 600 }}>
               {client.name}
             </span>
           )}
@@ -115,7 +115,7 @@ function LeadRow({ lead, clients, onUpdate }) {
       {expanded && (
         <div style={{ padding: "0 16px 16px", borderTop: "1px solid var(--border)" }}>
           {error && (
-            <div style={{ marginTop: 10, padding: "8px 12px", background: "#fef2f2", color: "var(--accent)", border: "1px solid #fecaca", borderRadius: 7, fontSize: 13 }}>
+            <div style={{ marginTop: 10, padding: "8px 12px", background: "var(--bg)", color: "var(--ink)", border: "1px solid var(--border)", borderRadius: 7, fontSize: 13 }}>
               {error}
             </div>
           )}
