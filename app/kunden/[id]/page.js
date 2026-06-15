@@ -16,6 +16,15 @@ const SOURCES = [
   { key: "csv", icon: "📊", label: "CSV / eigene Liste", desc: "Kontakte selbst hochladen" },
 ];
 
+const CHANNELS = [
+  { key: "ads",        icon: "🎯", label: "Custom Audience Ads",  desc: "Kontakte bei Meta/Google hochladen" },
+  { key: "email",      icon: "📧", label: "E-Mail",               desc: "KI schreibt personalisiertes Angebot" },
+  { key: "linkedin",   icon: "💼", label: "LinkedIn",             desc: "DM, Vernetzung + Follow-up" },
+  { key: "facebook",   icon: "📱", label: "Facebook / Instagram", desc: "Lead Ads, DMs, Custom Audience" },
+  { key: "google-ads", icon: "🔍", label: "Google Ads",           desc: "Suchanzeigen und Display" },
+  { key: "phone",      icon: "📞", label: "Telefonakquise",       desc: "Direkt anrufen — legal im B2B" },
+];
+
 const OUTREACH_OPTIONS = {
   "google-maps": [
     { key: "ads", icon: "🎯", label: "Custom Audience Ads", desc: "Kontakte bei Meta/Google hochladen → Firma sieht deine Werbung" },
@@ -97,6 +106,12 @@ export default function KundeDetailPage() {
     await load();
   }
 
+  async function saveChannels() {
+    await apiFetch("/api/clients", { method: "PATCH", body: JSON.stringify({ id, channels: form.channels || {} }) });
+    setMsg("✓ Kanäle gespeichert");
+    setTimeout(() => setMsg(""), 2000);
+  }
+
   async function startAnalysis(prod) {
     setAnalysing(prod.id);
     const d = await apiFetch("/api/analyse", { method: "POST", body: JSON.stringify({ product_id: prod.id, client_id: id }) });
@@ -153,36 +168,32 @@ export default function KundeDetailPage() {
               </div>
             </div>
 
-            {/* KANAL-EINSTELLUNGEN */}
+            {/* KANAL-KACHELN */}
             <div style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 1px 8px rgba(0,0,0,.06)" }}>
               <h3 style={{ fontSize: 15, fontWeight: 700, color: "#1a1a2e", marginBottom: 6 }}>📣 Outreach-Kanäle</h3>
-              <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 18 }}>Welche Kanäle nutzt du für diesen Kunden? Die Checkliste erscheint dann bei jedem Lead.</p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                {[
-                  { key: "ads", icon: "🎯", label: "Custom Audience Ads", desc: "Kontakte bei Google oder Meta hochladen — Firma sieht deine Werbung" },
-                  { key: "linkedin", icon: "💼", label: "LinkedIn Outreach", desc: "Persönliche Nachricht über LinkedIn schicken" },
-                  { key: "email", icon: "📧", label: "E-Mail", desc: "Personalisiertes Angebot per E-Mail (KI schreibt es automatisch)" },
-                ].map(ch => {
+              <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 18 }}>Welche Kanäle nutzt du für diesen Kunden? Aktive Kanäle erscheinen bei jedem Lead.</p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+                {CHANNELS.map(ch => {
                   const active = form.channels?.[ch.key] ?? false;
                   return (
-                    <div key={ch.key} onClick={() => setForm(f => ({ ...f, channels: { ...(f.channels || {}), [ch.key]: !active } }))}
-                      style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderRadius: 12, border: `2px solid ${active ? "#6366f1" : "#e5e7eb"}`, background: active ? "#f5f3ff" : "#fafafa", cursor: "pointer", transition: "all .15s" }}>
-                      <div style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${active ? "#6366f1" : "#d1d5db"}`, background: active ? "#6366f1" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                        {active && <span style={{ color: "#fff", fontSize: 14, lineHeight: 1 }}>✓</span>}
-                      </div>
-                      <div style={{ fontSize: 20 }}>{ch.icon}</div>
-                      <div>
-                        <div style={{ fontWeight: 700, fontSize: 14, color: active ? "#4338ca" : "#1a1a2e" }}>{ch.label}</div>
-                        <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>{ch.desc}</div>
-                      </div>
+                    <div key={ch.key}
+                      onClick={() => setForm(f => ({ ...f, channels: { ...(f.channels || {}), [ch.key]: !active } }))}
+                      style={{ padding: "14px 12px", borderRadius: 12, border: `2px solid ${active ? "#6366f1" : "#e5e7eb"}`, background: active ? "#f5f3ff" : "#fafafa", cursor: "pointer", transition: "all .15s", textAlign: "center" }}>
+                      <div style={{ fontSize: 24, marginBottom: 6 }}>{ch.icon}</div>
+                      <div style={{ fontWeight: 700, fontSize: 13, color: active ? "#4338ca" : "#1a1a2e", marginBottom: 3 }}>{ch.label}</div>
+                      <div style={{ fontSize: 11, color: "#6b7280", lineHeight: 1.4 }}>{ch.desc}</div>
+                      {active && <div style={{ marginTop: 8, fontSize: 11, fontWeight: 700, color: "#6366f1" }}>✓ Aktiv</div>}
                     </div>
                   );
                 })}
               </div>
-              <button onClick={saveClient} style={{ marginTop: 16, padding: "10px 22px", background: "#1a1a2e", color: "#fff", border: "none", borderRadius: 9, fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
-                Kanäle speichern
-              </button>
-              {msg && <span style={{ color: "#22c55e", fontSize: 13, fontWeight: 600, marginLeft: 10 }}>{msg}</span>}
+              <div style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 10 }}>
+                <button onClick={saveChannels}
+                  style={{ padding: "10px 22px", background: "#1a1a2e", color: "#fff", border: "none", borderRadius: 9, fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+                  Kanäle speichern
+                </button>
+                {msg && <span style={{ color: "#22c55e", fontSize: 13, fontWeight: 600 }}>{msg}</span>}
+              </div>
             </div>
           </div>
         )}
