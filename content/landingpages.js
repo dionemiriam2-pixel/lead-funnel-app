@@ -37,11 +37,12 @@ export const landingPages = [
       { icon: "⏱️", title: "Zeit sparen", text: "Mit dem richtigen Plan sparst du Wochen an Planung und vermeidest teure Nacharbeiten." },
     ],
 
-    // Wie es läuft
+    brand: "Konzept mit Kopf",
     steps: [
-      { n: "1", title: "Checkliste anfordern", text: "Einfach eintragen — dauert 60 Sekunden. Kein Spam, keine versteckten Kosten." },
-      { n: "2", title: "PDF per E-Mail erhalten", text: "Du bekommst die Checkliste sofort und wir melden uns für ein kurzes Gespräch." },
-      { n: "3", title: "Projekt starten", text: "Mit klarer Roadmap startest du ohne Chaos in dein Ladenbauprojekt." },
+      { n: "01", title: "Checkliste anfordern", text: "Einfach eintragen — dauert 60 Sekunden. Kein Spam, keine versteckten Kosten." },
+      { n: "02", title: "PDF per E-Mail erhalten", text: "Du bekommst die Checkliste sofort und wir melden uns für ein kurzes Gespräch." },
+      { n: "03", title: "Projekt starten", text: "Mit klarer Roadmap startest du ohne Chaos in dein Ladenbauprojekt." },
+      { n: "04", title: "Eröffnung feiern", text: "Dein Ladenlokal steht — pünktlich, im Budget, so wie du es dir vorgestellt hast." },
     ],
 
     // Testimonials
@@ -94,10 +95,12 @@ export const landingPages = [
       { icon: "🚀", title: "Schneller zum ersten Gast", text: "Mit dem richtigen Zeitplan eröffnest du früher — und stressfreier." },
     ],
 
+    brand: "Konzept mit Kopf",
     steps: [
-      { n: "1", title: "Guide anfordern", text: "60 Sekunden eintragen — du bekommst sofort den kompletten Leitfaden." },
-      { n: "2", title: "Konzept prüfen lassen", text: "Wir schauen uns dein Vorhaben an und geben ehrliches Feedback." },
-      { n: "3", title: "Eröffnung planen", text: "Mit klarer Roadmap und echten Zahlen startest du sicher in die Selbstständigkeit." },
+      { n: "01", title: "Guide anfordern", text: "60 Sekunden eintragen — du bekommst sofort den kompletten Leitfaden." },
+      { n: "02", title: "Konzept prüfen lassen", text: "Wir schauen uns dein Vorhaben an und geben ehrliches Feedback." },
+      { n: "03", title: "Eröffnung planen", text: "Mit klarer Roadmap und echten Zahlen startest du sicher in die Selbstständigkeit." },
+      { n: "04", title: "Erster Gast", text: "Dein Restaurant öffnet — pünktlich, genehmigt, so wie du es geplant hast." },
     ],
 
     testimonials: [
@@ -147,10 +150,12 @@ export const landingPages = [
       { icon: "📐", title: "Professionelle Planung", text: "Wir bringen Erfahrung aus 40+ Projekten mit — du bekommst bewährte Konzepte." },
     ],
 
+    brand: "Konzept mit Kopf",
     steps: [
-      { n: "1", title: "Termin anfragen", text: "Einfach eintragen — wir melden uns innerhalb von 24 Stunden für einen Termin." },
-      { n: "2", title: "Kostenloses Gespräch", text: "Wir besprechen dein Geschäft, deine Ziele und mögliche Verbesserungen." },
-      { n: "3", title: "Konkretes Konzept", text: "Du bekommst erste Ideen und ein unverbindliches Angebot." },
+      { n: "01", title: "Termin anfragen", text: "Einfach eintragen — wir melden uns innerhalb von 24 Stunden für einen Termin." },
+      { n: "02", title: "Kostenloses Gespräch", text: "Wir besprechen dein Geschäft, deine Ziele und mögliche Verbesserungen." },
+      { n: "03", title: "Konkretes Konzept", text: "Du bekommst erste Ideen und ein unverbindliches Angebot." },
+      { n: "04", title: "Umsetzung & Ergebnis", text: "Mehr Laufkundschaft, mehr Umsatz — dein Laden strahlt wieder." },
     ],
 
     testimonials: [
