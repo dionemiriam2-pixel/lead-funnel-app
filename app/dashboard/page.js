@@ -337,7 +337,7 @@ export default function DashboardPage() {
                                     return (
                                       <div key={step.id} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 7 }}>
                                         <div onClick={() => updateStep(l, step.id, done ? "pending" : "done")}
-                                          style={{ width: 17, height: 17, borderRadius: 4, border: `2px solid ${done ? "#059669" : overdue ? "var(--accent)" : "var(--border)"}`, background: done ? "#059669" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: "pointer" }}>
+                                          style={{ width: 17, height: 17, borderRadius: 4, border: `2px solid ${done ? "var(--ink)" : overdue ? "var(--accent)" : "var(--border)"}`, background: done ? "var(--ink)" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: "pointer" }}>
                                           {done && <span style={{ color: "#fff", fontSize: 10 }}>✓</span>}
                                         </div>
                                         <div style={{ flex: 1 }}>
