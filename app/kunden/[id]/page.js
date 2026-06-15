@@ -14,12 +14,12 @@ import {
 const TABS = ["Leads", "Pipeline", "Kanäle", "Profil", "Marketing", "Landing Pages"];
 
 const PIPELINE = [
-  { key: "kalt",         label: "Kalt",         color: "#94a3b8", bg: "#f1f5f9" },
-  { key: "kontaktiert",  label: "Kontaktiert",  color: "#e11d48", bg: "#fff1f2" },
-  { key: "qualifiziert", label: "Qualifiziert", color: "#f59e0b", bg: "#fffbeb" },
-  { key: "angebot",      label: "Angebot",      color: "#7c3aed", bg: "#f5f3ff" },
-  { key: "gewonnen",     label: "Gewonnen",     color: "#059669", bg: "#ecfdf5" },
-  { key: "verloren",     label: "Verloren",     color: "#dc2626", bg: "#fef2f2" },
+  { key: "kalt",         label: "Kalt",         color: "var(--text-tertiary)",  bg: "var(--bg)" },
+  { key: "kontaktiert",  label: "Kontaktiert",  color: "#6b7280",               bg: "var(--bg)" },
+  { key: "qualifiziert", label: "Qualifiziert", color: "#4b5563",               bg: "var(--bg)" },
+  { key: "angebot",      label: "Angebot",      color: "#1f2937",               bg: "var(--bg)" },
+  { key: "gewonnen",     label: "Gewonnen",     color: "var(--ink)",            bg: "var(--bg)" },
+  { key: "verloren",     label: "Verloren",     color: "var(--accent)",         bg: "var(--bg)" },
 ];
 
 const KANALE = [
@@ -51,9 +51,9 @@ const OUTREACH_OPTS = {
 
 /* ─── Styling-Shortcuts ──────────────────────────────────── */
 const S = {
-  card:      { background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: "16px 20px" },
+  card:      { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "16px 20px" },
   label:     { fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", display: "block", marginBottom: 5 },
-  input:     { width: "100%", padding: "9px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: 14, color: "var(--ink)", background: "#fff", boxSizing: "border-box", fontFamily: "inherit" },
+  input:     { width: "100%", padding: "9px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: 14, color: "var(--ink)", background: "var(--surface)", boxSizing: "border-box", fontFamily: "inherit" },
   btn:       { padding: "9px 20px", background: "var(--ink)", color: "#fff", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: "pointer" },
   btnSm:     { padding: "5px 12px", background: "var(--ink)", color: "#fff", border: "none", borderRadius: 6, fontSize: 12, cursor: "pointer" },
   btnOutline:{ padding: "5px 12px", background: "transparent", color: "var(--ink)", border: "1px solid var(--border-strong)", borderRadius: 6, fontSize: 12, cursor: "pointer" },
@@ -205,7 +205,7 @@ export default function KundeDetailPage() {
         </div>
 
         {/* Header-Card mit Tabs */}
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: "12px 18px", marginBottom: 20, display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+        <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "12px 18px", marginBottom: 20, display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
           <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--accent)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 17, flexShrink: 0 }}>
             {initial}
           </div>
@@ -223,7 +223,7 @@ export default function KundeDetailPage() {
               }}>{t}</button>
             ))}
           </div>
-          {msg && <span style={{ fontSize: 12, color: "#059669", fontWeight: 600 }}>{msg}</span>}
+          {msg && <span style={{ fontSize: 12, color: "var(--ink)", fontWeight: 600 }}>{msg}</span>}
         </div>
 
         {/* ═══════════ LEADS ═══════════════════════════════ */}
@@ -231,7 +231,7 @@ export default function KundeDetailPage() {
           <div>
             {/* Unbearbeitet-Banner */}
             {unprocessed.length > 0 && (
-              <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 10, padding: "10px 16px", marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 10, padding: "10px 16px", marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 7, color: "var(--accent)", fontSize: 14, fontWeight: 500 }}>
                   <AlertCircle size={15} strokeWidth={1.5} />
                   {unprocessed.length} Lead{unprocessed.length !== 1 ? "s" : ""} warten auf Bearbeitung
@@ -310,7 +310,7 @@ export default function KundeDetailPage() {
                 {statusFilter && <button onClick={() => setStatusFilter(null)} style={{ ...S.btnOutline, fontSize: 12 }}>✕ Status: {statusFilter}</button>}
               </div>
             )}
-            <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+            <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
               {displayLeads.length === 0 ? (
                 <div style={{ padding: 40, textAlign: "center", color: "var(--text-secondary)", fontSize: 14 }}>
                   {leads.length === 0 ? `Noch keine Leads für ${client.name}.` : "Keine Leads mit diesem Filter."}
@@ -338,7 +338,7 @@ export default function KundeDetailPage() {
                           <td style={{ padding: "11px 13px", fontSize: 13, color: "var(--text-secondary)" }}>{l.city || "–"}</td>
                           <td style={{ padding: "11px 13px", fontSize: 13, color: "var(--text-secondary)" }}>{l.category || "–"}</td>
                           <td style={{ padding: "11px 13px" }}>
-                            <span style={{ fontSize: 12, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: l.score >= 8 ? "#dcfce7" : l.score >= 6 ? "#fef9c3" : "#f3f4f6", color: l.score >= 8 ? "#15803d" : l.score >= 6 ? "#854d0e" : "var(--text-secondary)" }}>
+                            <span style={{ fontSize: 12, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: l.score >= 6 ? "var(--ink)" : "var(--border)", color: l.score >= 6 ? "#fff" : "var(--text-tertiary)" }}>
                               {l.score ?? "–"}
                             </span>
                           </td>
@@ -379,11 +379,11 @@ export default function KundeDetailPage() {
                     {/* Lead-Karten */}
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                       {colLeads.map(l => (
-                        <div key={l.id} style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 10, padding: "12px 14px" }}>
+                        <div key={l.id} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "12px 14px" }}>
                           <div style={{ fontWeight: 600, fontSize: 13, color: "var(--ink)", marginBottom: 3 }}>{l.company_name}</div>
                           <div style={{ fontSize: 11, color: "var(--text-secondary)", marginBottom: 8 }}>{l.city}{l.category ? ` · ${l.category}` : ""}</div>
                           {l.score != null && (
-                            <span style={{ fontSize: 11, fontWeight: 600, padding: "1px 7px", borderRadius: 99, background: l.score >= 8 ? "#dcfce7" : l.score >= 6 ? "#fef9c3" : "#f3f4f6", color: l.score >= 8 ? "#15803d" : l.score >= 6 ? "#854d0e" : "var(--text-secondary)", marginBottom: 8, display: "inline-block" }}>
+                            <span style={{ fontSize: 11, fontWeight: 600, padding: "1px 7px", borderRadius: 99, background: l.score >= 6 ? "var(--ink)" : "var(--border)", color: l.score >= 6 ? "#fff" : "var(--text-tertiary)", marginBottom: 8, display: "inline-block" }}>
                               Score {l.score}
                             </span>
                           )}
@@ -391,7 +391,7 @@ export default function KundeDetailPage() {
                           <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 8 }}>
                             {others.map(o => (
                               <button key={o.key} onClick={() => updateLeadStatus(l.id, o.key)}
-                                style={{ fontSize: 10, padding: "3px 7px", border: `1px solid ${o.color}`, borderRadius: 5, background: "transparent", color: o.color, cursor: "pointer" }}>
+                                style={{ fontSize: 10, padding: "3px 7px", border: "1px solid var(--border)", borderRadius: 5, background: "transparent", color: "var(--text-secondary)", cursor: "pointer" }}>
                                 → {o.label}
                               </button>
                             ))}
@@ -427,10 +427,10 @@ export default function KundeDetailPage() {
                 const isActive = !!form.channels?.[key];
                 const isOpen   = openChannel === key;
                 return (
-                  <div key={key} style={{ background: "#fff", border: `1px solid ${isOpen ? "var(--accent)" : isActive ? "var(--border-strong)" : "var(--border)"}`, borderRadius: 12, padding: "16px 18px", opacity: soon ? .5 : 1 }}>
+                  <div key={key} style={{ background: "var(--surface)", border: `1px solid ${isOpen ? "var(--border-strong)" : isActive ? "var(--border-strong)" : "var(--border)"}`, borderRadius: 12, padding: "16px 18px", opacity: soon ? .5 : 1 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
-                      <Icon size={20} strokeWidth={1.5} color={isOpen ? "var(--accent)" : "var(--text-secondary)"} />
-                      <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 99, background: soon ? "#f3f4f6" : isActive ? "#dcfce7" : "#f3f4f6", color: soon ? "var(--text-tertiary)" : isActive ? "#059669" : "var(--text-tertiary)" }}>
+                      <Icon size={20} strokeWidth={1.5} color={isActive ? "var(--ink)" : "var(--text-tertiary)"} />
+                      <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 99, background: "var(--border)", color: isActive && !soon ? "var(--ink)" : "var(--text-tertiary)" }}>
                         {soon ? "Bald" : isActive ? "Aktiv" : "Inaktiv"}
                       </span>
                     </div>
@@ -630,7 +630,7 @@ export default function KundeDetailPage() {
                       return (
                         <div key={src.key} onClick={() => toggleSrc(src.key)}
                           style={{ padding: "12px 14px", borderRadius: 10, border: `1.5px solid ${on ? "var(--ink)" : "var(--border)"}`, cursor: "pointer", display: "flex", gap: 10 }}>
-                          <div style={{ width: 18, height: 18, borderRadius: 5, border: `2px solid ${on ? "var(--ink)" : "var(--border)"}`, background: on ? "var(--ink)" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>
+                          <div style={{ width: 18, height: 18, borderRadius: 5, border: `2px solid ${on ? "var(--ink)" : "var(--border)"}`, background: on ? "var(--ink)" : "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>
                             {on && <span style={{ color: "#fff", fontSize: 11 }}>✓</span>}
                           </div>
                           <div>
@@ -659,14 +659,14 @@ export default function KundeDetailPage() {
                       <div key={sk} style={{ ...S.card, marginBottom: 12 }}>
                         <div style={{ fontWeight: 600, fontSize: 13, color: "var(--ink)", marginBottom: 10 }}>
                           {src?.label}
-                          {cho.length > 0 && <span style={{ marginLeft: 8, background: "#dcfce7", color: "#059669", fontSize: 11, fontWeight: 600, padding: "1px 7px", borderRadius: 99 }}>{cho.length} gewählt</span>}
+                          {cho.length > 0 && <span style={{ marginLeft: 8, background: "var(--border)", color: "var(--ink)", fontSize: 11, fontWeight: 600, padding: "1px 7px", borderRadius: 99 }}>{cho.length} gewählt</span>}
                         </div>
                         {opts.map(opt => {
                           const on = cho.includes(opt.key);
                           return (
                             <div key={opt.key} onClick={() => toggleOut(sk, opt.key)}
                               style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 8, border: `1px solid ${on ? "var(--ink)" : "var(--border)"}`, marginBottom: 6, cursor: "pointer" }}>
-                              <div style={{ width: 15, height: 15, borderRadius: 4, border: `2px solid ${on ? "var(--ink)" : "var(--border)"}`, background: on ? "var(--ink)" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                              <div style={{ width: 15, height: 15, borderRadius: 4, border: `2px solid ${on ? "var(--ink)" : "var(--border)"}`, background: on ? "var(--ink)" : "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                                 {on && <span style={{ color: "#fff", fontSize: 10 }}>✓</span>}
                               </div>
                               <div>
