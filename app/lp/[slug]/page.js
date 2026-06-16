@@ -7,24 +7,27 @@ import { supabaseAdmin } from "@/lib/supabase";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }) {
-  const staticLp = getLp(params.slug);
+  const { slug } = await params; // Next.js 15: params ist ein Promise
+  const staticLp = getLp(slug);
   if (staticLp) return { title: staticLp.headline };
 
   const sb = supabaseAdmin();
   const { data } = await sb
     .from("landing_pages")
     .select("title")
-    .eq("slug", params.slug)
+    .eq("slug", slug)
     .single();
   return { title: data?.title || "Landing Page" };
 }
 
 export default async function Page({ params }) {
+  const { slug } = await params; // Next.js 15: params ist ein Promise
+
   // 1. Statische LPs haben Vorrang (Altbestand)
-  const staticLp = getLp(params.slug);
+  const staticLp = getLp(slug);
   if (staticLp) return <LandingPage lp={staticLp} />;
 
-  // 2. Dynamische LP aus DB (service-role, kein published-Filter nötig für Preview)
+  // 2. Dynamische LP aus DB
   const sb = supabaseAdmin();
   const { data: row, error } = await sb
     .from("landing_pages")
@@ -37,36 +40,46 @@ export default async function Page({ params }) {
         mobile, phone, email
       )
     `)
-    .eq("slug", params.slug)
+    .eq("slug", slug)
+    .eq("status", "published")
     .single();
 
-  if (error || !row) return notFound();
+  // Diagnose-Log (erscheint im Vercel-Function-Log)
+  console.log("[lp/page]", {
+    slug,
+    found:     !!row,
+    status:    row?.status,
+    client:    row?.clients?.name ?? "(kein Join-Ergebnis)",
+    supaErr:   error?.message ?? null,
+    serviceKey: !!process.env.SUPABASE_SERVICE_KEY,
+    anonKey:    !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    url:        !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+  });
 
-  // Nur veröffentlichte LPs sind öffentlich sichtbar (Draft = 404 für Besucher)
-  if (row.status !== "published") return notFound();
+  if (error || !row) {
+    console.error("[lp/page] notFound — slug:", slug, "error:", error?.message);
+    return notFound();
+  }
 
   const client = row.clients || {};
 
-  // data-Objekt: clients-Felder + LP-Felder, content bleibt als jsonb
   const data = {
-    // Kundenprofil
-    name:         client.name        || "",
-    industry:     client.industry    || "",
-    brand_color:  client.brand_color || null,
+    name:         client.name         || "",
+    industry:     client.industry     || "",
+    brand_color:  client.brand_color  || null,
     accent_color: client.accent_color || null,
-    logo_url:     client.logo_url    || null,
-    mobile:       client.mobile      || null,
-    phone:        client.phone       || null,
-    email:        client.email       || null,
-    // LP-Daten
+    logo_url:     client.logo_url     || null,
+    mobile:       client.mobile       || null,
+    phone:        client.phone        || null,
+    email:        client.email        || null,
     id:           row.id,
     client_id:    row.client_id,
     slug:         row.slug,
-    title:        row.title          || "",
-    content:      row.content        || {},
-    impressum:    row.impressum      || "",
-    datenschutz:  row.datenschutz    || "",
-    leads_count:  row.leads_count    || 0,
+    title:        row.title           || "",
+    content:      row.content         || {},
+    impressum:    row.impressum       || "",
+    datenschutz:  row.datenschutz     || "",
+    leads_count:  row.leads_count     || 0,
   };
 
   return <LandingTemplate data={data} />;
