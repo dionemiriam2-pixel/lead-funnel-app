@@ -196,6 +196,8 @@ async function analyseWebsite(client_id, sb) {
   - name (String): Produktname oder Leistungsbezeichnung
   - description (String, 1 Satz): Kurze Beschreibung
   - target_groups (String): Für wen ist das gedacht?
+  - keywords (String): 3–5 relevante Suchbegriffe, kommagetrennt
+  - offer (String): Was ist der Nutzen / Lead-Magnet für dieses Angebot? (1 kurzer Satz)
 
 Wichtig: Gib nur Werte zurück die wirklich im Text stehen. Keine Erfindungen.
 
@@ -253,7 +255,7 @@ Text: ${text}`,
     const newProds = aiResult.products
       .filter(p => p.name && !existingNames.has(p.name.toLowerCase().trim()))
       .slice(0, 5)
-      .map(p => ({ client_id, name: p.name, description: p.description || "", target_groups: p.target_groups || "", region: client.region || "" }));
+      .map(p => ({ client_id, name: p.name, description: p.description || "", target_groups: p.target_groups || "", keywords: p.keywords || "", offer: p.offer || "", region: client.region || "" }));
     if (newProds.length > 0) {
       await sb.from("products").insert(newProds);
       savedProducts = newProds.length;
