@@ -211,7 +211,7 @@ async function analyseWebsite(client_id, sb) {
     },
     body: JSON.stringify({
       model: "claude-haiku-4-5-20251001",
-      max_tokens: 1200,
+      max_tokens: 2000,
       system: "Du bist SEO- und Marketing-Analyst. Antworte ausschließlich mit gültigem JSON, kein Fließtext.",
       messages: [
         {
@@ -245,10 +245,17 @@ Text: ${text}`,
 
   const aiData = await aiRes.json();
   let aiResult;
+  const rawText = "{" + (aiData.content?.[0]?.text || "");
   try {
-    aiResult = JSON.parse("{" + aiData.content[0].text);
+    aiResult = JSON.parse(rawText);
   } catch {
-    return NextResponse.json({ error: "KI-Antwort ungültig" }, { status: 500 });
+    // Abgeschnittenes JSON: alles bis zur letzten vollständigen Property reparieren
+    try {
+      const trimmed = rawText.slice(0, rawText.lastIndexOf(",")).trimEnd() + "}";
+      aiResult = JSON.parse(trimmed);
+    } catch {
+      return NextResponse.json({ error: "KI-Antwort konnte nicht gelesen werden", raw: rawText.slice(0, 300) }, { status: 500 });
+    }
   }
 
   // 5. In Supabase speichern
