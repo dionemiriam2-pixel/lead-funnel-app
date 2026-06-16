@@ -1,17 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { isLoggedIn, logout } from "@/lib/auth";
+import { checkSession, logout, TOKEN_KEY } from "@/lib/auth";
+import { supabaseBrowser } from "@/lib/supabase";
 import {
-  LayoutDashboard,
-  Building2,
-  Mail,
-  LayoutGrid,
-  TrendingUp,
-  BarChart2,
-  Upload,
-  Play,
-  LogOut,
+  LayoutDashboard, Building2, Mail, LayoutGrid,
+  TrendingUp, BarChart2, Upload, Play, LogOut,
 } from "lucide-react";
 
 const NAV = [
@@ -30,10 +24,10 @@ function BotButton() {
   async function handleClick() {
     setStatus("running");
     try {
-      const pw = typeof window !== "undefined" ? localStorage.getItem("lf_auth_pw") || "" : "";
+      const token = localStorage.getItem(TOKEN_KEY) || "";
       const res = await fetch("/api/run-bot", {
         method: "POST",
-        headers: { "x-pw": pw, "Content-Type": "application/json" },
+        headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
       }).then(r => r.json());
       setStatus(res.ok ? "ok" : "error");
     } catch {
@@ -42,7 +36,7 @@ function BotButton() {
     setTimeout(() => setStatus("idle"), 4000);
   }
 
-  const label = { idle: "Bot starten", running: "Läuft…", ok: "Gestartet ✓", error: "Fehler" }[status];
+  const label       = { idle: "Bot starten", running: "Läuft…", ok: "Gestartet ✓", error: "Fehler" }[status];
   const borderColor = status === "error" ? "var(--accent)" : "var(--border-strong)";
   const textColor   = status === "error" ? "var(--accent)" : "var(--ink)";
 
@@ -62,14 +56,33 @@ function BotButton() {
 }
 
 export default function AppShell({ children }) {
-  const router   = useRouter();
-  const path     = usePathname();
+  const router = useRouter();
+  const path   = usePathname();
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (!isLoggedIn()) { router.replace("/login"); return; }
-    setReady(true);
+    // Async Session-Check — verifiziert gegen Supabase
+    checkSession().then(ok => {
+      if (!ok) { router.replace("/login"); return; }
+      setReady(true);
+    });
+
+    // Token bei automatischem Refresh aktuell halten
+    const { data: { subscription } } = supabaseBrowser().auth.onAuthStateChange((event, session) => {
+      if (session?.access_token) {
+        localStorage.setItem(TOKEN_KEY, session.access_token);
+      } else if (event === "SIGNED_OUT") {
+        localStorage.removeItem(TOKEN_KEY);
+        router.replace("/login");
+      }
+    });
+    return () => subscription.unsubscribe();
   }, []);
+
+  async function handleLogout() {
+    await logout();
+    router.replace("/login");
+  }
 
   if (!ready) return null;
 
@@ -82,7 +95,6 @@ export default function AppShell({ children }) {
         display: "flex", flexDirection: "column", flexShrink: 0,
         position: "fixed", top: 0, left: 0, height: "100vh", zIndex: 50,
       }}>
-        {/* Wortmarke */}
         <div style={{ padding: "22px 16px 18px", borderBottom: "1px solid var(--border)" }}>
           <div style={{ fontFamily: "var(--font-serif)", fontSize: 20, fontWeight: 500, color: "var(--ink)", letterSpacing: "-.3px" }}>
             LeadOS<span style={{ color: "var(--accent)", marginLeft: 1 }}>.</span>
@@ -92,7 +104,6 @@ export default function AppShell({ children }) {
           </div>
         </div>
 
-        {/* Navigation */}
         <nav style={{ flex: 1, padding: "10px 8px" }}>
           {NAV.map(({ href, label, Icon }) => {
             const active = path.startsWith(href);
@@ -112,10 +123,9 @@ export default function AppShell({ children }) {
           })}
         </nav>
 
-        {/* Unten */}
         <div style={{ padding: "10px 8px 16px", borderTop: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: 2 }}>
           <BotButton />
-          <button onClick={() => { logout(); router.replace("/login"); }}
+          <button onClick={handleLogout}
             style={{
               display: "flex", alignItems: "center", gap: 8, width: "100%",
               padding: "7px 10px", border: "none", borderRadius: 7, background: "transparent",
@@ -127,7 +137,6 @@ export default function AppShell({ children }) {
         </div>
       </aside>
 
-      {/* Main */}
       <main style={{ marginLeft: 220, flex: 1, minHeight: "100vh", background: "var(--bg)" }}>
         {children}
       </main>

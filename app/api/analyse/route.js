@@ -1,9 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase";
-
-function auth(req) {
-  return req.headers.get("x-pw") === process.env.DASHBOARD_PASSWORD;
-}
+import { supabaseAdmin, verifyAuth } from "@/lib/supabase";
 
 /* ─── SEO-Parsing (kein externer Parser, nur Regex) ──────── */
 function attr(html, pattern) {
@@ -386,7 +382,7 @@ Gib NUR gültiges JSON zurück in diesem Format:
 
 /* ─── Router ─────────────────────────────────────────────── */
 export async function POST(req) {
-  if (!auth(req)) return NextResponse.json({ error: "Unauth" }, { status: 401 });
+  if (!await verifyAuth(req)) return NextResponse.json({ error: "Unauth" }, { status: 401 });
   const body = await req.json();
   const sb   = supabaseAdmin();
 

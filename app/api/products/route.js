@@ -1,12 +1,8 @@
 import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase";
-
-function auth(req) {
-  return req.headers.get("x-pw") === process.env.DASHBOARD_PASSWORD;
-}
+import { supabaseAdmin, verifyAuth } from "@/lib/supabase";
 
 export async function GET(req) {
-  if (!auth(req)) return NextResponse.json({ error: "Unauth" }, { status: 401 });
+  if (!await verifyAuth(req)) return NextResponse.json({ error: "Unauth" }, { status: 401 });
   const { searchParams } = new URL(req.url);
   const client_id = searchParams.get("client_id");
   const sb = supabaseAdmin();
@@ -18,7 +14,7 @@ export async function GET(req) {
 }
 
 export async function POST(req) {
-  if (!auth(req)) return NextResponse.json({ error: "Unauth" }, { status: 401 });
+  if (!await verifyAuth(req)) return NextResponse.json({ error: "Unauth" }, { status: 401 });
   const body = await req.json();
   const sb = supabaseAdmin();
   const { data, error } = await sb.from("products").insert(body).select().single();
@@ -27,7 +23,7 @@ export async function POST(req) {
 }
 
 export async function PATCH(req) {
-  if (!auth(req)) return NextResponse.json({ error: "Unauth" }, { status: 401 });
+  if (!await verifyAuth(req)) return NextResponse.json({ error: "Unauth" }, { status: 401 });
   const { id, ...fields } = await req.json();
   const sb = supabaseAdmin();
   const { error } = await sb.from("products").update(fields).eq("id", id);
@@ -36,7 +32,7 @@ export async function PATCH(req) {
 }
 
 export async function DELETE(req) {
-  if (!auth(req)) return NextResponse.json({ error: "Unauth" }, { status: 401 });
+  if (!await verifyAuth(req)) return NextResponse.json({ error: "Unauth" }, { status: 401 });
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
   const sb = supabaseAdmin();

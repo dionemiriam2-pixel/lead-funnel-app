@@ -1,18 +1,13 @@
 import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase";
-
-function auth(req) {
-  return req.headers.get("x-pw") === process.env.DASHBOARD_PASSWORD;
-}
+import { supabaseAdmin, verifyAuth } from "@/lib/supabase";
 
 function slugify(text) {
   return text.toLowerCase().replace(/[äöü]/g, c => ({ ä: "ae", ö: "oe", ü: "ue" }[c]))
     .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
-/* ─── GET: alle LPs eines Clients ───────────────────────── */
 export async function GET(req) {
-  if (!auth(req)) return NextResponse.json({ error: "Unauth" }, { status: 401 });
+  if (!await verifyAuth(req)) return NextResponse.json({ error: "Unauth" }, { status: 401 });
   const { searchParams } = new URL(req.url);
   const client_id = searchParams.get("client_id");
   const sb = supabaseAdmin();
@@ -23,20 +18,17 @@ export async function GET(req) {
   return NextResponse.json({ data });
 }
 
-/* ─── POST: neue LP generieren ───────────────────────────── */
 export async function POST(req) {
-  if (!auth(req)) return NextResponse.json({ error: "Unauth" }, { status: 401 });
+  if (!await verifyAuth(req)) return NextResponse.json({ error: "Unauth" }, { status: 401 });
   const { client_id } = await req.json();
   const sb = supabaseAdmin();
 
   const { data: client } = await sb.from("clients").select("*").eq("id", client_id).single();
   if (!client) return NextResponse.json({ error: "Kunde nicht gefunden" }, { status: 404 });
 
-  // Slug: clientname + timestamp-suffix
   const baseSlug = slugify(client.name || "landing-page");
   const slug = `${baseSlug}-${Date.now().toString(36)}`;
 
-  // KI-Prompt
   const prompt = `Du bist Conversion-Texter für Landing Pages im deutschsprachigen Raum.
 
 Erstelle Texte für eine Landing Page für diesen Kunden:
@@ -100,11 +92,9 @@ Antworte NUR mit diesem JSON (kein Fließtext drumherum):
   }
 
   const { data: lp, error: insertErr } = await sb.from("landing_pages").insert({
-    client_id,
-    slug,
+    client_id, slug,
     title: content.hero?.headline || client.name,
-    content,
-    status: "draft",
+    content, status: "draft",
     impressum: client.impressum || "",
     datenschutz: client.datenschutz || "",
   }).select().single();
@@ -113,9 +103,8 @@ Antworte NUR mit diesem JSON (kein Fließtext drumherum):
   return NextResponse.json({ ok: true, lp });
 }
 
-/* ─── PATCH: LP aktualisieren (Texte, Impressum etc.) ─────── */
 export async function PATCH(req) {
-  if (!auth(req)) return NextResponse.json({ error: "Unauth" }, { status: 401 });
+  if (!await verifyAuth(req)) return NextResponse.json({ error: "Unauth" }, { status: 401 });
   const { id, ...fields } = await req.json();
   const sb = supabaseAdmin();
   const { error } = await sb.from("landing_pages").update({ ...fields, updated_at: new Date().toISOString() }).eq("id", id);
@@ -123,9 +112,8 @@ export async function PATCH(req) {
   return NextResponse.json({ ok: true });
 }
 
-/* ─── DELETE ─────────────────────────────────────────────── */
 export async function DELETE(req) {
-  if (!auth(req)) return NextResponse.json({ error: "Unauth" }, { status: 401 });
+  if (!await verifyAuth(req)) return NextResponse.json({ error: "Unauth" }, { status: 401 });
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
   const sb = supabaseAdmin();

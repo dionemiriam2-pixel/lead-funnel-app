@@ -1,12 +1,8 @@
 import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase";
-
-function auth(req) {
-  return req.headers.get("x-pw") === process.env.DASHBOARD_PASSWORD;
-}
+import { supabaseAdmin, verifyAuth } from "@/lib/supabase";
 
 export async function POST(req) {
-  if (!auth(req)) return NextResponse.json({ error: "Unauth" }, { status: 401 });
+  if (!await verifyAuth(req)) return NextResponse.json({ error: "Unauth" }, { status: 401 });
   const { lead_id, client_id } = await req.json();
   const sb = supabaseAdmin();
 
@@ -54,7 +50,6 @@ Gib NUR den E-Mail-Text zurück, keine Erklärungen.`;
   const aiData = await aiRes.json();
   const text = aiData.content?.[0]?.text || "";
 
-  // In leads speichern
   await sb.from("leads").update({ outreach_text: text, updated_at: new Date().toISOString() }).eq("id", lead_id);
 
   return NextResponse.json({ ok: true, text });
