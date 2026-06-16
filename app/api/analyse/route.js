@@ -12,29 +12,46 @@ function attr(html, pattern) {
 }
 
 function parseSEO(html, url) {
-  const title       = attr(html, /<title[^>]*>([\s\S]*?)<\/title>/i);
-  const metaDesc    = attr(html, /<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)/i)
-                   || attr(html, /<meta[^>]+content=["']([^"']*?)["'][^>]+name=["']description["']/i);
-  const canonical   = attr(html, /<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']*)/i)
-                   || attr(html, /<link[^>]+href=["']([^"']*?)["'][^>]+rel=["']canonical["']/i);
-  const schemaOrg   = /<script[^>]+type=["']application\/ld\+json["']/i.test(html);
-  const ogTags      = /<meta[^>]+property=["']og:/i.test(html);
-  const h1Raw       = attr(html, /<h1[^>]*>([\s\S]*?)<\/h1>/i);
-  const h1          = h1Raw ? h1Raw.replace(/<[^>]+>/g, "").trim() : null;
-  const robots      = attr(html, /<meta[^>]+name=["']robots["'][^>]+content=["']([^"']*)/i)
-                   || attr(html, /<meta[^>]+content=["']([^"']*?)["'][^>]+name=["']robots["']/i);
-  const isHttps     = url.startsWith("https://");
+  const title    = attr(html, /<title[^>]*>([\s\S]*?)<\/title>/i);
+
+  // Meta Description — beide Attribut-Reihenfolgen
+  const metaDesc = attr(html, /<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)/i)
+                || attr(html, /<meta[^>]+content=["']([^"']*?)["'][^>]+name=["']description["']/i);
+
+  // Canonical — robusteres Matching: beliebig viele Attribute dazwischen
+  const canonicalRaw = html.match(/<link[^>]*rel=["']canonical["'][^>]*>/i)?.[0]
+                    || html.match(/<link[^>]*href=["'][^"']*["'][^>]*rel=["']canonical["'][^>]*>/i)?.[0];
+  const canonical = canonicalRaw ? (canonicalRaw.match(/href=["']([^"']+)["']/i)?.[1] || null) : null;
+
+  // Schema.org: JSON-LD ODER Microdata (itemscope/itemtype)
+  const schemaJsonLd  = /<script[^>]+type=["']application\/ld\+json["']/i.test(html);
+  const schemaMicro   = /itemscope/i.test(html) && /itemtype=["']https?:\/\/schema\.org/i.test(html);
+  const schemaOrg     = schemaJsonLd || schemaMicro;
+  const schemaWert    = schemaJsonLd ? "JSON-LD" : schemaMicro ? "Microdata (itemscope)" : null;
+
+  // Open Graph
+  const ogTags = /<meta[^>]+property=["']og:/i.test(html);
+
+  // H1
+  const h1Raw = attr(html, /<h1[^>]*>([\s\S]*?)<\/h1>/i);
+  const h1    = h1Raw ? h1Raw.replace(/<[^>]+>/g, "").trim() : null;
+
+  // Robots Meta Tag
+  const robots = attr(html, /<meta[^>]+name=["']robots["'][^>]+content=["']([^"']*)/i)
+              || attr(html, /<meta[^>]+content=["']([^"']*?)["'][^>]+name=["']robots["']/i);
+
+  const isHttps = url.startsWith("https://");
 
   return {
-    title:            { vorhanden: !!title,    wert: title || null },
-    meta_description: { vorhanden: !!metaDesc, wert: metaDesc || null },
-    canonical:        { vorhanden: !!canonical, wert: canonical || null },
-    schema_org:       { vorhanden: schemaOrg,  wert: schemaOrg ? "JSON-LD gefunden" : null },
-    og_tags:          { vorhanden: ogTags,     wert: ogTags ? "vorhanden" : null },
-    h1:               { vorhanden: !!h1,       wert: h1 || null },
-    robots:           { vorhanden: !!robots,   wert: robots || null },
-    https:            { vorhanden: isHttps,    wert: isHttps ? "HTTPS" : "HTTP (unsicher)" },
-    sitemap:          { vorhanden: false,      wert: null }, // wird separat geprüft
+    title:            { vorhanden: !!title,     wert: title || null },
+    meta_description: { vorhanden: !!metaDesc,  wert: metaDesc || null },
+    canonical:        { vorhanden: !!canonical,  wert: canonical || null },
+    schema_org:       { vorhanden: schemaOrg,   wert: schemaWert },
+    og_tags:          { vorhanden: ogTags,      wert: ogTags ? "vorhanden" : null },
+    h1:               { vorhanden: !!h1,        wert: h1 || null },
+    robots:           { vorhanden: !!robots,    wert: robots || null },
+    https:            { vorhanden: isHttps,     wert: isHttps ? "HTTPS" : "HTTP (unsicher)" },
+    sitemap:          { vorhanden: false,       wert: null },
   };
 }
 
