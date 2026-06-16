@@ -157,10 +157,12 @@ export default function KundeDetailPage() {
   }
 
   async function analyseWebsite() {
-    if (!form.website) { setWebsiteAnalysisErr("Bitte zuerst eine Website-URL speichern."); return; }
+    if (!form.website) { setWebsiteAnalysisErr("Bitte zuerst eine Website-URL eintragen."); return; }
     setAnalysingWebsite(true);
     setWebsiteAnalysisErr("");
     try {
+      // Website erst in DB speichern, dann analysieren
+      await fetch("/api/clients", { method: "PATCH", headers: authHeaders(), body: JSON.stringify({ id, website: form.website }) });
       const d = await apiFetch("/api/analyse", { method: "POST", body: JSON.stringify({ client_id: id }) });
       if (d.error) { setWebsiteAnalysisErr(d.error); return; }
       setForm(f => ({ ...f, target_audience: d.target_audience || f.target_audience, usp: d.usp || f.usp, keywords: d.keywords || f.keywords }));
