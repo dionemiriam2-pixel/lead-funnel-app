@@ -58,6 +58,22 @@ function extractText(html) {
     .slice(0, 10000);
 }
 
+/* ─── Kontaktdaten per Regex aus Text extrahieren ───────── */
+function extractContact(text) {
+  const result = {};
+
+  // Telefon: +49 / 0xxx / internationale Formate
+  const phoneMatch = text.match(/(?:Tel\.?|Telefon|Phone|Fon|Ruf)[\s:]*([+0][\d\s\-/()+]{7,20}\d)/i)
+                  || text.match(/(\+49[\s\d\-/()+]{7,20}\d)/);
+  if (phoneMatch) result.phone = phoneMatch[1].replace(/\s+/g, " ").trim();
+
+  // E-Mail
+  const emailMatch = text.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/);
+  if (emailMatch) result.email = emailMatch[0];
+
+  return result;
+}
+
 /* ─── Social-Media-Links aus HTML extrahieren ────────────── */
 function extractSocialLinks(html) {
   const links = {};
@@ -121,9 +137,10 @@ async function analyseWebsite(client_id, sb) {
   seoCheck.sitemap.vorhanden = await checkSitemap(baseUrl);
   seoCheck.sitemap.wert      = seoCheck.sitemap.vorhanden ? baseUrl + "/sitemap.xml" : null;
 
-  // 3. Sichtbaren Text + Social-Links extrahieren
-  const text        = extractText(html);
-  const socialLinks = extractSocialLinks(html);
+  // 3. Sichtbaren Text + Links + Kontaktdaten extrahieren
+  const text         = extractText(html);
+  const socialLinks  = extractSocialLinks(html);
+  const regexContact = extractContact(text);
 
   // 4. KI-Analyse via Anthropic Haiku
   const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
@@ -145,9 +162,7 @@ async function analyseWebsite(client_id, sb) {
 - target_audience (String, 1–2 Sätze): Wer ist die Zielgruppe?
 - usp (String, 1 Satz): Was ist das Alleinstellungsmerkmal?
 - keywords (Array von 8–12 Strings): Relevante SEO-Keywords
-- phone (String oder null): Telefonnummer falls im Text vorhanden, sonst null
-- email (String oder null): E-Mail-Adresse falls im Text vorhanden, sonst null
-- contact (String oder null): Name des Ansprechpartners / Inhabers falls im Text vorhanden, sonst null
+- contact (String oder null): Nur der Vorname + Nachname einer echten Person (Inhaber/Ansprechpartner), falls im Text genannt. Keine E-Mail, keine Telefonnummer, nur ein Name. Sonst null.
 - products (Array von max. 5 Objekten): Erkannte Produkte/Leistungen, jedes mit:
   - name (String): Produktname oder Leistungsbezeichnung
   - description (String, 1 Satz): Kurze Beschreibung
@@ -186,10 +201,10 @@ Text: ${text}`,
     keywords:        Array.isArray(aiResult.keywords)
                        ? aiResult.keywords.join(", ")
                        : aiResult.keywords || client.keywords,
-    // Kontaktdaten nur eintragen wenn noch leer
-    ...(aiResult.phone   && !client.phone   ? { phone:   aiResult.phone   } : {}),
-    ...(aiResult.email   && !client.email   ? { email:   aiResult.email   } : {}),
-    ...(aiResult.contact && !client.contact ? { contact: aiResult.contact } : {}),
+    // Kontaktdaten: Telefon + E-Mail per Regex, Ansprechpartner per KI
+    ...(regexContact.phone   && !client.phone   ? { phone:   regexContact.phone   } : {}),
+    ...(regexContact.email   && !client.email   ? { email:   regexContact.email   } : {}),
+    ...(aiResult.contact     && !client.contact ? { contact: aiResult.contact     } : {}),
     // Social-Links nur überschreiben wenn neu gefunden
     ...(socialLinks.instagram && !client.instagram ? { instagram: socialLinks.instagram } : {}),
     ...(socialLinks.facebook  && !client.facebook  ? { facebook:  socialLinks.facebook  } : {}),
