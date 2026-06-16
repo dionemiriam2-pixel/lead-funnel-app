@@ -87,7 +87,9 @@ export default function KundeDetailPage() {
   const [msg,          setMsg]          = useState("");
 
   /* Produkte & Strategie */
-  const [newProd,   setNewProd]   = useState({ name:"", description:"", target_groups:"", keywords:"", region:"", offer:"" });
+  const [newProd,      setNewProd]      = useState({ name:"", description:"", target_groups:"", keywords:"", region:"", offer:"" });
+  const [quickProd,    setQuickProd]    = useState("");
+  const [quickProdOpen,setQuickProdOpen]= useState(false);
   const [analysis,          setAnalysis]          = useState({});
   const [analysing,         setAnalysing]         = useState(null);
   const [stratStep,         setStratStep]         = useState(1);
@@ -167,7 +169,7 @@ export default function KundeDetailPage() {
       if (d.error) { setWebsiteAnalysisErr(d.error); return; }
       setForm(f => ({ ...f, target_audience: d.target_audience || f.target_audience, usp: d.usp || f.usp, keywords: d.keywords || f.keywords }));
       await load();
-      flash("✓ Website analysiert");
+      flash(d.savedProducts > 0 ? `✓ Analysiert · ${d.savedProducts} Leistung${d.savedProducts !== 1 ? "en" : ""} erkannt` : "✓ Website analysiert");
     } catch {
       setWebsiteAnalysisErr("Netzwerkfehler — bitte nochmal versuchen.");
     } finally {
@@ -324,6 +326,46 @@ export default function KundeDetailPage() {
                 <div style={{ height: 6, background: "var(--bar-track)", borderRadius: 99, overflow: "hidden" }}>
                   <div style={{ height: 6, width: profPct + "%", background: profPct === 100 ? "#15803d" : "var(--bar-fill)", borderRadius: 99, transition: "width .4s ease" }} />
                 </div>
+              </div>
+
+              {/* Schnell-Produkt anlegen */}
+              <div style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid var(--border)" }}>
+                {!quickProdOpen ? (
+                  <button onClick={() => setQuickProdOpen(true)}
+                    style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "7px 0", border: "1px dashed var(--border)", borderRadius: 8, background: "transparent", color: "var(--text-secondary)", fontSize: 12, cursor: "pointer" }}>
+                    <Plus size={13} strokeWidth={2} /> Leistung hinzufügen
+                  </button>
+                ) : (
+                  <div>
+                    <input
+                      autoFocus
+                      value={quickProd}
+                      onChange={e => setQuickProd(e.target.value)}
+                      onKeyDown={async e => {
+                        if (e.key === "Enter" && quickProd.trim()) {
+                          await fetch("/api/products", { method: "POST", headers: authHeaders(), body: JSON.stringify({ name: quickProd.trim(), client_id: id, region: client.region || "" }) });
+                          setQuickProd(""); setQuickProdOpen(false); await load();
+                        }
+                        if (e.key === "Escape") { setQuickProd(""); setQuickProdOpen(false); }
+                      }}
+                      placeholder="Leistungsname…"
+                      style={{ ...S.input, fontSize: 12, padding: "7px 10px", marginBottom: 6 }}
+                    />
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <button
+                        onClick={async () => {
+                          if (!quickProd.trim()) return;
+                          await fetch("/api/products", { method: "POST", headers: authHeaders(), body: JSON.stringify({ name: quickProd.trim(), client_id: id, region: client.region || "" }) });
+                          setQuickProd(""); setQuickProdOpen(false); await load();
+                        }}
+                        style={{ ...S.btnSm, flex: 1, padding: "6px 0" }}>
+                        Hinzufügen
+                      </button>
+                      <button onClick={() => { setQuickProd(""); setQuickProdOpen(false); }}
+                        style={{ ...S.btnOutline, padding: "6px 10px" }}>✕</button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {msg && <div style={{ marginTop: 10, fontSize: 12, color: "var(--ink)", fontWeight: 600, textAlign: "center" }}>{msg}</div>}

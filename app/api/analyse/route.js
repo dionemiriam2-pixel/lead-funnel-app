@@ -135,7 +135,7 @@ async function analyseWebsite(client_id, sb) {
     },
     body: JSON.stringify({
       model: "claude-haiku-4-5-20251001",
-      max_tokens: 800,
+      max_tokens: 1200,
       system: "Du bist SEO- und Marketing-Analyst. Antworte ausschließlich mit gültigem JSON, kein Fließtext.",
       messages: [
         {
@@ -144,6 +144,10 @@ async function analyseWebsite(client_id, sb) {
 - target_audience (String, 1–2 Sätze): Wer ist die Zielgruppe?
 - usp (String, 1 Satz): Was ist das Alleinstellungsmerkmal?
 - keywords (Array von 8–12 Strings): Relevante SEO-Keywords
+- products (Array von max. 5 Objekten): Erkannte Produkte/Leistungen, jedes mit:
+  - name (String): Produktname oder Leistungsbezeichnung
+  - description (String, 1 Satz): Kurze Beschreibung
+  - target_groups (String): Für wen ist das gedacht?
 
 Text: ${text}`,
         },
@@ -186,7 +190,22 @@ Text: ${text}`,
   const { error: saveErr } = await sb.from("clients").update(update).eq("id", client_id);
   if (saveErr) return NextResponse.json({ error: "Speichern fehlgeschlagen: " + saveErr.message }, { status: 500 });
 
-  return NextResponse.json({ ok: true, ...update });
+  // Erkannte Produkte/Leistungen eintragen (nur neue, keine Duplikate)
+  let savedProducts = 0;
+  if (Array.isArray(aiResult.products) && aiResult.products.length > 0) {
+    const { data: existing } = await sb.from("products").select("name").eq("client_id", client_id);
+    const existingNames = new Set((existing || []).map(p => p.name.toLowerCase().trim()));
+    const newProds = aiResult.products
+      .filter(p => p.name && !existingNames.has(p.name.toLowerCase().trim()))
+      .slice(0, 5)
+      .map(p => ({ client_id, name: p.name, description: p.description || "", target_groups: p.target_groups || "", region: client.region || "" }));
+    if (newProds.length > 0) {
+      await sb.from("products").insert(newProds);
+      savedProducts = newProds.length;
+    }
+  }
+
+  return NextResponse.json({ ok: true, ...update, savedProducts });
 }
 
 /* ─── Produkt-Analyse (bestehend, unverändert) ───────────── */
