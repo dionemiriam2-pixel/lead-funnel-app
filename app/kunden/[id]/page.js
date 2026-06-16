@@ -175,6 +175,7 @@ export default function KundeDetailPage() {
         usp:             d.usp             || f.usp,
         keywords:        d.keywords        || f.keywords,
         phone:           f.phone   || d.phone   || "",
+        mobile:          f.mobile  || d.mobile  || "",
         email:           f.email   || d.email   || "",
         contact:         f.contact || d.contact || "",
       }));
@@ -512,7 +513,7 @@ export default function KundeDetailPage() {
               <div>
                 <div style={S.card}>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                    {[["name","Firmenname"],["website","Website"],["region","Region / Gebiet"],["contact","Ansprechpartner"],["phone","Telefon"],["email","E-Mail"]].map(([k, l]) => (
+                    {[["name","Firmenname"],["website","Website"],["region","Region / Gebiet"],["contact","Ansprechpartner"],["phone","Telefon"],["mobile","Handy / WhatsApp"],["email","E-Mail"]].map(([k, l]) => (
                       <div key={k}>
                         <label style={S.label}>{l}</label>
                         <input value={form[k] || ""} onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))} style={S.input} />

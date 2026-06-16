@@ -91,13 +91,26 @@ function extractText(html) {
 }
 
 /* ─── Kontaktdaten per Regex aus Text extrahieren ───────── */
+function isMobile(num) {
+  const clean = num.replace(/[\s\-()]/g, "");
+  return /^(\+4915\d|015\d|016\d|017\d|\+4916\d|\+4917\d)/.test(clean);
+}
+
 function extractContact(text) {
   const result = {};
 
-  // Telefon: +49 / 0xxx / internationale Formate
-  const phoneMatch = text.match(/(?:Tel\.?|Telefon|Phone|Fon|Ruf)[\s:]*([+0][\d\s\-/()+]{7,20}\d)/i)
-                  || text.match(/(\+49[\s\d\-/()+]{7,20}\d)/);
-  if (phoneMatch) result.phone = phoneMatch[1].replace(/\s+/g, " ").trim();
+  // Alle Telefonnummern aus dem Text sammeln
+  const allNums = [...text.matchAll(/(?:(?:Tel\.?|Telefon|Mobil|Handy|Fon|Phone|Fax)[\s:]*)?([+0][\d\s\-/()+]{6,20}\d)/gi)]
+    .map(m => m[1].replace(/\s+/g, " ").trim())
+    .filter(n => n.replace(/\D/g, "").length >= 7);
+
+  for (const num of allNums) {
+    if (isMobile(num)) {
+      if (!result.mobile) result.mobile = num;
+    } else {
+      if (!result.phone) result.phone = num;
+    }
+  }
 
   // E-Mail
   const emailMatch = text.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/);
@@ -249,8 +262,9 @@ Text: ${text}`,
     keywords:        Array.isArray(aiResult.keywords)
                        ? aiResult.keywords.join(", ")
                        : aiResult.keywords || client.keywords,
-    // Kontaktdaten: Telefon + E-Mail per Regex, Ansprechpartner per KI
+    // Kontaktdaten: Regex für Nummern/Mail, KI für Personenname
     ...(regexContact.phone   && !client.phone   ? { phone:   regexContact.phone   } : {}),
+    ...(regexContact.mobile  && !client.mobile  ? { mobile:  regexContact.mobile  } : {}),
     ...(regexContact.email   && !client.email   ? { email:   regexContact.email   } : {}),
     ...(aiResult.contact     && !client.contact ? { contact: aiResult.contact     } : {}),
     // Social-Links nur überschreiben wenn neu gefunden
