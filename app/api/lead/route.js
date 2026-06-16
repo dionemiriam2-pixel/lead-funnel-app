@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 
-// Empfängt das Landing-Page-Formular und schreibt den Lead in Supabase.
+// Öffentlicher Endpunkt — kein verifyAuth (Landing Page ist anon zugänglich)
 export async function POST(req) {
   try {
     const b = await req.json();
@@ -9,38 +9,61 @@ export async function POST(req) {
     // Honeypot gegen Spam-Bots
     if (b.website_hp) return NextResponse.json({ ok: true });
 
+    const slug  = (b.lp    || "").trim();
     const email = (b.email || "").trim();
-    const name = (b.name || "").trim();
-    const company = (b.company || "").trim();
+    const name  = (b.name  || "").trim();
 
-    if (!email && !name && !company) {
-      return NextResponse.json({ error: "Mindestens Name oder E-Mail nötig" }, { status: 400 });
+    if (!email && !name) {
+      return NextResponse.json({ error: "Name oder E-Mail erforderlich." }, { status: 400 });
     }
 
-    // company_name muss eindeutig & nicht leer sein -> Fallback auf E-Mail/Name
-    const companyName = company || name || email || ("Lead " + Date.now());
+    const sb = supabaseAdmin();
 
+    // 1. Landingpage-Zeile laden → client_id + LP-Name
+    let client_id = null;
+    let lpName    = slug;
+    if (slug) {
+      const { data: lpRow } = await sb
+        .from("landing_pages")
+        .select("client_id, name")
+        .eq("slug", slug)
+        .single();
+      if (lpRow) {
+        client_id = lpRow.client_id || null;
+        lpName    = lpRow.name      || slug;
+      }
+    }
+
+    // 2. Lead einfügen
     const row = {
-      company_name: companyName,
-      contact_name: name || null,
-      email: email || null,
-      phone: (b.phone || "").trim() || null,
-      client: (b.client || "eigene").trim(),
-      industry: (b.industry || "").trim() || null,
-      lp: (b.lp || "Landing Page").trim(),
-      source: "landing-page",
-      status: "new",
-      score: 7, // Opt-in-Lead = warm
-      notes: "Eingang über Landing Page: " + (b.lp || ""),
+      contact_name:    name                         || null,
+      company_name:    (b.company || "").trim()     || name || email,
+      email:           email                        || null,
+      phone:           (b.phone  || "").trim()      || null,
+      client_id,
+      client:          (b.client || "").trim()      || null,
+      industry:        (b.industry || "").trim()    || null,
+      lp:              lpName,
+      source:          "landingpage",
+      source_detail:   slug                         || null,
+      notes:           b.notes ? String(b.notes).trim() : null,
+      score:           7,
+      status:          "new",
+      pipeline_status: "neu",
     };
 
-    const sb = supabaseAdmin();
-    const { error } = await sb.from("leads").insert(row);
-    // 23505 = Eintrag mit gleichem company_name existiert schon -> als OK behandeln
-    if (error && error.code !== "23505") throw error;
+    const { error: insertErr } = await sb.from("leads").insert(row);
+    // 23505 = unique-Konflikt → trotzdem Erfolg zurückgeben
+    if (insertErr && insertErr.code !== "23505") throw insertErr;
+
+    // 3. leads_count atomar hochzählen (Postgres-Funktion)
+    if (slug && !insertErr) {
+      await sb.rpc("increment_lp_leads_count", { p_slug: slug });
+    }
 
     return NextResponse.json({ ok: true });
   } catch (e) {
-    return NextResponse.json({ error: e.message || String(e) }, { status: 500 });
+    console.error("[/api/lead]", e);
+    return NextResponse.json({ error: e.message || "Serverfehler" }, { status: 500 });
   }
 }
