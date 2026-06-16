@@ -269,11 +269,11 @@ Text: ${text}`,
     keywords:        Array.isArray(aiResult.keywords)
                        ? aiResult.keywords.join(", ")
                        : aiResult.keywords || client.keywords,
-    // Kontaktdaten: Regex für Nummern/Mail, KI für Personenname
-    ...(regexContact.phone   && !client.phone   ? { phone:   regexContact.phone   } : {}),
-    ...(regexContact.mobile  && !client.mobile  ? { mobile:  regexContact.mobile  } : {}),
-    ...(regexContact.email   && !client.email   ? { email:   regexContact.email   } : {}),
-    ...(aiResult.contact     && !client.contact ? { contact: aiResult.contact     } : {}),
+    // Kontaktdaten: bei Neu-Analyse immer überschreiben wenn neue Daten gefunden
+    ...(regexContact.phone  ? { phone:   regexContact.phone  } : {}),
+    ...(regexContact.mobile ? { mobile:  regexContact.mobile } : {}),
+    ...(regexContact.email  ? { email:   regexContact.email  } : {}),
+    contact: aiResult.contact || null,  // immer aktualisieren (löscht falschen alten Wert)
     // Social-Links nur überschreiben wenn neu gefunden
     ...(socialLinks.instagram && !client.instagram ? { instagram: socialLinks.instagram } : {}),
     ...(socialLinks.facebook  && !client.facebook  ? { facebook:  socialLinks.facebook  } : {}),

@@ -174,10 +174,10 @@ export default function KundeDetailPage() {
         target_audience: d.target_audience || f.target_audience,
         usp:             d.usp             || f.usp,
         keywords:        d.keywords        || f.keywords,
-        phone:           f.phone   || d.phone   || "",
-        mobile:          f.mobile  || d.mobile  || "",
-        email:           f.email   || d.email   || "",
-        contact:         f.contact || d.contact || "",
+        phone:           d.phone   || f.phone   || "",
+        mobile:          d.mobile  || f.mobile  || "",
+        email:           d.email   || f.email   || "",
+        contact:         d.contact || "",
       }));
       await load();
       flash(d.savedProducts > 0 ? `✓ Analysiert · ${d.savedProducts} Leistung${d.savedProducts !== 1 ? "en" : ""} erkannt` : "✓ Website analysiert");
