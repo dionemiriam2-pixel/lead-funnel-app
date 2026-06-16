@@ -141,6 +141,7 @@ async function analyseWebsite(client_id, sb) {
         {
           role: "user",
           content: `Analysiere diesen Website-Text und gib JSON zurück mit den Feldern:
+- description (String, 2–3 Sätze): Was macht das Unternehmen? Was bietet es an?
 - target_audience (String, 1–2 Sätze): Wer ist die Zielgruppe?
 - usp (String, 1 Satz): Was ist das Alleinstellungsmerkmal?
 - keywords (Array von 8–12 Strings): Relevante SEO-Keywords
@@ -174,6 +175,7 @@ Text: ${text}`,
     seo_check:       seoCheck,
     raw_html:        html.slice(0, 50000),
     analyzed_at:     new Date().toISOString(),
+    description:     aiResult.description     || client.description,
     target_audience: aiResult.target_audience || client.target_audience,
     usp:             aiResult.usp             || client.usp,
     keywords:        Array.isArray(aiResult.keywords)

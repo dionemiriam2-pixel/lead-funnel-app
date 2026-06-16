@@ -168,7 +168,7 @@ export default function KundeDetailPage() {
       await fetch("/api/clients", { method: "PATCH", headers: authHeaders(), body: JSON.stringify({ id, website: form.website }) });
       const d = await apiFetch("/api/analyse", { method: "POST", body: JSON.stringify({ client_id: id }) });
       if (d.error) { setWebsiteAnalysisErr(d.error); return; }
-      setForm(f => ({ ...f, target_audience: d.target_audience || f.target_audience, usp: d.usp || f.usp, keywords: d.keywords || f.keywords }));
+      setForm(f => ({ ...f, description: d.description || f.description, target_audience: d.target_audience || f.target_audience, usp: d.usp || f.usp, keywords: d.keywords || f.keywords }));
       await load();
       flash(d.savedProducts > 0 ? `✓ Analysiert · ${d.savedProducts} Leistung${d.savedProducts !== 1 ? "en" : ""} erkannt` : "✓ Website analysiert");
     } catch {
