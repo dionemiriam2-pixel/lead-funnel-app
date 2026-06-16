@@ -272,13 +272,6 @@ export default function KundeDetailPage() {
 
               {/* Infos */}
               <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 16 }}>
-                {client.website && (
-                  <a href={client.website} target="_blank" rel="noreferrer"
-                    style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12, color: "var(--ink)", textDecoration: "none", overflow: "hidden" }}>
-                    <Globe size={13} strokeWidth={1.5} color="var(--text-tertiary)" style={{ flexShrink: 0 }} />
-                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{client.website.replace(/^https?:\/\//, "")}</span>
-                  </a>
-                )}
                 {client.email && (
                   <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12, color: "var(--text-secondary)", overflow: "hidden" }}>
                     <Mail size={13} strokeWidth={1.5} color="var(--text-tertiary)" style={{ flexShrink: 0 }} />
@@ -299,8 +292,31 @@ export default function KundeDetailPage() {
                 )}
               </div>
 
-              {/* Profil-Vollständigkeit */}
+              {/* Website-Eingabe + Analysieren */}
               <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 6, display: "flex", alignItems: "center", gap: 5 }}>
+                  <Globe size={11} strokeWidth={2} />
+                  Website
+                </div>
+                <input
+                  value={form.website || ""}
+                  onChange={e => setForm(f => ({ ...f, website: e.target.value }))}
+                  placeholder="https://example.de"
+                  style={{ ...S.input, fontSize: 12, padding: "7px 10px", marginBottom: 8 }}
+                />
+                <button
+                  onClick={analyseWebsite}
+                  disabled={analysingWebsite}
+                  style={{ ...S.btn, width: "100%", textAlign: "center", opacity: analysingWebsite ? .6 : 1, cursor: analysingWebsite ? "not-allowed" : "pointer" }}>
+                  {analysingWebsite ? "⏳ Analysiert…" : client.analyzed_at ? "Neu analysieren" : "Analysieren"}
+                </button>
+                {websiteAnalysisErr && (
+                  <div style={{ marginTop: 7, fontSize: 11, color: "#dc2626", lineHeight: 1.4 }}>{websiteAnalysisErr}</div>
+                )}
+              </div>
+
+              {/* Profil-Vollständigkeit */}
+              <div style={{ marginBottom: 0 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
                   <span style={{ fontSize: 11, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: ".06em" }}>Profil</span>
                   <span style={{ fontSize: 11, fontWeight: 700, color: profPct === 100 ? "#15803d" : "var(--ink)" }}>{profPct}%</span>
@@ -309,14 +325,6 @@ export default function KundeDetailPage() {
                   <div style={{ height: 6, width: profPct + "%", background: profPct === 100 ? "#15803d" : "var(--bar-fill)", borderRadius: 99, transition: "width .4s ease" }} />
                 </div>
               </div>
-
-              {/* Analysieren-Button */}
-              <button
-                onClick={() => { setTab("Profil"); analyseWebsite(); }}
-                disabled={analysingWebsite}
-                style={{ ...S.btn, width: "100%", textAlign: "center", opacity: analysingWebsite ? .6 : 1, cursor: analysingWebsite ? "not-allowed" : "pointer" }}>
-                {analysingWebsite ? "⏳ Analysiert…" : "Analysieren"}
-              </button>
 
               {msg && <div style={{ marginTop: 10, fontSize: 12, color: "var(--ink)", fontWeight: 600, textAlign: "center" }}>{msg}</div>}
             </div>
