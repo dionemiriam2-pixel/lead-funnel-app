@@ -47,13 +47,11 @@ export default async function Page({ params }) {
   // Diagnose-Log (erscheint im Vercel-Function-Log)
   console.log("[lp/page]", {
     slug,
-    found:     !!row,
-    status:    row?.status,
-    client:    row?.clients?.name ?? "(kein Join-Ergebnis)",
-    supaErr:   error?.message ?? null,
+    found:      !!row,
+    status:     row?.status ?? null,
+    client:     row?.clients?.name ?? "(kein Join-Ergebnis)",
+    supaErr:    error?.message ?? null,
     serviceKey: !!process.env.SUPABASE_SERVICE_KEY,
-    anonKey:    !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    url:        !!process.env.NEXT_PUBLIC_SUPABASE_URL,
   });
 
   if (error || !row) {
