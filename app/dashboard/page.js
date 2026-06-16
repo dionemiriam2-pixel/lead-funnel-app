@@ -6,7 +6,7 @@ import { apiFetch, authHeaders } from "@/lib/api";
 import {
   Trash2, Mail, Phone, Tag, User, Sparkles, Play,
   AlertTriangle, PenLine, Link2, Copy, Building2, Zap,
-  Lightbulb, Search,
+  Lightbulb, Search, CheckSquare, Square,
 } from "lucide-react";
 
 const PIPELINE = ["neu", "kontaktiert", "angebot", "gewonnen", "verloren"];
@@ -68,6 +68,7 @@ export default function DashboardPage() {
   const [generatingLinkedin, setGeneratingLinkedin] = useState(null);
   const [clientForOutreach,  setClientForOutreach]  = useState(null);
   const [copied,             setCopied]             = useState(null);
+  const [selected,           setSelected]           = useState(new Set());
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -97,6 +98,31 @@ export default function DashboardPage() {
     if (!confirm("Lead wirklich löschen?")) return;
     await fetch("/api/leads?id=" + id, { method: "DELETE", headers: authHeaders() });
     setLeads(ls => ls.filter(l => l.id !== id));
+    setSelected(s => { const n = new Set(s); n.delete(id); return n; });
+  }
+
+  async function deleteSelected() {
+    if (!selected.size) return;
+    if (!confirm(`${selected.size} Lead${selected.size === 1 ? "" : "s"} wirklich löschen?`)) return;
+    await fetch("/api/leads?ids=" + [...selected].join(","), { method: "DELETE", headers: authHeaders() });
+    setLeads(ls => ls.filter(l => !selected.has(l.id)));
+    setSelected(new Set());
+  }
+
+  async function deleteAll() {
+    if (!leads.length) return;
+    if (!confirm(`Wirklich alle ${leads.length} Leads löschen?`)) return;
+    await fetch("/api/leads?ids=" + leads.map(l => l.id).join(","), { method: "DELETE", headers: authHeaders() });
+    setLeads([]);
+    setSelected(new Set());
+  }
+
+  function toggleSelect(id) {
+    setSelected(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  }
+
+  function toggleSelectAll() {
+    setSelected(selected.size === leads.length ? new Set() : new Set(leads.map(l => l.id)));
   }
 
   async function enrichLead(lead) {
@@ -123,10 +149,16 @@ export default function DashboardPage() {
 
   async function genLinkedin(lead) {
     setGeneratingLinkedin(lead.id);
-    const r = await fetch("/api/linkedin-msg", { method: "POST", headers: authHeaders(), body: JSON.stringify({ lead_id: lead.id, client_id: clientForOutreach }) });
-    const d = await r.json();
-    if (d.ok) setLinkedinMsg(m => ({ ...m, [lead.id]: d }));
-    setGeneratingLinkedin(null);
+    try {
+      const r = await fetch("/api/linkedin-msg", { method: "POST", headers: authHeaders(), body: JSON.stringify({ lead_id: lead.id, client_id: clientForOutreach }) });
+      const d = await r.json();
+      if (d.ok) setLinkedinMsg(m => ({ ...m, [lead.id]: d }));
+      else alert("Fehler: " + (d.error || "LinkedIn-Nachricht konnte nicht erstellt werden."));
+    } catch {
+      alert("Netzwerkfehler — bitte nochmal versuchen.");
+    } finally {
+      setGeneratingLinkedin(null);
+    }
   }
 
   async function genOutreach(lead) {
@@ -206,7 +238,26 @@ export default function DashboardPage() {
             style={{ padding: "9px 14px", background: "transparent", border: "1px solid var(--border)", borderRadius: 8, fontSize: 13, cursor: "pointer", color: "var(--text-secondary)" }}>
             Zurücksetzen
           </button>
+          <button onClick={deleteAll} disabled={!leads.length}
+            style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 14px", background: leads.length ? "#fff1f1" : "transparent", border: "1px solid " + (leads.length ? "#fca5a5" : "var(--border)"), borderRadius: 8, fontSize: 13, cursor: leads.length ? "pointer" : "not-allowed", color: leads.length ? "#dc2626" : "var(--text-tertiary)", fontWeight: 500 }}>
+            <Trash2 size={13} strokeWidth={1.5} /> Alle löschen ({leads.length})
+          </button>
         </div>
+
+        {/* Bulk-Action-Bar */}
+        {selected.size > 0 && (
+          <div style={{ background: "#1e293b", borderRadius: 10, padding: "10px 16px", marginBottom: 12, display: "flex", alignItems: "center", gap: 12 }}>
+            <span style={{ color: "#fff", fontSize: 13, fontWeight: 500 }}>{selected.size} ausgewählt</span>
+            <button onClick={deleteSelected}
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", background: "#dc2626", color: "#fff", border: "none", borderRadius: 7, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+              <Trash2 size={13} strokeWidth={1.5} /> Löschen
+            </button>
+            <button onClick={() => setSelected(new Set())}
+              style={{ padding: "6px 12px", background: "transparent", color: "#94a3b8", border: "1px solid #334155", borderRadius: 7, fontSize: 13, cursor: "pointer" }}>
+              Aufheben
+            </button>
+          </div>
+        )}
 
         {/* Lead-Tabelle */}
         <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
@@ -218,6 +269,13 @@ export default function DashboardPage() {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                  <th style={{ padding: "10px 14px", width: 36 }}>
+                    <button onClick={toggleSelectAll} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-tertiary)", display: "flex", alignItems: "center" }}>
+                      {selected.size === leads.length && leads.length > 0
+                        ? <CheckSquare size={15} strokeWidth={1.5} color="var(--ink)" />
+                        : <Square size={15} strokeWidth={1.5} />}
+                    </button>
+                  </th>
                   {["Firma", "Ort", "Quelle", "Produkt", "Score", "Status", ""].map(h => (
                     <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontSize: 11, color: "var(--text-tertiary)", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em" }}>{h}</th>
                   ))}
@@ -226,8 +284,15 @@ export default function DashboardPage() {
               <tbody>
                 {leads.map(l => (
                   <>
-                    <tr key={l.id} style={{ borderTop: "1px solid var(--border)", cursor: "pointer" }}
+                    <tr key={l.id} style={{ borderTop: "1px solid var(--border)", cursor: "pointer", background: selected.has(l.id) ? "#f8fafc" : undefined }}
                       onClick={() => { setExpanded(expanded === l.id ? null : l.id); setNoteVal(l.notes || ""); }}>
+                      <td style={{ padding: "12px 14px" }} onClick={e => e.stopPropagation()}>
+                        <button onClick={() => toggleSelect(l.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-tertiary)", display: "flex", alignItems: "center" }}>
+                          {selected.has(l.id)
+                            ? <CheckSquare size={15} strokeWidth={1.5} color="var(--ink)" />
+                            : <Square size={15} strokeWidth={1.5} />}
+                        </button>
+                      </td>
                       <td style={{ padding: "12px 14px", fontWeight: 500, fontSize: 14, color: "var(--ink)" }}>
                         {l.company_name}
                         {l.website && (
@@ -255,7 +320,7 @@ export default function DashboardPage() {
                     {/* Erweiterte Zeile */}
                     {expanded === l.id && (
                       <tr key={l.id + "_exp"}>
-                        <td colSpan={7} style={{ background: "var(--bg)", padding: "20px 24px", borderTop: "1px solid var(--border)" }}>
+                        <td colSpan={8} style={{ background: "var(--bg)", padding: "20px 24px", borderTop: "1px solid var(--border)" }}>
                           <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
 
                             {/* Details */}

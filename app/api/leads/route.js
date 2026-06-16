@@ -38,11 +38,17 @@ export async function PATCH(req) {
 export async function DELETE(req) {
   if (!auth(req)) return NextResponse.json({ error: "Unauth" }, { status: 401 });
   const { searchParams } = new URL(req.url);
-  const id = searchParams.get("id");
+  const id  = searchParams.get("id");
   const all = searchParams.get("all");
-  const sb = supabaseAdmin();
+  const ids = searchParams.get("ids");
+  const sb  = supabaseAdmin();
   if (all === "1") {
     const { error } = await sb.from("leads").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  } else if (ids) {
+    const idList = ids.split(",").filter(Boolean);
+    if (!idList.length) return NextResponse.json({ error: "ids leer" }, { status: 400 });
+    const { error } = await sb.from("leads").delete().in("id", idList);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   } else {
     if (!id) return NextResponse.json({ error: "id fehlt" }, { status: 400 });
