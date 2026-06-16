@@ -1,18 +1,24 @@
 :root {
-  /* Basis */
-  --bg:             #FFFFFF;
-  --surface:        #FFFFFF;
-  --ink:            #0E0E0E;
-  --text-secondary: #6B6B6B;
-  --text-tertiary:  #9B9B9B;
+  /* Flächen */
+  --bg:             #F0EEE6;  /* Beige — Seiten- & Bereichshintergrund */
+  --surface:        #FFFFFF;  /* Weiß — Karten & Panels */
+  --ink:            #1A1A19;  /* Haupttext & Buttons */
+
+  /* Text */
+  --text-secondary: #6B6A63;
+  --text-tertiary:  #9B9896;
 
   /* Linien */
-  --border:         #ECECEC;
-  --border-strong:  #0E0E0E;
+  --border:         #E5E3DA;
+  --border-strong:  #1A1A19;
 
-  /* Akzent */
+  /* Akzent (Rot) */
   --accent:         #C8322C;
   --accent-strong:  #A82822;
+
+  /* Fortschrittsbalken */
+  --bar-track:      #E5E3DA;
+  --bar-fill:       #2E6FD6;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -27,5 +33,5 @@ a { color: inherit; }
 
 input:focus, textarea:focus, select:focus {
   outline: none;
-  box-shadow: 0 0 0 2px var(--accent);
+  box-shadow: 0 0 0 2px var(--bar-fill);
 }

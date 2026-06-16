@@ -303,8 +303,8 @@ export default function KundeDetailPage() {
                   <span style={{ fontSize: 11, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: ".06em" }}>Profil</span>
                   <span style={{ fontSize: 11, fontWeight: 700, color: profPct === 100 ? "#15803d" : "var(--ink)" }}>{profPct}%</span>
                 </div>
-                <div style={{ height: 5, background: "var(--border)", borderRadius: 99, overflow: "hidden" }}>
-                  <div style={{ height: 5, width: profPct + "%", background: profPct === 100 ? "#15803d" : "var(--ink)", borderRadius: 99, transition: "width .4s ease" }} />
+                <div style={{ height: 6, background: "var(--bar-track)", borderRadius: 99, overflow: "hidden" }}>
+                  <div style={{ height: 6, width: profPct + "%", background: profPct === 100 ? "#15803d" : "var(--bar-fill)", borderRadius: 99, transition: "width .4s ease" }} />
                 </div>
               </div>
 
