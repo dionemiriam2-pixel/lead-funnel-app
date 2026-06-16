@@ -605,6 +605,86 @@ export default function KundeDetailPage() {
         {tab === "Marketing" && (
           <div style={{ maxWidth: 820 }}>
 
+            {/* ── Analyse-Ergebnisse ───────────────────────── */}
+            <div style={{ ...S.card, marginBottom: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
+                <h3 style={{ fontFamily: "var(--font-serif)", fontSize: 17, fontWeight: 500, color: "var(--ink)", margin: 0 }}>
+                  Website-Analyse
+                </h3>
+                {client.analyzed_at
+                  ? <span style={{ fontSize: 11, color: "var(--text-tertiary)" }}>Zuletzt analysiert: {new Date(client.analyzed_at).toLocaleString("de-DE")}</span>
+                  : <span style={{ fontSize: 11, color: "var(--accent)", fontWeight: 500 }}>Noch nicht analysiert — bitte im Profil auf „Analysieren" klicken.</span>
+                }
+              </div>
+
+              {client.analyzed_at ? (
+                <div style={{ display: "grid", gap: 16 }}>
+
+                  {/* Zielgruppe + USP */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <div style={{ background: "var(--bg)", borderRadius: 10, padding: "12px 14px" }}>
+                      <div style={S.sectionHd}>Zielgruppe</div>
+                      <p style={{ fontSize: 13, color: "var(--ink)", margin: 0, lineHeight: 1.6 }}>{client.target_audience || "—"}</p>
+                    </div>
+                    <div style={{ background: "var(--bg)", borderRadius: 10, padding: "12px 14px" }}>
+                      <div style={S.sectionHd}>USP</div>
+                      <p style={{ fontSize: 13, color: "var(--ink)", margin: 0, lineHeight: 1.6 }}>{client.usp || "—"}</p>
+                    </div>
+                  </div>
+
+                  {/* Keywords */}
+                  {client.keywords && (
+                    <div>
+                      <div style={S.sectionHd}>Keywords</div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                        {client.keywords.split(",").map(k => k.trim()).filter(Boolean).map(k => (
+                          <span key={k} style={{ background: "var(--ink)", color: "#fff", fontSize: 12, fontWeight: 500, padding: "3px 10px", borderRadius: 99 }}>{k}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SEO-Checkliste */}
+                  {client.seo_check && (
+                    <div>
+                      <div style={S.sectionHd}>SEO-Checkliste</div>
+                      <div style={{ display: "grid", gap: 6 }}>
+                        {[
+                          ["title",            "Title-Tag"],
+                          ["meta_description", "Meta Description"],
+                          ["h1",               "H1-Überschrift"],
+                          ["canonical",        "Canonical URL"],
+                          ["https",            "HTTPS"],
+                          ["og_tags",          "Open Graph Tags"],
+                          ["schema_org",       "Schema.org / JSON-LD"],
+                          ["robots",           "Robots Meta Tag"],
+                          ["sitemap",          "Sitemap"],
+                        ].map(([key, label]) => {
+                          const entry = client.seo_check[key];
+                          if (!entry) return null;
+                          return (
+                            <div key={key} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 10px", background: "var(--bg)", borderRadius: 8 }}>
+                              <span style={{ fontSize: 14, flexShrink: 0 }}>{entry.vorhanden ? "✅" : "❌"}</span>
+                              <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)", minWidth: 160 }}>{label}</span>
+                              {entry.wert && (
+                                <span style={{ fontSize: 12, color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 340 }}>
+                                  {entry.wert}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div style={{ padding: "24px 0", textAlign: "center", color: "var(--text-tertiary)", fontSize: 13 }}>
+                  Keine Analyse-Daten vorhanden.
+                </div>
+              )}
+            </div>
+
             {/* Website & Social */}
             <div style={{ ...S.card, marginBottom: 16 }}>
               <h3 style={{ fontFamily: "var(--font-serif)", fontSize: 17, fontWeight: 500, color: "var(--ink)", marginBottom: 16 }}>Website & Social Media</h3>
