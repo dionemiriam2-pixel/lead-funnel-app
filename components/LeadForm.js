@@ -11,6 +11,7 @@ export default function LeadForm({ lp, accent }) {
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
   const [err, setErr] = useState("");
+  const [consent, setConsent] = useState(false);
 
   const intents = lp.intents || ["Neueröffnung planen", "Bestandsgeschäft umbauen", "Erstberatung anfragen"];
 
@@ -128,15 +129,32 @@ export default function LeadForm({ lp, accent }) {
             <input value={fields.phone} onChange={e => set("phone", e.target.value)}
               placeholder="Telefon (optional)" style={inp} />
           </div>
-          {/* Trust microcopy */}
-          <p style={{ fontSize: 12, color: "#6b7280", marginTop: 10, display: "flex", alignItems: "center", gap: 5 }}>
-            🔒 Deine Daten sind sicher — wir geben sie nie weiter.
-          </p>
+          {/* Opt-in Checkbox — DSGVO Pflicht */}
+          <label style={{ display: "flex", alignItems: "flex-start", gap: 10, marginTop: 14, cursor: "pointer" }}>
+            <input
+              type="checkbox"
+              checked={consent}
+              onChange={e => setConsent(e.target.checked)}
+              style={{ marginTop: 3, flexShrink: 0, width: 16, height: 16, cursor: "pointer", accentColor: ac }}
+            />
+            <span style={{ fontSize: 12, color: "#4b5563", lineHeight: 1.5 }}>
+              Ich willige ein, dass meine Daten zur Bearbeitung meiner Anfrage gespeichert und verarbeitet werden.{" "}
+              {lp.datenschutz_url
+                ? <a href={lp.datenschutz_url} target="_blank" rel="noopener noreferrer" style={{ color: ac }}>Datenschutzhinweise</a>
+                : <a href="#datenschutz" style={{ color: ac }}>Datenschutzhinweise</a>
+              }
+            </span>
+          </label>
           <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
             <button onClick={() => setStep(2)} style={backBtn}>← Zurück</button>
-            <button onClick={() => fields.email.trim() ? submit() : setErr("Bitte E-Mail eingeben.")}
-              disabled={sending}
-              style={{ ...nextBtn, flex: 1, background: ac, padding: 14, fontSize: 16, fontWeight: 800 }}>
+            <button
+              onClick={() => {
+                if (!fields.email.trim()) { setErr("Bitte E-Mail eingeben."); return; }
+                if (!consent) { setErr("Bitte Datenschutzhinweise bestätigen."); return; }
+                submit();
+              }}
+              disabled={sending || !consent}
+              style={{ ...nextBtn, flex: 1, background: consent ? ac : "#9ca3af", padding: 14, fontSize: 16, fontWeight: 800, cursor: consent ? "pointer" : "not-allowed" }}>
               {sending ? "⏳ Wird gesendet…" : (lp.cta || "Jetzt anfragen")}
             </button>
           </div>

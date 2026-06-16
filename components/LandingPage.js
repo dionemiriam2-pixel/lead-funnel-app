@@ -298,9 +298,35 @@ export default function LandingPage({ lp }) {
       <footer style={{ background: "#0a0a0a", color: "#4b5563", padding: "32px 20px", textAlign: "center", fontSize: 13, borderTop: "1px solid #1a1a1a" }}>
         <div style={{ maxWidth: 1060, margin: "0 auto" }}>
           <div style={{ fontWeight: 700, color: "#6b7280", marginBottom: 8 }}>{lp.brand || lp.client || ""}</div>
-          <div>{lp.footerText || "Alle Angaben ohne Gewähr · Datenschutz · Impressum"}</div>
+          <div style={{ display: "flex", justifyContent: "center", gap: 20, flexWrap: "wrap" }}>
+            <span>Alle Angaben ohne Gewähr</span>
+            {lp.impressum_url
+              ? <a href={lp.impressum_url} target="_blank" rel="noopener noreferrer" style={{ color: "#6b7280" }}>Impressum</a>
+              : lp.impressum ? <a href="#impressum" style={{ color: "#6b7280" }}>Impressum</a> : null}
+            {lp.datenschutz_url
+              ? <a href={lp.datenschutz_url} target="_blank" rel="noopener noreferrer" style={{ color: "#6b7280" }}>Datenschutz</a>
+              : lp.datenschutz ? <a href="#datenschutz" style={{ color: "#6b7280" }}>Datenschutz</a> : null}
+          </div>
         </div>
       </footer>
+
+      {/* ── IMPRESSUM / DATENSCHUTZ ABSCHNITTE ───────────────── */}
+      {lp.impressum && (
+        <section id="impressum" style={{ background: "#f9fafb", borderTop: "1px solid #e5e7eb", padding: "40px 20px" }}>
+          <div style={{ maxWidth: 760, margin: "0 auto" }}>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: "#111827", marginBottom: 16 }}>Impressum</h2>
+            <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{lp.impressum}</div>
+          </div>
+        </section>
+      )}
+      {lp.datenschutz && (
+        <section id="datenschutz" style={{ background: "#fff", borderTop: "1px solid #e5e7eb", padding: "40px 20px" }}>
+          <div style={{ maxWidth: 760, margin: "0 auto" }}>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: "#111827", marginBottom: 16 }}>Datenschutzerklärung</h2>
+            <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{lp.datenschutz}</div>
+          </div>
+        </section>
+      )}
 
       {/* ── WHATSAPP BUTTON ──────────────────────────────────── */}
       {lp.whatsapp && (
