@@ -417,35 +417,31 @@ export default function KundeDetailPage() {
             <div style={{ marginBottom: 18 }}>
               <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontWeight: 500, color: "var(--ink)", marginBottom: 4 }}>Kanäle</h2>
               <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>
-                Lead-Quellen für <strong>{client.name}</strong> — aktivieren, konfigurieren, direkt arbeiten
+                Kanal auswählen und direkt loslegen — <strong>{client.name}</strong>
               </p>
             </div>
 
             {/* Kacheln */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12, marginBottom: 16 }}>
               {KANALE.map(({ key, Icon, label, desc, soon }) => {
-                const isActive = !!form.channels?.[key];
-                const isOpen   = openChannel === key;
+                const isOpen = openChannel === key;
                 return (
-                  <div key={key} style={{ background: "var(--surface)", border: `1px solid ${isOpen ? "var(--border-strong)" : isActive ? "var(--border-strong)" : "var(--border)"}`, borderRadius: 12, padding: "16px 18px", opacity: soon ? .5 : 1 }}>
+                  <div key={key}
+                    onClick={() => { if (!soon) setOpenChannel(isOpen ? null : key); }}
+                    style={{
+                      background: isOpen ? "var(--ink)" : "var(--surface)",
+                      border: `1px solid ${isOpen ? "var(--ink)" : "var(--border)"}`,
+                      borderRadius: 12, padding: "16px 18px",
+                      opacity: soon ? .45 : 1,
+                      cursor: soon ? "default" : "pointer",
+                      transition: "all .15s",
+                    }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
-                      <Icon size={20} strokeWidth={1.5} color={isActive ? "var(--ink)" : "var(--text-tertiary)"} />
-                      <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 99, background: "var(--border)", color: isActive && !soon ? "var(--ink)" : "var(--text-tertiary)" }}>
-                        {soon ? "Bald" : isActive ? "Aktiv" : "Inaktiv"}
-                      </span>
+                      <Icon size={20} strokeWidth={1.5} color={isOpen ? "#fff" : "var(--text-tertiary)"} />
+                      {soon && <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 99, background: "var(--border)", color: "var(--text-tertiary)" }}>Bald</span>}
                     </div>
-                    <div style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)", marginBottom: 3 }}>{label}</div>
-                    <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 14, lineHeight: 1.5 }}>{desc}</div>
-                    {!soon && (
-                      <button
-                        onClick={() => {
-                          if (!isActive) activateChannel(key);
-                          setOpenChannel(isOpen ? null : key);
-                        }}
-                        style={S.btnOutline}>
-                        {isOpen ? "Schließen ↑" : isActive ? "Geöffnet ↓" : "Aktivieren"}
-                      </button>
-                    )}
+                    <div style={{ fontWeight: 600, fontSize: 14, color: isOpen ? "#fff" : "var(--ink)", marginBottom: 3 }}>{label}</div>
+                    <div style={{ fontSize: 12, color: isOpen ? "rgba(255,255,255,.65)" : "var(--text-secondary)", lineHeight: 1.5 }}>{desc}</div>
                   </div>
                 );
               })}
