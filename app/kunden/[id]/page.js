@@ -93,14 +93,20 @@ export default function KundeDetailPage() {
   const [stratStep,         setStratStep]         = useState(1);
   const [analysingWebsite,  setAnalysingWebsite]  = useState(false);
   const [websiteAnalysisErr,setWebsiteAnalysisErr]= useState("");
+  const [landingPages,      setLandingPages]      = useState([]);
+  const [generatingLP,      setGeneratingLP]      = useState(false);
+  const [lpError,           setLpError]           = useState("");
+  const [lpPreview,         setLpPreview]         = useState(null);
 
   /* ── Daten laden ─────────────────────────────────────── */
   async function load() {
-    const [cr, pr, lr] = await Promise.all([
+    const [cr, pr, lr, lpRes] = await Promise.all([
       apiFetch("/api/clients"),
       apiFetch("/api/products?client_id=" + id),
       apiFetch("/api/leads"),
+      apiFetch("/api/landing-pages?client_id=" + id),
     ]);
+    setLandingPages(lpRes.data || []);
     const c = (cr.data || []).find(x => x.id === id);
     setClient(c || null);
     setForm(c || {});
@@ -880,18 +886,146 @@ export default function KundeDetailPage() {
         )}
 
         {/* ═══════════ LANDING PAGES ═══════════════════════ */}
-        {tab === "Landing Pages" && (
-          <div style={{ ...S.card, padding: 40, textAlign: "center" }}>
-            <Globe size={32} strokeWidth={1} color="var(--text-tertiary)" style={{ marginBottom: 12 }} />
-            <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)", marginBottom: 6 }}>Landing Pages</div>
-            <p style={{ fontSize: 13, color: "var(--text-secondary)", maxWidth: 360, margin: "0 auto 16px" }}>
-              Landing Pages für {client.name} verwalten — kommt in einer der nächsten Phasen.
-            </p>
-            <a href="/lp/ladenbau-muenchen" style={{ ...S.btnOutline, display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none" }}>
-              <ExternalLink size={13} strokeWidth={1.5} /> Beispiel-LP öffnen
-            </a>
-          </div>
-        )}
+        {tab === "Landing Pages" && (() => {
+          async function generateLP() {
+            setGeneratingLP(true); setLpError(""); setLpPreview(null);
+            try {
+              const d = await apiFetch("/api/landing-pages", { method: "POST", body: JSON.stringify({ client_id: id }) });
+              if (d.error) { setLpError(d.error); return; }
+              setLandingPages(lps => [d.lp, ...lps]);
+              setLpPreview(d.lp);
+            } catch { setLpError("Netzwerkfehler — bitte nochmal versuchen."); }
+            finally { setGeneratingLP(false); }
+          }
+          async function deleteLP(lpId) {
+            if (!confirm("Landing Page löschen?")) return;
+            await apiFetch("/api/landing-pages?id=" + lpId, { method: "DELETE" });
+            setLandingPages(lps => lps.filter(l => l.id !== lpId));
+            if (lpPreview?.id === lpId) setLpPreview(null);
+          }
+          const STATUS_COLOR = { published: "#15803d", draft: "#6b7280", in_bearbeitung: "#6b7280" };
+          return (
+            <div style={{ maxWidth: 820 }}>
+              {/* Header */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                <div>
+                  <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 20, fontWeight: 500, color: "var(--ink)", margin: 0 }}>Landing Pages</h2>
+                  <p style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 3 }}>{landingPages.length} Seite{landingPages.length !== 1 ? "n" : ""} für {client.name}</p>
+                </div>
+                <button onClick={generateLP} disabled={generatingLP}
+                  style={{ ...S.btn, opacity: generatingLP ? .6 : 1, cursor: generatingLP ? "not-allowed" : "pointer" }}>
+                  {generatingLP ? "⏳ Wird erstellt…" : "+ Landingpage entwickeln"}
+                </button>
+              </div>
+
+              {lpError && <div style={{ marginBottom: 14, padding: "9px 14px", background: "#fef2f2", border: "1px solid #fca5a5", borderRadius: 8, fontSize: 13, color: "#dc2626" }}>{lpError}</div>}
+
+              {/* Liste */}
+              {landingPages.length === 0 && !generatingLP && (
+                <div style={{ ...S.card, padding: 40, textAlign: "center" }}>
+                  <Globe size={32} strokeWidth={1} color="var(--text-tertiary)" style={{ marginBottom: 12 }} />
+                  <div style={{ fontSize: 14, color: "var(--text-secondary)" }}>Noch keine Landing Pages — oben erstellen.</div>
+                </div>
+              )}
+
+              {landingPages.map(lp => (
+                <div key={lp.id} style={{ ...S.card, marginBottom: 10, display: "flex", alignItems: "center", gap: 14, cursor: "pointer" }}
+                  onClick={() => setLpPreview(lpPreview?.id === lp.id ? null : lp)}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)", marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{lp.title || lp.slug}</div>
+                    <div style={{ fontSize: 12, color: "var(--text-tertiary)" }}>/lp/{lp.slug}</div>
+                  </div>
+                  <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 10px", borderRadius: 99, background: STATUS_COLOR[lp.status] + "18", color: STATUS_COLOR[lp.status] }}>
+                    {lp.status === "published" ? "Veröffentlicht" : "Entwurf"}
+                  </span>
+                  <a href={"/lp/" + lp.slug} target="_blank" onClick={e => e.stopPropagation()}
+                    style={{ color: "var(--text-tertiary)", display: "flex" }}>
+                    <ExternalLink size={14} strokeWidth={1.5} />
+                  </a>
+                  <button onClick={e => { e.stopPropagation(); deleteLP(lp.id); }}
+                    style={{ background: "none", border: "none", color: "var(--text-tertiary)", cursor: "pointer", display: "flex" }}>
+                    <Trash2 size={14} strokeWidth={1.5} />
+                  </button>
+                </div>
+              ))}
+
+              {/* Vorschau */}
+              {lpPreview && (
+                <div style={{ ...S.card, marginTop: 16 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                    <div style={S.sectionHd}>Vorschau — Entwurf</div>
+                    <a href={"/lp/" + lpPreview.slug} target="_blank"
+                      style={{ ...S.btnOutline, display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none", fontSize: 12 }}>
+                      <ExternalLink size={12} strokeWidth={1.5} /> Seite öffnen
+                    </a>
+                  </div>
+
+                  {/* Hero */}
+                  <div style={{ background: "var(--ink)", borderRadius: 10, padding: "24px 28px", marginBottom: 14, color: "#fff" }}>
+                    {lpPreview.content?.hero?.badge && (
+                      <div style={{ display: "inline-block", background: "rgba(255,255,255,.15)", borderRadius: 99, fontSize: 11, fontWeight: 600, padding: "3px 10px", marginBottom: 10 }}>
+                        {lpPreview.content.hero.badge}
+                      </div>
+                    )}
+                    <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontWeight: 600, color: "#fff", margin: "0 0 8px" }}>
+                      {lpPreview.content?.hero?.headline}
+                    </h2>
+                    <p style={{ fontSize: 13, color: "rgba(255,255,255,.75)", margin: "0 0 14px", lineHeight: 1.6 }}>
+                      {lpPreview.content?.hero?.subline}
+                    </p>
+                    {(lpPreview.content?.hero?.bullets || []).map((b, i) => (
+                      <div key={i} style={{ fontSize: 13, color: "rgba(255,255,255,.85)", marginBottom: 4 }}>✓ {b}</div>
+                    ))}
+                    <div style={{ marginTop: 16, display: "inline-block", background: "#fff", color: "var(--ink)", fontWeight: 700, padding: "10px 22px", borderRadius: 8, fontSize: 13 }}>
+                      {lpPreview.content?.hero?.cta_text}
+                    </div>
+                  </div>
+
+                  {/* USP-Blöcke */}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginBottom: 14 }}>
+                    {(lpPreview.content?.usp_blocks || []).map((b, i) => (
+                      <div key={i} style={{ background: "var(--bg)", borderRadius: 10, padding: "14px 16px" }}>
+                        <div style={{ fontSize: 22, marginBottom: 6 }}>{b.icon}</div>
+                        <div style={{ fontWeight: 600, fontSize: 13, color: "var(--ink)", marginBottom: 4 }}>{b.title}</div>
+                        <div style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.5 }}>{b.text}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* CTA */}
+                  {lpPreview.content?.cta && (
+                    <div style={{ background: "var(--bg)", borderRadius: 10, padding: "16px 20px", textAlign: "center" }}>
+                      <div style={{ fontWeight: 600, fontSize: 15, color: "var(--ink)", marginBottom: 4 }}>{lpPreview.content.cta.title}</div>
+                      <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 12 }}>{lpPreview.content.cta.sub}</div>
+                      <div style={{ display: "inline-block", background: "var(--ink)", color: "#fff", fontWeight: 700, padding: "10px 24px", borderRadius: 8, fontSize: 13 }}>
+                        {lpPreview.content.cta.button}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Impressum + Datenschutz */}
+                  <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <div>
+                      <label style={S.label}>Impressum</label>
+                      <textarea rows={4} defaultValue={lpPreview.impressum || ""}
+                        onBlur={e => apiFetch("/api/landing-pages", { method: "PATCH", body: JSON.stringify({ id: lpPreview.id, impressum: e.target.value }) })}
+                        placeholder="Impressumstext eingeben…"
+                        style={{ ...S.input, resize: "vertical" }} />
+                    </div>
+                    <div>
+                      <label style={S.label}>Datenschutz</label>
+                      <textarea rows={4} defaultValue={lpPreview.datenschutz || ""}
+                        onBlur={e => apiFetch("/api/landing-pages", { method: "PATCH", body: JSON.stringify({ id: lpPreview.id, datenschutz: e.target.value }) })}
+                        placeholder="Datenschutztext eingeben…"
+                        style={{ ...S.input, resize: "vertical" }} />
+                    </div>
+                  </div>
+                  <div style={{ marginTop: 8, fontSize: 11, color: "var(--text-tertiary)" }}>Impressum und Datenschutz werden beim Speichern automatisch übernommen.</div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
       </div>
     </AppShell>
