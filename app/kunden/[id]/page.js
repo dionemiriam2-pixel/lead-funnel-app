@@ -77,6 +77,7 @@ export default function KundeDetailPage() {
   const [leads,     setLeads]     = useState([]);
 
   /* UI */
+  const [logoErr,      setLogoErr]      = useState(false);
   const [tab,          setTab]          = useState("Übersicht");
   const [form,         setForm]         = useState({});
   const [openChannel,  setOpenChannel]  = useState(null);
@@ -233,6 +234,10 @@ export default function KundeDetailPage() {
   function toggleSrc(key)    { const n = selSources.includes(key) ? selSources.filter(s=>s!==key) : [...selSources,key]; setForm(f=>({...f,strategy:{...strat,sources:n}})); }
   function toggleOut(sk, ok) { const c=selOutreach[sk]||[]; const n=c.includes(ok)?c.filter(o=>o!==ok):[...c,ok]; setForm(f=>({...f,strategy:{...strat,outreach:{...selOutreach,[sk]:n}}})); }
 
+  /* Logo */
+  const logoDomain = client.website ? (() => { try { return new URL(client.website).hostname.replace(/^www\./, ""); } catch { return null; } })() : null;
+  const logoUrl    = logoDomain ? `https://logo.clearbit.com/${logoDomain}` : null;
+
   /* Profil-Vollständigkeit */
   const PROF_FIELDS = ["name","website","email","description","usp","target_audience","keywords"];
   const profFilled  = PROF_FIELDS.filter(f => !!client[f]).length;
@@ -262,9 +267,18 @@ export default function KundeDetailPage() {
 
               {/* Avatar + Name */}
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", paddingBottom: 16, borderBottom: "1px solid var(--border)", marginBottom: 16 }}>
-                <div style={{ width: 52, height: 52, borderRadius: 14, background: "var(--ink)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 22, marginBottom: 10 }}>
-                  {initial}
-                </div>
+                {logoUrl && !logoErr ? (
+                  <img
+                    src={logoUrl}
+                    alt={client.name}
+                    onError={() => setLogoErr(true)}
+                    style={{ width: 52, height: 52, borderRadius: 14, objectFit: "contain", background: "#fff", border: "1px solid var(--border)", marginBottom: 10 }}
+                  />
+                ) : (
+                  <div style={{ width: 52, height: 52, borderRadius: 14, background: "var(--ink)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 22, marginBottom: 10 }}>
+                    {initial}
+                  </div>
+                )}
                 <div style={{ fontWeight: 700, fontSize: 15, color: "var(--ink)", lineHeight: 1.3, marginBottom: 4 }}>{client.name}</div>
                 {client.region && <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{client.region}</div>}
                 <span style={{ display: "inline-block", marginTop: 8, fontSize: 11, fontWeight: 600, padding: "2px 10px", borderRadius: 99, background: "var(--ink)", color: "#fff" }}>
