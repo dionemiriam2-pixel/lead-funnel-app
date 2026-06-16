@@ -145,10 +145,15 @@ async function analyseWebsite(client_id, sb) {
 - target_audience (String, 1–2 Sätze): Wer ist die Zielgruppe?
 - usp (String, 1 Satz): Was ist das Alleinstellungsmerkmal?
 - keywords (Array von 8–12 Strings): Relevante SEO-Keywords
+- phone (String oder null): Telefonnummer falls im Text vorhanden, sonst null
+- email (String oder null): E-Mail-Adresse falls im Text vorhanden, sonst null
+- contact (String oder null): Name des Ansprechpartners / Inhabers falls im Text vorhanden, sonst null
 - products (Array von max. 5 Objekten): Erkannte Produkte/Leistungen, jedes mit:
   - name (String): Produktname oder Leistungsbezeichnung
   - description (String, 1 Satz): Kurze Beschreibung
   - target_groups (String): Für wen ist das gedacht?
+
+Wichtig: Gib nur Werte zurück die wirklich im Text stehen. Keine Erfindungen.
 
 Text: ${text}`,
         },
@@ -181,6 +186,10 @@ Text: ${text}`,
     keywords:        Array.isArray(aiResult.keywords)
                        ? aiResult.keywords.join(", ")
                        : aiResult.keywords || client.keywords,
+    // Kontaktdaten nur eintragen wenn noch leer
+    ...(aiResult.phone   && !client.phone   ? { phone:   aiResult.phone   } : {}),
+    ...(aiResult.email   && !client.email   ? { email:   aiResult.email   } : {}),
+    ...(aiResult.contact && !client.contact ? { contact: aiResult.contact } : {}),
     // Social-Links nur überschreiben wenn neu gefunden
     ...(socialLinks.instagram && !client.instagram ? { instagram: socialLinks.instagram } : {}),
     ...(socialLinks.facebook  && !client.facebook  ? { facebook:  socialLinks.facebook  } : {}),
