@@ -57,11 +57,16 @@ function parseSEO(html, url) {
 
 async function checkSitemap(baseUrl) {
   const base = baseUrl.replace(/\/$/, "");
-  const paths = ["/sitemap.xml", "/sitemap_index.xml", "/wp-sitemap.xml", "/sitemap/", "/sitemap.php"];
+  const paths = [
+    "/sitemap.xml", "/sitemap_index.xml", "/sitemap-index.xml",
+    "/wp-sitemap.xml", "/page-sitemap.xml", "/post-sitemap.xml",
+    "/xmlsitemap.xml", "/sitemaps.xml", "/sitemap.php", "/sitemap/",
+    "/sitemap/sitemap.xml", "/sitemap/index.xml",
+  ];
   for (const path of paths) {
     try {
-      const r = await fetch(base + path, { method: "HEAD", signal: AbortSignal.timeout(4000) });
-      if (r.ok) return base + path;
+      const r = await fetch(base + path, { method: "HEAD", signal: AbortSignal.timeout(3000) });
+      if (r.ok && r.status < 400) return base + path;
     } catch { /* weiter */ }
   }
   return null;
