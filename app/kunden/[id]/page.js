@@ -191,7 +191,7 @@ export default function KundeDetailPage() {
   async function generateLP() {
     setGeneratingLP(true); setLpError(""); setLpPreview(null);
     try {
-      const d = await apiFetch("/api/landing-pages", { method: "POST", body: JSON.stringify({ client_id: id }) });
+      const d = await apiFetch("/api/landingpage/create", { method: "POST", body: JSON.stringify({ client_id: id }) });
       if (d.error) { setLpError(d.error); return; }
       setLandingPages(lps => [d.lp, ...lps]);
       setLpPreview(d.lp);

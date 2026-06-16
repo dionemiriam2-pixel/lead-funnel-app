@@ -11,7 +11,7 @@ export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const client_id = searchParams.get("client_id");
   const sb = supabaseAdmin();
-  let q = sb.from("landing_pages").select("id,slug,title,status,impressum,datenschutz,content,created_at,updated_at").order("created_at", { ascending: false });
+  let q = sb.from("landing_pages").select("id,name,slug,title,status,impressum,datenschutz,content,leads_count,created_at,updated_at").order("created_at", { ascending: false });
   if (client_id) q = q.eq("client_id", client_id);
   const { data, error } = await q;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
