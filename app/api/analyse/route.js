@@ -39,12 +39,27 @@ function parseSEO(html, url) {
 }
 
 async function checkSitemap(baseUrl) {
+  const base = baseUrl.replace(/\/$/, "");
+  const paths = ["/sitemap.xml", "/sitemap_index.xml", "/wp-sitemap.xml", "/sitemap/", "/sitemap.php"];
+  for (const path of paths) {
+    try {
+      const r = await fetch(base + path, { method: "HEAD", signal: AbortSignal.timeout(4000) });
+      if (r.ok) return base + path;
+    } catch { /* weiter */ }
+  }
+  return null;
+}
+
+async function checkRobotsTxt(baseUrl) {
   try {
-    const url = baseUrl.replace(/\/$/, "") + "/sitemap.xml";
-    const r = await fetch(url, { method: "HEAD", signal: AbortSignal.timeout(5000) });
-    return r.ok;
+    const base = baseUrl.replace(/\/$/, "");
+    const r = await fetch(base + "/robots.txt", { signal: AbortSignal.timeout(4000) });
+    if (!r.ok) return { exists: false, sitemapUrl: null };
+    const text = await r.text();
+    const sitemapMatch = text.match(/^Sitemap:\s*(.+)$/im);
+    return { exists: true, sitemapUrl: sitemapMatch ? sitemapMatch[1].trim() : null };
   } catch {
-    return false;
+    return { exists: false, sitemapUrl: null };
   }
 }
 
@@ -132,10 +147,24 @@ async function analyseWebsite(client_id, sb) {
   }
 
   // 2. SEO-Check (kein KI)
-  const seoCheck = parseSEO(html, url);
-  const baseUrl  = new URL(url).origin;
-  seoCheck.sitemap.vorhanden = await checkSitemap(baseUrl);
-  seoCheck.sitemap.wert      = seoCheck.sitemap.vorhanden ? baseUrl + "/sitemap.xml" : null;
+  const seoCheck  = parseSEO(html, url);
+  const baseUrl   = new URL(url).origin;
+
+  // Sitemap: mehrere Pfade probieren + robots.txt auslesen
+  const [sitemapUrl, robotsResult] = await Promise.all([
+    checkSitemap(baseUrl),
+    checkRobotsTxt(baseUrl),
+  ]);
+
+  const finalSitemapUrl = sitemapUrl || robotsResult.sitemapUrl || null;
+  seoCheck.sitemap.vorhanden = !!finalSitemapUrl;
+  seoCheck.sitemap.wert      = finalSitemapUrl;
+
+  // Robots: Meta-Tag im HTML ODER robots.txt vorhanden
+  if (!seoCheck.robots.vorhanden && robotsResult.exists) {
+    seoCheck.robots.vorhanden = true;
+    seoCheck.robots.wert      = "robots.txt vorhanden";
+  }
 
   // 3. Sichtbaren Text + Links + Kontaktdaten extrahieren
   const text         = extractText(html);
