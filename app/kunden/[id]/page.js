@@ -206,6 +206,14 @@ export default function KundeDetailPage() {
     if (lpPreview?.id === lpId) setLpPreview(null);
   }
 
+  async function togglePublish(lp) {
+    const newStatus = lp.status === "published" ? "draft" : "published";
+    const d = await apiFetch("/api/landing-pages", { method: "PATCH", body: JSON.stringify({ id: lp.id, status: newStatus }) });
+    if (d.error) { alert(d.error); return; }
+    setLandingPages(lps => lps.map(p => p.id === lp.id ? { ...p, status: newStatus } : p));
+    if (lpPreview?.id === lp.id) setLpPreview(prev => ({ ...prev, status: newStatus }));
+  }
+
   /* ── Lade-Zustand ────────────────────────────────────── */
   if (!client) return <AppShell><div style={{ padding: 40, color: "var(--text-secondary)" }}>Lade…</div></AppShell>;
 
@@ -527,6 +535,32 @@ export default function KundeDetailPage() {
                       </div>
                     ))}
                   </div>
+
+                  {/* Landing-Page-Design */}
+                  <div style={{ marginTop: 20, paddingTop: 18, borderTop: "1px solid var(--border)" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em", color: "var(--text-tertiary)", marginBottom: 14 }}>
+                      Landing-Page-Design
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+                      {[["brand_color","Hauptfarbe"],["accent_color","Akzentfarbe"]].map(([k, l]) => (
+                        <div key={k}>
+                          <label style={S.label}>{l}</label>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <input type="color" value={form[k] || "#111111"} onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))}
+                              style={{ width: 38, height: 38, border: "1px solid var(--border)", borderRadius: 6, cursor: "pointer", padding: 2, background: "var(--surface)" }} />
+                            <input value={form[k] || ""} onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))}
+                              placeholder="#111111" style={{ ...S.input, fontFamily: "monospace", fontSize: 13 }} />
+                          </div>
+                        </div>
+                      ))}
+                      <div>
+                        <label style={S.label}>Logo-URL</label>
+                        <input value={form.logo_url || ""} onChange={e => setForm(f => ({ ...f, logo_url: e.target.value }))}
+                          placeholder="https://..." style={S.input} />
+                      </div>
+                    </div>
+                  </div>
+
                   <div style={{ marginTop: 16, display: "flex", gap: 10, alignItems: "center" }}>
                     <button onClick={() => saveClient()} style={S.btn}>Speichern</button>
                   </div>
@@ -865,9 +899,12 @@ export default function KundeDetailPage() {
                       <div style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)", marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{lp.title || lp.slug}</div>
                       <div style={{ fontSize: 12, color: "var(--text-tertiary)" }}>/lp/{lp.slug}</div>
                     </div>
-                    <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 10px", borderRadius: 99, background: STATUS_COLOR[lp.status] + "18", color: STATUS_COLOR[lp.status] }}>
-                      {lp.status === "published" ? "Veröffentlicht" : "Entwurf"}
-                    </span>
+                    <button onClick={e => { e.stopPropagation(); togglePublish(lp); }}
+                      style={{ fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 99, border: "none", cursor: "pointer",
+                        background: lp.status === "published" ? "#15803d18" : "#e8600a18",
+                        color:      lp.status === "published" ? "#15803d"   : "#e8600a" }}>
+                      {lp.status === "published" ? "Veröffentlicht" : "Veröffentlichen"}
+                    </button>
                     <a href={"/lp/" + lp.slug} target="_blank" onClick={e => e.stopPropagation()}
                       style={{ color: "var(--text-tertiary)", display: "flex" }}>
                       <ExternalLink size={14} strokeWidth={1.5} />
@@ -882,36 +919,40 @@ export default function KundeDetailPage() {
                 {lpPreview && (
                   <div style={{ ...S.card, marginTop: 16 }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                      <div style={S.sectionHd}>Vorschau — Entwurf</div>
-                      <a href={"/lp/" + lpPreview.slug} target="_blank"
-                        style={{ ...S.btnOutline, display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none", fontSize: 12 }}>
-                        <ExternalLink size={12} strokeWidth={1.5} /> Seite öffnen
-                      </a>
+                      <div style={S.sectionHd}>
+                        Vorschau — {lpPreview.status === "published" ? "Veröffentlicht" : "Entwurf"}
+                      </div>
+                      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                        <button onClick={() => togglePublish(lpPreview)}
+                          style={{ ...S.btnOutline, fontSize: 12, cursor: "pointer",
+                            ...(lpPreview.status === "published" ? { color: "#6b7280", borderColor: "#6b7280" } : { color: "#e8600a", borderColor: "#e8600a" }) }}>
+                          {lpPreview.status === "published" ? "Zurück zu Entwurf" : "Veröffentlichen →"}
+                        </button>
+                        <a href={"/lp/" + lpPreview.slug} target="_blank"
+                          style={{ ...S.btnOutline, display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none", fontSize: 12 }}>
+                          <ExternalLink size={12} strokeWidth={1.5} /> Seite öffnen
+                        </a>
+                      </div>
                     </div>
                     <div style={{ background: "var(--ink)", borderRadius: 10, padding: "24px 28px", marginBottom: 14, color: "#fff" }}>
-                      {lpPreview.content?.hero?.badge && (
-                        <div style={{ display: "inline-block", background: "rgba(255,255,255,.15)", borderRadius: 99, fontSize: 11, fontWeight: 600, padding: "3px 10px", marginBottom: 10 }}>
-                          {lpPreview.content.hero.badge}
-                        </div>
-                      )}
                       <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontWeight: 600, color: "#fff", margin: "0 0 8px" }}>
-                        {lpPreview.content?.hero?.headline}
+                        {lpPreview.content?.headline || lpPreview.title}
                       </h2>
                       <p style={{ fontSize: 13, color: "rgba(255,255,255,.75)", margin: "0 0 14px", lineHeight: 1.6 }}>
-                        {lpPreview.content?.hero?.subline}
+                        {lpPreview.content?.subheadline}
                       </p>
-                      {(lpPreview.content?.hero?.bullets || []).map((b, i) => (
-                        <div key={i} style={{ fontSize: 13, color: "rgba(255,255,255,.85)", marginBottom: 4 }}>✓ {b}</div>
+                      {(lpPreview.content?.usp_blocks || []).map((b, i) => (
+                        <div key={i} style={{ fontSize: 13, color: "rgba(255,255,255,.85)", marginBottom: 4 }}>✓ {b.titel || b.title}</div>
                       ))}
                       <div style={{ marginTop: 16, display: "inline-block", background: "#fff", color: "var(--ink)", fontWeight: 700, padding: "10px 22px", borderRadius: 8, fontSize: 13 }}>
-                        {lpPreview.content?.hero?.cta_text || "Jetzt anfragen"}
+                        {lpPreview.content?.cta_text || "Jetzt anfragen"}
                       </div>
                     </div>
                     {(lpPreview.content?.usp_blocks || []).map((b, i) => (
                       <div key={i} style={{ display: "flex", gap: 12, padding: "10px 0", borderTop: "1px solid var(--border)" }}>
-                        <span style={{ fontSize: 22 }}>{b.icon}</span>
+                        <span style={{ fontSize: 22 }}>{b.icon || "✓"}</span>
                         <div>
-                          <div style={{ fontWeight: 600, fontSize: 13, color: "var(--ink)", marginBottom: 3 }}>{b.title}</div>
+                          <div style={{ fontWeight: 600, fontSize: 13, color: "var(--ink)", marginBottom: 3 }}>{b.titel || b.title}</div>
                           <div style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.5 }}>{b.text}</div>
                         </div>
                       </div>

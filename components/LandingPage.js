@@ -74,8 +74,11 @@ export default function LandingPage({ lp }) {
       {/* ── STICKY NAV ───────────────────────────────────────── */}
       <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "#fff", borderBottom: "1px solid #e5e7eb", padding: "14px 20px" }}>
         <div style={{ maxWidth: 1060, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ fontWeight: 900, fontSize: 20, color: dark, letterSpacing: -0.5 }}>
-            {lp.brand || lp.client || "Ihre Marke"}
+          <div style={{ fontWeight: 900, fontSize: 20, color: dark, letterSpacing: -0.5, display: "flex", alignItems: "center", gap: 10 }}>
+            {lp.logoUrl && (
+              <img src={lp.logoUrl} alt={lp.brand || "Logo"} style={{ height: 36, width: "auto", objectFit: "contain" }} />
+            )}
+            {!lp.logoUrl && (lp.brand || lp.client || "Ihre Marke")}
           </div>
           <a href="#form-cta"
             style={{ padding: "10px 22px", background: accent, color: "#fff", borderRadius: 8, fontSize: 14, fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
