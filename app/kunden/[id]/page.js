@@ -88,9 +88,11 @@ export default function KundeDetailPage() {
 
   /* Produkte & Strategie */
   const [newProd,   setNewProd]   = useState({ name:"", description:"", target_groups:"", keywords:"", region:"", offer:"" });
-  const [analysis,  setAnalysis]  = useState({});
-  const [analysing, setAnalysing] = useState(null);
-  const [stratStep, setStratStep] = useState(1);
+  const [analysis,          setAnalysis]          = useState({});
+  const [analysing,         setAnalysing]         = useState(null);
+  const [stratStep,         setStratStep]         = useState(1);
+  const [analysingWebsite,  setAnalysingWebsite]  = useState(false);
+  const [websiteAnalysisErr,setWebsiteAnalysisErr]= useState("");
 
   /* ── Daten laden ─────────────────────────────────────── */
   async function load() {
@@ -153,6 +155,23 @@ export default function KundeDetailPage() {
     const d = await apiFetch("/api/analyse", { method: "POST", body: JSON.stringify({ product_id: prod.id, client_id: id }) });
     setAnalysis(a => ({ ...a, [prod.id]: d }));
     setAnalysing(null);
+  }
+
+  async function analyseWebsite() {
+    if (!form.website) { setWebsiteAnalysisErr("Bitte zuerst eine Website-URL speichern."); return; }
+    setAnalysingWebsite(true);
+    setWebsiteAnalysisErr("");
+    try {
+      const d = await apiFetch("/api/analyse", { method: "POST", body: JSON.stringify({ client_id: id }) });
+      if (d.error) { setWebsiteAnalysisErr(d.error); return; }
+      setForm(f => ({ ...f, target_audience: d.target_audience || f.target_audience, usp: d.usp || f.usp, keywords: d.keywords || f.keywords }));
+      await load();
+      flash("✓ Website analysiert");
+    } catch {
+      setWebsiteAnalysisErr("Netzwerkfehler — bitte nochmal versuchen.");
+    } finally {
+      setAnalysingWebsite(false);
+    }
   }
 
   /* ── Lade-Zustand ────────────────────────────────────── */
@@ -550,6 +569,34 @@ export default function KundeDetailPage() {
               <div style={{ marginTop: 16, display: "flex", gap: 10, alignItems: "center" }}>
                 <button onClick={() => saveClient()} style={S.btn}>Speichern</button>
               </div>
+            </div>
+
+            {/* Website-Analyse */}
+            <div style={{ ...S.card, marginTop: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)", marginBottom: 3 }}>Website analysieren</div>
+                  <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>
+                    Lädt die Website, prüft SEO-Felder und füllt Zielgruppe, USP und Keywords per KI aus.
+                  </div>
+                  {client.analyzed_at && (
+                    <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginTop: 5 }}>
+                      Zuletzt analysiert: {new Date(client.analyzed_at).toLocaleString("de-DE")}
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={analyseWebsite}
+                  disabled={analysingWebsite}
+                  style={{ ...S.btn, opacity: analysingWebsite ? .6 : 1, cursor: analysingWebsite ? "not-allowed" : "pointer", whiteSpace: "nowrap" }}>
+                  {analysingWebsite ? "⏳ Analysiert…" : client.analyzed_at ? "Neu analysieren" : "Analysieren"}
+                </button>
+              </div>
+              {websiteAnalysisErr && (
+                <div style={{ marginTop: 10, padding: "9px 12px", background: "#fef2f2", border: "1px solid #fca5a5", borderRadius: 8, fontSize: 13, color: "#dc2626" }}>
+                  {websiteAnalysisErr}
+                </div>
+              )}
             </div>
           </div>
         )}

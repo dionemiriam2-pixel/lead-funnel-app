@@ -5,11 +5,149 @@ function auth(req) {
   return req.headers.get("x-pw") === process.env.DASHBOARD_PASSWORD;
 }
 
-export async function POST(req) {
-  if (!auth(req)) return NextResponse.json({ error: "Unauth" }, { status: 401 });
-  const { product_id, client_id } = await req.json();
-  const sb = supabaseAdmin();
+/* ─── SEO-Parsing (kein externer Parser, nur Regex) ──────── */
+function attr(html, pattern) {
+  const m = html.match(pattern);
+  return m ? (m[1] || m[2] || "").trim() : null;
+}
 
+function parseSEO(html, url) {
+  const title       = attr(html, /<title[^>]*>([\s\S]*?)<\/title>/i);
+  const metaDesc    = attr(html, /<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)/i)
+                   || attr(html, /<meta[^>]+content=["']([^"']*?)["'][^>]+name=["']description["']/i);
+  const canonical   = attr(html, /<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']*)/i)
+                   || attr(html, /<link[^>]+href=["']([^"']*?)["'][^>]+rel=["']canonical["']/i);
+  const schemaOrg   = /<script[^>]+type=["']application\/ld\+json["']/i.test(html);
+  const ogTags      = /<meta[^>]+property=["']og:/i.test(html);
+  const h1Raw       = attr(html, /<h1[^>]*>([\s\S]*?)<\/h1>/i);
+  const h1          = h1Raw ? h1Raw.replace(/<[^>]+>/g, "").trim() : null;
+  const robots      = attr(html, /<meta[^>]+name=["']robots["'][^>]+content=["']([^"']*)/i)
+                   || attr(html, /<meta[^>]+content=["']([^"']*?)["'][^>]+name=["']robots["']/i);
+  const isHttps     = url.startsWith("https://");
+
+  return {
+    title:            { vorhanden: !!title,    wert: title || null },
+    meta_description: { vorhanden: !!metaDesc, wert: metaDesc || null },
+    canonical:        { vorhanden: !!canonical, wert: canonical || null },
+    schema_org:       { vorhanden: schemaOrg,  wert: schemaOrg ? "JSON-LD gefunden" : null },
+    og_tags:          { vorhanden: ogTags,     wert: ogTags ? "vorhanden" : null },
+    h1:               { vorhanden: !!h1,       wert: h1 || null },
+    robots:           { vorhanden: !!robots,   wert: robots || null },
+    https:            { vorhanden: isHttps,    wert: isHttps ? "HTTPS" : "HTTP (unsicher)" },
+    sitemap:          { vorhanden: false,      wert: null }, // wird separat geprüft
+  };
+}
+
+async function checkSitemap(baseUrl) {
+  try {
+    const url = baseUrl.replace(/\/$/, "") + "/sitemap.xml";
+    const r = await fetch(url, { method: "HEAD", signal: AbortSignal.timeout(5000) });
+    return r.ok;
+  } catch {
+    return false;
+  }
+}
+
+function extractText(html) {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 10000);
+}
+
+/* ─── Website-Analyse ────────────────────────────────────── */
+async function analyseWebsite(client_id, sb) {
+  const { data: client } = await sb.from("clients").select("*").eq("id", client_id).single();
+  if (!client) return NextResponse.json({ error: "Kunde nicht gefunden" }, { status: 404 });
+
+  const url = client.website;
+  if (!url) return NextResponse.json({ error: "Keine Website-URL beim Kunden hinterlegt." }, { status: 400 });
+
+  // 1. HTML laden
+  let html;
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; LeadBot/1.0)" },
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!res.ok) return NextResponse.json({ error: `Website nicht erreichbar (${res.status}).` }, { status: 422 });
+    html = await res.text();
+  } catch (e) {
+    return NextResponse.json({ error: "Website-Fetch fehlgeschlagen: " + e.message }, { status: 422 });
+  }
+
+  // 2. SEO-Check (kein KI)
+  const seoCheck = parseSEO(html, url);
+  const baseUrl  = new URL(url).origin;
+  seoCheck.sitemap.vorhanden = await checkSitemap(baseUrl);
+  seoCheck.sitemap.wert      = seoCheck.sitemap.vorhanden ? baseUrl + "/sitemap.xml" : null;
+
+  // 3. Sichtbaren Text extrahieren
+  const text = extractText(html);
+
+  // 4. KI-Analyse via Anthropic Haiku
+  const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "x-api-key": process.env.ANTHROPIC_API_KEY,
+      "anthropic-version": "2023-06-01",
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 800,
+      system: "Du bist SEO- und Marketing-Analyst. Antworte ausschließlich mit gültigem JSON, kein Fließtext.",
+      messages: [
+        {
+          role: "user",
+          content: `Analysiere diesen Website-Text und gib JSON zurück mit den Feldern:
+- target_audience (String, 1–2 Sätze): Wer ist die Zielgruppe?
+- usp (String, 1 Satz): Was ist das Alleinstellungsmerkmal?
+- keywords (Array von 8–12 Strings): Relevante SEO-Keywords
+
+Text: ${text}`,
+        },
+        { role: "assistant", content: "{" },
+      ],
+    }),
+  });
+
+  if (!aiRes.ok) {
+    const t = await aiRes.text();
+    return NextResponse.json({ error: "KI-Fehler: " + t }, { status: 500 });
+  }
+
+  const aiData = await aiRes.json();
+  let aiResult;
+  try {
+    aiResult = JSON.parse("{" + aiData.content[0].text);
+  } catch {
+    return NextResponse.json({ error: "KI-Antwort ungültig" }, { status: 500 });
+  }
+
+  // 5. In Supabase speichern
+  const update = {
+    seo_check:       seoCheck,
+    raw_html:        html.slice(0, 50000),
+    analyzed_at:     new Date().toISOString(),
+    target_audience: aiResult.target_audience || client.target_audience,
+    usp:             aiResult.usp             || client.usp,
+    keywords:        Array.isArray(aiResult.keywords)
+                       ? aiResult.keywords.join(", ")
+                       : aiResult.keywords || client.keywords,
+  };
+
+  const { error: saveErr } = await sb.from("clients").update(update).eq("id", client_id);
+  if (saveErr) return NextResponse.json({ error: "Speichern fehlgeschlagen: " + saveErr.message }, { status: 500 });
+
+  return NextResponse.json({ ok: true, ...update });
+}
+
+/* ─── Produkt-Analyse (bestehend, unverändert) ───────────── */
+async function analyseProduct(client_id, product_id, sb) {
   const [{ data: client }, { data: product }] = await Promise.all([
     sb.from("clients").select("*").eq("id", client_id).single(),
     sb.from("products").select("*").eq("id", product_id).single(),
@@ -69,7 +207,6 @@ Gib NUR gültiges JSON zurück in diesem Format:
     return NextResponse.json({ error: "KI-Antwort konnte nicht gelesen werden", raw }, { status: 500 });
   }
 
-  // Suchbegriffe in Supabase speichern
   if (parsed.searches?.length) {
     const rows = parsed.searches.slice(0, 12).map(s => ({
       term: s.term,
@@ -83,4 +220,16 @@ Gib NUR gültiges JSON zurück in diesem Format:
   }
 
   return NextResponse.json({ ok: true, ...parsed });
+}
+
+/* ─── Router ─────────────────────────────────────────────── */
+export async function POST(req) {
+  if (!auth(req)) return NextResponse.json({ error: "Unauth" }, { status: 401 });
+  const body = await req.json();
+  const sb   = supabaseAdmin();
+
+  if (body.product_id) {
+    return analyseProduct(body.client_id, body.product_id, sb);
+  }
+  return analyseWebsite(body.client_id, sb);
 }
