@@ -58,6 +58,42 @@ function extractText(html) {
     .slice(0, 10000);
 }
 
+/* ─── Social-Media-Links aus HTML extrahieren ────────────── */
+function extractSocialLinks(html) {
+  const links = {};
+  const hrefs = [...html.matchAll(/href=["']([^"']{10,}?)["']/gi)].map(m => m[1]);
+
+  for (const url of hrefs) {
+    const u = url.toLowerCase();
+    try {
+      if (!links.instagram && u.includes("instagram.com/")) {
+        const m = url.match(/instagram\.com\/([A-Za-z0-9_.]{2,})/);
+        const skip = ["p","reel","explore","stories","tv","s","accounts"];
+        if (m && !skip.includes(m[1])) links.instagram = "https://www.instagram.com/" + m[1];
+      }
+      if (!links.facebook && u.includes("facebook.com/")) {
+        const m = url.match(/facebook\.com\/([A-Za-z0-9_.%-]{3,})/);
+        const skip = ["sharer","share","dialog","plugins","login","groups"];
+        if (m && !skip.includes(m[1])) links.facebook = "https://www.facebook.com/" + m[1];
+      }
+      if (!links.linkedin && u.includes("linkedin.com/")) {
+        const m = url.match(/(linkedin\.com\/(?:company|in)\/[A-Za-z0-9_-]+)/);
+        if (m) links.linkedin = "https://www." + m[1];
+      }
+      if (!links.tiktok && u.includes("tiktok.com/")) {
+        const m = url.match(/tiktok\.com\/@([A-Za-z0-9_.]{2,})/);
+        if (m) links.tiktok = "https://www.tiktok.com/@" + m[1];
+      }
+      if (!links.youtube && u.includes("youtube.com/")) {
+        const m = url.match(/(youtube\.com\/(?:channel|c|@)[A-Za-z0-9_-]+)/);
+        if (m) links.youtube = "https://www." + m[1];
+      }
+    } catch { /* ungültige URL überspringen */ }
+  }
+
+  return links;
+}
+
 /* ─── Website-Analyse ────────────────────────────────────── */
 async function analyseWebsite(client_id, sb) {
   const { data: client } = await sb.from("clients").select("*").eq("id", client_id).single();
@@ -85,8 +121,9 @@ async function analyseWebsite(client_id, sb) {
   seoCheck.sitemap.vorhanden = await checkSitemap(baseUrl);
   seoCheck.sitemap.wert      = seoCheck.sitemap.vorhanden ? baseUrl + "/sitemap.xml" : null;
 
-  // 3. Sichtbaren Text extrahieren
-  const text = extractText(html);
+  // 3. Sichtbaren Text + Social-Links extrahieren
+  const text        = extractText(html);
+  const socialLinks = extractSocialLinks(html);
 
   // 4. KI-Analyse via Anthropic Haiku
   const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
@@ -138,6 +175,12 @@ Text: ${text}`,
     keywords:        Array.isArray(aiResult.keywords)
                        ? aiResult.keywords.join(", ")
                        : aiResult.keywords || client.keywords,
+    // Social-Links nur überschreiben wenn neu gefunden
+    ...(socialLinks.instagram && !client.instagram ? { instagram: socialLinks.instagram } : {}),
+    ...(socialLinks.facebook  && !client.facebook  ? { facebook:  socialLinks.facebook  } : {}),
+    ...(socialLinks.linkedin  && !client.linkedin  ? { linkedin:  socialLinks.linkedin  } : {}),
+    ...(socialLinks.tiktok    && !client.tiktok    ? { tiktok:    socialLinks.tiktok    } : {}),
+    ...(socialLinks.youtube   && !client.youtube   ? { youtube:   socialLinks.youtube   } : {}),
   };
 
   const { error: saveErr } = await sb.from("clients").update(update).eq("id", client_id);
