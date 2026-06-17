@@ -124,6 +124,9 @@ export default function KundeDetailPage() {
   const [sortCol,      setSortCol]      = useState("created_at");
   const [sortDir,      setSortDir]      = useState("desc");
   const [recentOnly,   setRecentOnly]   = useState(false);
+  const [addLeadOpen,  setAddLeadOpen]  = useState(false);
+  const [addLeadForm,  setAddLeadForm]  = useState({ contact_name: "", phone: "", email: "", source: "manuell", notes: "" });
+  const [addLeadSaving,setAddLeadSaving]= useState(false);
   const [msg,          setMsg]          = useState("");
 
   /* Produkte & Strategie */
@@ -1352,6 +1355,7 @@ export default function KundeDetailPage() {
                   <div style={{ display: "flex", gap: 6 }}>
                     <button onClick={() => setRecentOnly(false)} style={{ fontSize: 12, padding: "5px 12px", borderRadius: 6, border: "1px solid var(--border)", background: !recentOnly ? "var(--ink)" : "transparent", color: !recentOnly ? "#fff" : "var(--text-secondary)", cursor: "pointer" }}>Alle</button>
                     <button onClick={() => setRecentOnly(true)}  style={{ fontSize: 12, padding: "5px 12px", borderRadius: 6, border: "1px solid var(--border)", background:  recentOnly ? "var(--ink)" : "transparent", color:  recentOnly ? "#fff" : "var(--text-secondary)", cursor: "pointer" }}>Letzte 24h</button>
+                    <button onClick={() => setAddLeadOpen(true)} style={{ fontSize: 12, padding: "5px 14px", borderRadius: 6, border: "none", background: "var(--accent)", color: "#fff", cursor: "pointer", fontWeight: 600 }}>+ Lead hinzufügen</button>
                   </div>
                 </div>
 
@@ -1506,6 +1510,53 @@ export default function KundeDetailPage() {
                     </table>
                   )}
                 </div>
+
+                {/* Lead hinzufügen Modal */}
+                {addLeadOpen && (
+                  <div onClick={() => setAddLeadOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.45)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+                    <div onClick={e => e.stopPropagation()} style={{ background: "var(--surface)", borderRadius: 16, padding: 28, width: "100%", maxWidth: 440, boxShadow: "0 24px 80px rgba(0,0,0,.3)" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                        <span style={{ fontWeight: 700, fontSize: 16, color: "var(--ink)" }}>Lead manuell hinzufügen</span>
+                        <button onClick={() => setAddLeadOpen(false)} style={{ border: "none", background: "none", fontSize: 20, cursor: "pointer", color: "var(--text-tertiary)", lineHeight: 1 }}>×</button>
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                        {[["contact_name","Name"],["phone","Telefon / WhatsApp"],["email","E-Mail"]].map(([k,l]) => (
+                          <div key={k}>
+                            <label style={S.label}>{l}</label>
+                            <input value={addLeadForm[k]} onChange={e => setAddLeadForm(f => ({ ...f, [k]: e.target.value }))} style={S.input} />
+                          </div>
+                        ))}
+                        <div>
+                          <label style={S.label}>Quelle</label>
+                          <select value={addLeadForm.source} onChange={e => setAddLeadForm(f => ({ ...f, source: e.target.value }))} style={{ ...S.input, cursor: "pointer" }}>
+                            {[["whatsapp","💬 WhatsApp"],["phone","📞 Telefon"],["empfehlung","🤝 Empfehlung"],["manuell","✏️ Manuell"]].map(([v,l]) => (
+                              <option key={v} value={v}>{l}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label style={S.label}>Notiz</label>
+                          <textarea value={addLeadForm.notes} onChange={e => setAddLeadForm(f => ({ ...f, notes: e.target.value }))} rows={3} style={{ ...S.input, resize: "vertical" }} />
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+                        <button onClick={() => setAddLeadOpen(false)} style={{ ...S.btnOutline, flex: 1 }}>Abbrechen</button>
+                        <button disabled={addLeadSaving || !addLeadForm.contact_name.trim()} onClick={async () => {
+                          setAddLeadSaving(true);
+                          const d = await apiFetch("/api/leads", { method: "POST", body: JSON.stringify({ ...addLeadForm, client_id: id }) });
+                          setAddLeadSaving(false);
+                          if (d.data) {
+                            setAddLeadOpen(false);
+                            setAddLeadForm({ contact_name: "", phone: "", email: "", source: "manuell", notes: "" });
+                            await load();
+                          } else flash("❌ " + (d.error || "Fehler"));
+                        }} style={{ ...S.btn, flex: 1, opacity: addLeadSaving || !addLeadForm.contact_name.trim() ? .5 : 1 }}>
+                          {addLeadSaving ? "⏳ Speichert…" : "Lead speichern"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

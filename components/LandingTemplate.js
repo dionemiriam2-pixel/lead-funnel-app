@@ -73,7 +73,8 @@ export default function LandingTemplate({ data = {} }) {
     datenschutz:  data.datenschutz || "",
 
     /* ── Kontakt ────────────────────────────────────── */
-    whatsapp: data.mobile || null,
+    whatsapp:         data.mobile           || null,
+    whatsapp_number:  data.whatsapp_number  || null,
   };
 
   return <LandingPage lp={lp} />;

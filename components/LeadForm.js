@@ -8,12 +8,15 @@ export default function LeadForm({ lp, accent }) {
   const [step, setStep] = useState(1);
   const [intent, setIntent] = useState("");
   const [fields, setFields] = useState({ name: "", company: "", email: "", phone: "" });
+  const [channel, setChannel] = useState("email"); // 'whatsapp' | 'email'
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
   const [err, setErr] = useState("");
   const [consent, setConsent] = useState(false);
+  const [waConsent, setWaConsent] = useState(false);
 
   const intents = lp.intents || ["Neueröffnung planen", "Bestandsgeschäft umbauen", "Erstberatung anfragen"];
+  const waNumber = lp.whatsapp_number || lp.whatsapp || null;
 
   function set(k, v) { setFields(f => ({ ...f, [k]: v })); }
 
@@ -21,17 +24,19 @@ export default function LeadForm({ lp, accent }) {
     setSending(true);
     setErr("");
     try {
+      const notesParts = ["Vorhaben: " + intent];
+      if (channel === "whatsapp") notesParts.push("Kontaktwunsch: WhatsApp ✓");
       const r = await fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: fields.name,
-          email: fields.email,
-          phone: fields.phone,
-          company: fields.company,
-          notes: "Vorhaben: " + intent,
-          lp: lp.slug,
-          client: lp.client,
+          name:     fields.name,
+          email:    fields.email  || null,
+          phone:    fields.phone,
+          company:  fields.company,
+          notes:    notesParts.join(" | "),
+          lp:       lp.slug,
+          client:   lp.client,
           industry: lp.industry,
         }),
       });
@@ -124,33 +129,54 @@ export default function LeadForm({ lp, accent }) {
           <input name="website_hp" tabIndex={-1} autoComplete="off" aria-hidden="true"
             style={{ position: "absolute", left: -9999 }} />
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <input value={fields.email} onChange={e => set("email", e.target.value)}
-              type="email" placeholder="E-Mail-Adresse *" required style={inp} />
             <input value={fields.phone} onChange={e => set("phone", e.target.value)}
-              placeholder="Telefon (optional)" style={inp} />
+              placeholder="Telefonnummer *" required style={inp} />
+            {/* Kanal-Wahl */}
+            <div>
+              <p style={{ fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 8 }}>Wie dürfen wir dich erreichen?</p>
+              <div style={{ display: "flex", gap: 8 }}>
+                {[["email","✉️ E-Mail"],["whatsapp","💬 WhatsApp"]].map(([v,l]) => (
+                  <button key={v} type="button" onClick={() => setChannel(v)}
+                    style={{ flex: 1, padding: "10px 12px", border: "2px solid " + (channel === v ? ac : "#e5e7eb"), borderRadius: 10, background: channel === v ? "#fffbf5" : "#fff", fontSize: 14, fontWeight: channel === v ? 700 : 400, cursor: "pointer", color: "#111827" }}>
+                    {l}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <input value={fields.email} onChange={e => set("email", e.target.value)}
+              type="email" placeholder={channel === "whatsapp" ? "E-Mail (optional)" : "E-Mail-Adresse *"} style={inp} />
           </div>
-          {/* Opt-in Checkbox — DSGVO Pflicht */}
-          <label style={{ display: "flex", alignItems: "flex-start", gap: 10, marginTop: 14, cursor: "pointer" }}>
-            <input
-              type="checkbox"
-              checked={consent}
-              onChange={e => setConsent(e.target.checked)}
-              style={{ marginTop: 3, flexShrink: 0, width: 16, height: 16, cursor: "pointer", accentColor: ac }}
-            />
+
+          {/* WhatsApp-Opt-in (nur wenn WhatsApp gewählt) */}
+          {channel === "whatsapp" && (
+            <label style={{ display: "flex", alignItems: "flex-start", gap: 10, marginTop: 12, cursor: "pointer", padding: "12px 14px", background: "#f0fdf4", borderRadius: 10, border: "1px solid #bbf7d0" }}>
+              <input type="checkbox" checked={waConsent} onChange={e => setWaConsent(e.target.checked)}
+                style={{ marginTop: 3, flexShrink: 0, width: 16, height: 16, cursor: "pointer", accentColor: "#16a34a" }} />
+              <span style={{ fontSize: 12, color: "#166534", lineHeight: 1.5 }}>
+                Ich bin einverstanden, per <strong>WhatsApp</strong> kontaktiert zu werden.{" "}
+                <a href="#datenschutz" style={{ color: "#16a34a" }}>Datenschutzhinweise</a>
+              </span>
+            </label>
+          )}
+
+          {/* DSGVO-Consent */}
+          <label style={{ display: "flex", alignItems: "flex-start", gap: 10, marginTop: 12, cursor: "pointer" }}>
+            <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)}
+              style={{ marginTop: 3, flexShrink: 0, width: 16, height: 16, cursor: "pointer", accentColor: ac }} />
             <span style={{ fontSize: 12, color: "#4b5563", lineHeight: 1.5 }}>
-              Ich willige ein, dass meine Daten zur Bearbeitung meiner Anfrage gespeichert und verarbeitet werden.{" "}
-              {lp.datenschutz_url
-                ? <a href={lp.datenschutz_url} target="_blank" rel="noopener noreferrer" style={{ color: ac }}>Datenschutzhinweise</a>
-                : <a href="#datenschutz" style={{ color: ac }}>Datenschutzhinweise</a>
-              }
+              Ich willige ein, dass meine Daten zur Bearbeitung meiner Anfrage gespeichert werden.{" "}
+              <a href="#datenschutz" style={{ color: ac }}>Datenschutzhinweise</a>
             </span>
           </label>
+
           <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
             <button onClick={() => setStep(2)} style={backBtn}>← Zurück</button>
             <button
               onClick={() => {
-                if (!fields.email.trim()) { setErr("Bitte E-Mail eingeben."); return; }
-                if (!consent) { setErr("Bitte Datenschutzhinweise bestätigen."); return; }
+                if (!fields.phone.trim()) { setErr("Bitte Telefonnummer eingeben."); return; }
+                if (channel === "email" && !fields.email.trim()) { setErr("Bitte E-Mail eingeben."); return; }
+                if (channel === "whatsapp" && !waConsent) { setErr("Bitte WhatsApp-Einwilligung bestätigen."); return; }
+                if (!consent) { setErr("Bitte Datenschutz bestätigen."); return; }
                 submit();
               }}
               disabled={sending || !consent}
@@ -159,6 +185,19 @@ export default function LeadForm({ lp, accent }) {
             </button>
           </div>
           {err && <p style={{ color: "#b91c1c", fontSize: 13, marginTop: 8 }}>{err}</p>}
+
+          {/* Direkt per WhatsApp schreiben */}
+          {waNumber && (
+            <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px solid #e5e7eb", textAlign: "center" }}>
+              <p style={{ fontSize: 12, color: "#6b7280", marginBottom: 10 }}>Oder direkt schreiben:</p>
+              <a href={`https://wa.me/${waNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent("Hallo, ich habe Interesse an einer Zusammenarbeit und würde mich gerne kurz vorstellen.")}`}
+                target="_blank" rel="noopener noreferrer"
+                style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "11px 20px", background: "#25D366", color: "#fff", borderRadius: 10, fontSize: 14, fontWeight: 700, textDecoration: "none" }}>
+                💬 Direkt per WhatsApp schreiben
+              </a>
+              <p style={{ fontSize: 11, color: "#9ca3af", marginTop: 8 }}>Öffnet WhatsApp mit vorausgefüllter Nachricht</p>
+            </div>
+          )}
         </div>
       )}
     </div>

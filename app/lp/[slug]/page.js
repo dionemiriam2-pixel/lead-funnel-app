@@ -39,7 +39,7 @@ export default async function Page({ params }) {
       clients (
         id, name, website, region, description, industry,
         brand_color, accent_color, logo_url,
-        mobile, phone, email
+        mobile, phone, email, whatsapp_number
       )
     `)
     .eq("slug", slug)
@@ -55,9 +55,10 @@ export default async function Page({ params }) {
     brand_color:  client.brand_color  || null,
     accent_color: client.accent_color || null,
     logo_url:     client.logo_url     || null,
-    mobile:       client.mobile       || null,
-    phone:        client.phone        || null,
-    email:        client.email        || null,
+    mobile:           client.mobile           || null,
+    phone:            client.phone            || null,
+    email:            client.email            || null,
+    whatsapp_number:  client.whatsapp_number  || null,
     id:           row.id,
     client_id:    row.client_id,
     slug:         row.slug,

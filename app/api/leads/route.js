@@ -23,6 +23,27 @@ export async function GET(req) {
   return NextResponse.json({ data });
 }
 
+export async function POST(req) {
+  if (!await verifyAuth(req)) return NextResponse.json({ error: "Unauth" }, { status: 401 });
+  const body = await req.json();
+  if (!body.client_id) return NextResponse.json({ error: "client_id fehlt" }, { status: 400 });
+  const sb = supabaseAdmin();
+  const { data, error } = await sb.from("leads").insert({
+    contact_name:    body.contact_name    || null,
+    company_name:    body.company_name    || body.contact_name || null,
+    phone:           body.phone           || null,
+    email:           body.email           || null,
+    source:          body.source          || "manuell",
+    notes:           body.notes           || null,
+    client_id:       body.client_id,
+    status:          "new",
+    pipeline_status: "neu",
+    score:           body.score           ?? 5,
+  }).select().single();
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ data });
+}
+
 export async function PATCH(req) {
   if (!await verifyAuth(req)) return NextResponse.json({ error: "Unauth" }, { status: 401 });
   const { id, ...fields } = await req.json();
