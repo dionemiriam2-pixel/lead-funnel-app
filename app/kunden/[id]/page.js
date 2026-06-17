@@ -135,6 +135,9 @@ export default function KundeDetailPage() {
   const [modernizeErr,      setModernizeErr]      = useState("");
   const [websiteAudit,      setWebsiteAudit]      = useState(null);
   const [landingPages,      setLandingPages]      = useState([]);
+  const [liPostText,        setLiPostText]        = useState("");
+  const [liPosting,         setLiPosting]         = useState(false);
+  const [liPostMsg,         setLiPostMsg]         = useState("");
   const [generatingLP,      setGeneratingLP]      = useState(false);
   const [lpError,           setLpError]           = useState("");
   const [lpPreview,         setLpPreview]         = useState(null);
@@ -1536,22 +1539,19 @@ export default function KundeDetailPage() {
                       const conn = socialConnections.find(c => c.platform === "linkedin");
                       return (
                         <div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
                             <Link2 size={18} strokeWidth={1.5} color="var(--accent)" />
                             <span style={{ fontWeight: 600, fontSize: 15, color: "var(--ink)" }}>LinkedIn</span>
                           </div>
 
                           {conn ? (
                             <div>
-                              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 10, marginBottom: 16 }}>
-                                <span style={{ fontSize: 18 }}>✅</span>
-                                <div>
-                                  <div style={{ fontWeight: 600, fontSize: 13, color: "#15803d" }}>
-                                    Verbunden als {conn.account_name}
-                                  </div>
-                                  <div style={{ fontSize: 11, color: "#166534", marginTop: 1 }}>
-                                    Seit {new Date(conn.connected_at).toLocaleDateString("de-DE")}
-                                  </div>
+                              {/* Verbunden-Badge */}
+                              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 10, marginBottom: 20 }}>
+                                <span style={{ fontSize: 16 }}>✅</span>
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ fontWeight: 600, fontSize: 13, color: "#15803d" }}>Verbunden als {conn.account_name}</div>
+                                  <div style={{ fontSize: 11, color: "#166534", marginTop: 1 }}>Seit {new Date(conn.connected_at).toLocaleDateString("de-DE")}</div>
                                 </div>
                                 <button
                                   onClick={async () => {
@@ -1559,13 +1559,53 @@ export default function KundeDetailPage() {
                                     await apiFetch(`/api/social?client_id=${id}&platform=linkedin`, { method: "DELETE" });
                                     await load();
                                   }}
-                                  style={{ marginLeft: "auto", fontSize: 11, padding: "4px 10px", border: "1px solid #fca5a5", borderRadius: 6, background: "transparent", color: "#dc2626", cursor: "pointer" }}>
+                                  style={{ fontSize: 11, padding: "4px 10px", border: "1px solid #fca5a5", borderRadius: 6, background: "transparent", color: "#dc2626", cursor: "pointer" }}>
                                   Trennen
                                 </button>
                               </div>
-                              <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>
-                                Schritt 4 (Beiträge posten) folgt im nächsten Update.
-                              </p>
+
+                              {/* Post-Formular */}
+                              <div>
+                                <label style={S.label}>Beitrag verfassen</label>
+                                <textarea
+                                  value={liPostText}
+                                  onChange={e => setLiPostText(e.target.value)}
+                                  placeholder={`Was möchtest du für ${client.name} auf LinkedIn teilen?`}
+                                  rows={5}
+                                  maxLength={3000}
+                                  style={{ ...S.input, resize: "vertical", lineHeight: 1.6 }}
+                                />
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
+                                  <span style={{ fontSize: 11, color: liPostText.length > 2800 ? "var(--accent)" : "var(--text-tertiary)" }}>
+                                    {liPostText.length} / 3000
+                                  </span>
+                                  <button
+                                    onClick={async () => {
+                                      if (!liPostText.trim()) return;
+                                      setLiPosting(true);
+                                      setLiPostMsg("");
+                                      try {
+                                        const d = await apiFetch("/api/social/linkedin/post", {
+                                          method: "POST",
+                                          body: JSON.stringify({ client_id: id, text: liPostText }),
+                                        });
+                                        if (d.error) { setLiPostMsg("❌ " + d.error); return; }
+                                        setLiPostMsg("✅ Beitrag veröffentlicht!");
+                                        setLiPostText("");
+                                      } catch { setLiPostMsg("❌ Netzwerkfehler"); }
+                                      finally { setLiPosting(false); }
+                                    }}
+                                    disabled={liPosting || !liPostText.trim()}
+                                    style={{ ...S.btn, opacity: liPosting || !liPostText.trim() ? .5 : 1, cursor: liPosting || !liPostText.trim() ? "not-allowed" : "pointer" }}>
+                                    {liPosting ? "⏳ Wird gepostet…" : "Auf LinkedIn posten →"}
+                                  </button>
+                                </div>
+                                {liPostMsg && (
+                                  <div style={{ marginTop: 10, fontSize: 13, fontWeight: 500, color: liPostMsg.startsWith("✅") ? "#15803d" : "var(--accent)" }}>
+                                    {liPostMsg}
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           ) : (
                             <div>
