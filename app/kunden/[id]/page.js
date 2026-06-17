@@ -59,7 +59,7 @@ const KANALE = [
   { key: "google-maps",  Icon: MapPin,        label: "Google Maps",      desc: "Firmen-Scraping & Leads",    soon: false },
   { key: "landing-page", Icon: Globe,         label: "Landing Page",     desc: "Inbound Lead-Erfassung",     soon: false },
   { key: "linkedin",     Icon: Link2,         label: "LinkedIn",         desc: "Verbinden & Beiträge posten", soon: false },
-  { key: "email",        Icon: Mail,          label: "E-Mail Outreach",  desc: "Mails senden & Verlauf",     soon: false },
+  { key: "email",        Icon: Mail,          label: "E-Mail",           desc: "Mails senden & empfangen",   soon: false },
   { key: "ads",          Icon: Target,        label: "Werbeanzeigen",    desc: "Meta / Google Ads",          soon: true  },
   { key: "chat",         Icon: MessageSquare, label: "ManyChat / Chat",  desc: "Chat-Automatisierung",       soon: true  },
 ];
