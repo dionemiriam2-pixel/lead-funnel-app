@@ -118,8 +118,9 @@ export default function KundeDetailPage() {
   const [openChannel,  setOpenChannel]  = useState(null);
   const [sourceFilter, setSourceFilter] = useState(null);
   const [statusFilter, setStatusFilter] = useState(null);
-  const [sortCol,      setSortCol]      = useState("score");
+  const [sortCol,      setSortCol]      = useState("created_at");
   const [sortDir,      setSortDir]      = useState("desc");
+  const [recentOnly,   setRecentOnly]   = useState(false);
   const [msg,          setMsg]          = useState("");
 
   /* Produkte & Strategie */
@@ -367,11 +368,14 @@ export default function KundeDetailPage() {
   leads.forEach(l => { if (l.source) sourceCounts[l.source] = (sourceCounts[l.source] || 0) + 1; });
 
   /* gefilterte + sortierte Lead-Tabelle */
-  let displayLeads = leads;
+  const since24h    = new Date(Date.now() - 86400000).toISOString();
+  const newIn24h    = leads.filter(l => l.created_at > since24h).length;
+  let displayLeads  = leads;
+  if (recentOnly)   displayLeads = displayLeads.filter(l => l.created_at > since24h);
   if (sourceFilter) displayLeads = displayLeads.filter(l => l.source === sourceFilter);
   if (statusFilter) displayLeads = displayLeads.filter(l => pStatus(l) === statusFilter);
   displayLeads = [...displayLeads].sort((a, b) => {
-    const va = a[sortCol] ?? 0, vb = b[sortCol] ?? 0;
+    const va = a[sortCol] ?? "", vb = b[sortCol] ?? "";
     return sortDir === "asc" ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
   });
 
@@ -670,6 +674,21 @@ export default function KundeDetailPage() {
                           style={{ ...S.input, resize: "vertical" }} />
                       </div>
                     ))}
+                  </div>
+
+                  {/* Kanal-IDs für Lead-Zuordnung */}
+                  <div style={{ marginTop: 20, paddingTop: 18, borderTop: "1px solid var(--border)" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em", color: "var(--text-tertiary)", marginBottom: 14 }}>
+                      Kanal-IDs (für Lead-Zuordnung)
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+                      {[["whatsapp_number","WhatsApp-Nummer","+49…"],["fb_page_id","Facebook Page ID","123456789"],["ig_account_id","Instagram Account ID","987654321"]].map(([k,l,ph]) => (
+                        <div key={k}>
+                          <label style={S.label}>{l}</label>
+                          <input value={form[k] || ""} onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))} placeholder={ph} style={{ ...S.input, fontFamily: "monospace", fontSize: 13 }} />
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
                   <div style={{ marginTop: 16, display: "flex", gap: 10, alignItems: "center" }}>
@@ -1310,6 +1329,22 @@ export default function KundeDetailPage() {
             {/* ═══════════ LEADS ═══════════════════════════ */}
             {tab === "Leads" && (
               <div>
+                {/* Eingang-Header */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
+                  <div>
+                    <span style={{ fontWeight: 700, fontSize: 15, color: "var(--ink)" }}>Kanalübergreifender Eingang</span>
+                    {newIn24h > 0 && (
+                      <span style={{ marginLeft: 10, fontSize: 12, fontWeight: 600, padding: "2px 10px", borderRadius: 99, background: "#e8600a", color: "#fff" }}>
+                        {newIn24h} neu in 24h
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <button onClick={() => setRecentOnly(false)} style={{ fontSize: 12, padding: "5px 12px", borderRadius: 6, border: "1px solid var(--border)", background: !recentOnly ? "var(--ink)" : "transparent", color: !recentOnly ? "#fff" : "var(--text-secondary)", cursor: "pointer" }}>Alle</button>
+                    <button onClick={() => setRecentOnly(true)}  style={{ fontSize: 12, padding: "5px 12px", borderRadius: 6, border: "1px solid var(--border)", background:  recentOnly ? "var(--ink)" : "transparent", color:  recentOnly ? "#fff" : "var(--text-secondary)", cursor: "pointer" }}>Letzte 24h</button>
+                  </div>
+                </div>
+
                 {unprocessed.length > 0 && (
                   <div style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 10, padding: "10px 16px", marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 7, color: "var(--accent)", fontSize: 14, fontWeight: 500 }}>
@@ -1405,24 +1440,36 @@ export default function KundeDetailPage() {
                     <table style={{ width: "100%", borderCollapse: "collapse" }}>
                       <thead>
                         <tr style={{ borderBottom: "1px solid var(--border)" }}>
-                          {[["company_name","Firma"],["city","Stadt"],["category","Kategorie"],["score","Score"],["pipeline_status","Status"]].map(([col,h]) => (
+                          {[["company_name","Firma"],["city","Stadt"],["score","Score"],["pipeline_status","Status"],["created_at","Eingang"]].map(([col,h]) => (
                             <th key={col} onClick={() => handleSort(col)}
                               style={{ padding: "9px 13px", textAlign: "left", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", color: sortCol===col?"var(--ink)":"var(--text-tertiary)", cursor: "pointer", userSelect: "none" }}>
                               {h}{sortCol===col ? (sortDir==="asc"?" ↑":" ↓") : ""}
                             </th>
                           ))}
+                          <th style={{ padding: "9px 13px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--text-tertiary)" }}>Kanal</th>
                           <th style={{ padding: "9px 13px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--text-tertiary)" }}>Telefon</th>
-                          <th style={{ padding: "9px 13px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--text-tertiary)" }}>Website</th>
                         </tr>
                       </thead>
                       <tbody>
                         {displayLeads.map(l => {
-                          const ps = PIPELINE.find(p => p.key === pStatus(l));
+                          const ps  = PIPELINE.find(p => p.key === pStatus(l));
+                          const src = l.source || "manuell";
+                          const srcStyle = {
+                            landingpage: { bg: "#dcfce7", color: "#16a34a" },
+                            whatsapp:    { bg: "#dcfce7", color: "#15803d" },
+                            messenger:   { bg: "#dbeafe", color: "#1d4ed8" },
+                            instagram:   { bg: "#fce7f3", color: "#be185d" },
+                            manuell:     { bg: "var(--border)", color: "var(--text-secondary)" },
+                          }[src] || { bg: "var(--border)", color: "var(--text-secondary)" };
+                          const srcIcon = { landingpage:"🌐", whatsapp:"💬", messenger:"💙", instagram:"📸", manuell:"✏️" }[src] || "📌";
+                          const isNew = l.created_at > since24h;
                           return (
-                            <tr key={l.id} style={{ borderTop: "1px solid var(--border)" }}>
-                              <td style={{ padding: "11px 13px", fontWeight: 500, fontSize: 14, color: "var(--ink)" }}>{l.company_name}</td>
+                            <tr key={l.id} style={{ borderTop: "1px solid var(--border)", background: isNew ? "#fffbf5" : "transparent" }}>
+                              <td style={{ padding: "11px 13px", fontWeight: 500, fontSize: 14, color: "var(--ink)" }}>
+                                {isNew && <span style={{ display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: "#e8600a", marginRight: 6, verticalAlign: "middle" }} />}
+                                {l.company_name}
+                              </td>
                               <td style={{ padding: "11px 13px", fontSize: 13, color: "var(--text-secondary)" }}>{l.city || "–"}</td>
-                              <td style={{ padding: "11px 13px", fontSize: 13, color: "var(--text-secondary)" }}>{l.category || "–"}</td>
                               <td style={{ padding: "11px 13px" }}>
                                 <span style={{ fontSize: 12, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: l.score >= 6 ? "var(--ink)" : "var(--border)", color: l.score >= 6 ? "#fff" : "var(--text-tertiary)" }}>
                                   {l.score ?? "–"}
@@ -1433,10 +1480,15 @@ export default function KundeDetailPage() {
                                   {ps?.label || pStatus(l)}
                                 </span>
                               </td>
-                              <td style={{ padding: "11px 13px", fontSize: 12, color: "var(--text-secondary)" }}>{l.phone || "–"}</td>
-                              <td style={{ padding: "11px 13px", fontSize: 12 }}>
-                                {l.website ? <a href={l.website} target="_blank" rel="noreferrer" style={{ color: "var(--ink)", display: "flex", alignItems: "center", gap: 4 }}><ExternalLink size={12} strokeWidth={1.5} /> Link</a> : "–"}
+                              <td style={{ padding: "11px 13px", fontSize: 12, color: "var(--text-tertiary)" }}>
+                                {l.created_at ? new Date(l.created_at).toLocaleString("de-DE", { day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit" }) : "–"}
                               </td>
+                              <td style={{ padding: "11px 13px" }}>
+                                <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 99, background: srcStyle.bg, color: srcStyle.color, whiteSpace: "nowrap" }}>
+                                  {srcIcon} {src}
+                                </span>
+                              </td>
+                              <td style={{ padding: "11px 13px", fontSize: 12, color: "var(--text-secondary)" }}>{l.phone || "–"}</td>
                             </tr>
                           );
                         })}

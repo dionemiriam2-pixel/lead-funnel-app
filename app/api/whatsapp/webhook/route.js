@@ -1,5 +1,4 @@
-import { NextResponse } from "next/server";
-import { createHmac }   from "crypto";
+import { createHmac } from "crypto";
 import { supabaseAdmin } from "@/lib/supabase";
 
 /* ── GET: Meta-Webhook-Verifizierung ─────────────────────── */
@@ -54,16 +53,16 @@ export async function POST(req) {
         const messageId = msg.id;
         const waTo      = value.metadata?.display_phone_number ?? "";
 
-        /* Passenden Kunden anhand der Nummer suchen */
-        const { data: lead } = await sb
-          .from("leads")
-          .select("client_id")
-          .eq("phone", waFrom)
+        /* Kunden anhand der WhatsApp-Empfängernummer finden */
+        const { data: clientRow } = await sb
+          .from("clients")
+          .select("id")
+          .eq("whatsapp_number", waTo)
           .maybeSingle();
 
         /* Nachricht speichern */
         await sb.from("whatsapp_messages").insert({
-          client_id:     lead?.client_id ?? null,
+          client_id:     clientRow?.id ?? null,
           wa_from:       waFrom,
           wa_to:         waTo,
           direction:     "in",
