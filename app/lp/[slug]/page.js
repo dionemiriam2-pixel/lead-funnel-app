@@ -15,10 +15,23 @@ export async function generateMetadata({ params }) {
     const sb = supabaseAdmin();
     const { data } = await sb
       .from("landing_pages")
-      .select("title")
+      .select("title, clients(name, description, logo_url, region)")
       .eq("slug", slug)
       .single();
-    return { title: data?.title || "Landing Page" };
+    const cl = data?.clients || {};
+    const title = data?.title || cl.name || "Landing Page";
+    const desc  = cl.description?.slice(0, 155) || title;
+    return {
+      title,
+      description: desc,
+      openGraph: {
+        title,
+        description: desc,
+        images: cl.logo_url ? [{ url: cl.logo_url }] : [],
+        type: "website",
+      },
+      twitter: { card: "summary", title, description: desc },
+    };
   } catch { return { title: "Landing Page" }; }
 }
 
@@ -38,8 +51,9 @@ export default async function Page({ params }) {
       content, impressum, datenschutz, leads_count,
       clients (
         id, name, website, region, description, industry,
-        brand_color, accent_color, logo_url,
-        mobile, phone, email, whatsapp_number
+        brand_color, accent_color, logo_url, brand_font,
+        mobile, phone, email, whatsapp_number,
+        testimonials, reference_images, lead_magnet, garantie
       )
     `)
     .eq("slug", slug)
@@ -59,6 +73,11 @@ export default async function Page({ params }) {
     phone:            client.phone            || null,
     email:            client.email            || null,
     whatsapp_number:  client.whatsapp_number  || null,
+    brand_font:       client.brand_font       || null,
+    testimonials:     client.testimonials     || [],
+    reference_images: client.reference_images || [],
+    lead_magnet:      client.lead_magnet      || null,
+    garantie:         client.garantie         || null,
     id:           row.id,
     client_id:    row.client_id,
     slug:         row.slug,
@@ -69,5 +88,30 @@ export default async function Page({ params }) {
     leads_count:  row.leads_count     || 0,
   };
 
-  return <LandingTemplate data={data} />;
+  // Schema.org JSON-LD
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name":        client.name      || "",
+    "description": client.description || "",
+    "url":         client.website   || "",
+    "telephone":   client.phone     || client.mobile || "",
+    "email":       client.email     || "",
+    "address": client.region ? {
+      "@type": "PostalAddress",
+      "addressLocality": client.region,
+      "addressCountry":  "DE",
+    } : undefined,
+    "image": client.logo_url || undefined,
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
+      <LandingTemplate data={data} />
+    </>
+  );
 }

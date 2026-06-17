@@ -75,6 +75,19 @@ export default function LandingTemplate({ data = {} }) {
     /* ── Kontakt ────────────────────────────────────── */
     whatsapp:         data.mobile           || null,
     whatsapp_number:  data.whatsapp_number  || null,
+
+    /* ── Conversion-Elemente aus Kundenprofil ──────── */
+    testimonials: (() => {
+      if (Array.isArray(c.testimonials) && c.testimonials.length > 0) return c.testimonials;
+      if (Array.isArray(data.testimonials) && data.testimonials.length > 0)
+        return data.testimonials.map(t => ({ name: t.name, company: t.firma || "", text: t.text, stars: 5 }));
+      return undefined;
+    })(),
+    reference_images: Array.isArray(data.reference_images) && data.reference_images.length > 0
+      ? data.reference_images : null,
+    lead_magnet: data.lead_magnet || null,
+    garantie:    data.garantie    || null,
+    brand_font:  data.brand_font  || null,
   };
 
   return <LandingPage lp={lp} />;

@@ -30,12 +30,17 @@ export default function LandingPage({ lp }) {
     { icon: "🏆", title: "Erfahrung aus 50+ Projekten", text: "Wir kennen die Stolpersteine — und wie man sie umgeht." },
   ];
 
-  const testimonials = lp.testimonials || [
-    { name: "Sabine K.", company: "Boutique München", text: "Professionell, pünktlich und wirklich mitdenkend. Unser Laden sieht besser aus als erträumt.", stars: 5 },
-    { name: "Thomas M.", company: "Café am Markt", text: "Das Team hat alle Kosten im Griff gehalten. Keine bösen Überraschungen — das war Gold wert.", stars: 5 },
-    { name: "Julia F.", company: "Mode & Mehr GmbH", text: "Innerhalb von 6 Wochen war alles fertig. Ich hätte es nie allein so schnell geschafft.", stars: 5 },
-    { name: "Kevin B.", company: "Fitnessstudio Köln", text: "Von der ersten Idee bis zur Eröffnung — rundum betreut. Ich würde es sofort wieder so machen.", stars: 5 },
-  ];
+  const rawTestimonials = lp.testimonials;
+  const testimonials = Array.isArray(rawTestimonials) && rawTestimonials.length > 0
+    ? rawTestimonials.map(t => ({ ...t, company: t.company || t.firma || "" }))
+    : [
+      { name: "Sabine K.", company: "Boutique München", text: "Professionell, pünktlich und wirklich mitdenkend. Unser Laden sieht besser aus als erträumt.", stars: 5 },
+      { name: "Thomas M.", company: "Café am Markt", text: "Das Team hat alle Kosten im Griff gehalten. Keine bösen Überraschungen — das war Gold wert.", stars: 5 },
+      { name: "Julia F.", company: "Mode & Mehr GmbH", text: "Innerhalb von 6 Wochen war alles fertig. Ich hätte es nie allein so schnell geschafft.", stars: 5 },
+    ];
+  const refImages  = Array.isArray(lp.reference_images) && lp.reference_images.length > 0 ? lp.reference_images : null;
+  const leadMagnet = lp.lead_magnet || null;
+  const garantie   = lp.garantie    || null;
 
   const faqs = lp.faqs || [
     { q: "Wie lange dauert eine typische Beratung?", a: "Das erste Gespräch dauert etwa 30 Minuten — kostenlos und unverbindlich. Danach bekommst du ein konkretes Angebot." },
@@ -76,7 +81,7 @@ export default function LandingPage({ lp }) {
         <div style={{ maxWidth: 1060, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ fontWeight: 900, fontSize: 20, color: dark, letterSpacing: -0.5, display: "flex", alignItems: "center", gap: 10 }}>
             {lp.logoUrl && (
-              <img src={lp.logoUrl} alt={lp.brand || "Logo"} style={{ height: 36, width: "auto", objectFit: "contain" }} />
+              <img src={lp.logoUrl} alt={lp.brand || "Logo"} loading="eager" style={{ height: 36, width: "auto", objectFit: "contain" }} />
             )}
             {!lp.logoUrl && (lp.brand || lp.client || "Ihre Marke")}
           </div>
@@ -127,6 +132,12 @@ export default function LandingPage({ lp }) {
 
           {/* Form */}
           <div id="form-top" style={{ flex: "0 1 380px", minWidth: 280, background: "#fff", color: "#111", borderRadius: 18, padding: "36px 30px", boxShadow: "0 24px 72px rgba(0,0,0,.4)" }}>
+            {garantie && (
+              <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 14px", background: "#f0fdf4", borderRadius: 8, border: "1px solid #bbf7d0", marginBottom: 18 }}>
+                <span style={{ fontSize: 16 }}>✅</span>
+                <span style={{ fontSize: 12, color: "#15803d", fontWeight: 600, lineHeight: 1.4 }}>{garantie}</span>
+              </div>
+            )}
             <h2 style={{ fontSize: 21, fontWeight: 800, marginBottom: 4, color: dark }}>
               {lp.formTitle || "Jetzt kostenloses Erstgespräch sichern"}
             </h2>
@@ -150,6 +161,23 @@ export default function LandingPage({ lp }) {
           ))}
         </div>
       </section>
+
+      {/* ── USP / VORTEILE ───────────────────────────────────── */}
+      {benefits.length > 0 && (
+        <section style={{ background: "#fff", padding: "80px 20px" }}>
+          <div style={{ maxWidth: 1060, margin: "0 auto" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 28 }}>
+              {benefits.map((b, i) => (
+                <div key={i} style={{ padding: "32px 28px", background: "#f9fafb", borderRadius: 16, border: "1px solid #f3f4f6" }}>
+                  <div style={{ fontSize: 36, marginBottom: 16 }}>{b.icon || "✓"}</div>
+                  <h3 style={{ fontSize: 18, fontWeight: 800, color: dark, marginBottom: 10, lineHeight: 1.3 }}>{b.title}</h3>
+                  <p style={{ fontSize: 15, color: "#6b7280", lineHeight: 1.7, margin: 0 }}>{b.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── PHASEN (01-04) ───────────────────────────────────── */}
       <section style={{ background: "#fff", padding: "88px 20px" }}>
@@ -211,6 +239,30 @@ export default function LandingPage({ lp }) {
         </div>
       </section>
 
+      {/* ── REFERENZBILDER ───────────────────────────────────── */}
+      {refImages && (
+        <section style={{ background: "#fff", padding: "80px 20px" }}>
+          <div style={{ maxWidth: 1060, margin: "0 auto" }}>
+            <div style={{ textAlign: "center", marginBottom: 48 }}>
+              <h2 style={{ fontSize: "clamp(24px,3.5vw,36px)", fontWeight: 900, color: dark, marginBottom: 12, letterSpacing: -0.5 }}>
+                Referenzen &amp; Ergebnisse
+              </h2>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
+              {refImages.map((img, i) => (
+                <div key={i} style={{ borderRadius: 14, overflow: "hidden", border: "1px solid #f3f4f6", background: "#f9fafb" }}>
+                  <img src={img.url} alt={img.beschreibung || ""} loading="lazy"
+                    style={{ width: "100%", height: 200, objectFit: "cover", display: "block" }} />
+                  {img.beschreibung && (
+                    <p style={{ padding: "12px 16px", fontSize: 13, color: "#6b7280", margin: 0, lineHeight: 1.5 }}>{img.beschreibung}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ── TESTIMONIALS ─────────────────────────────────────── */}
       <section style={{ background: "#fff", padding: "88px 20px" }}>
         <div style={{ maxWidth: 1060, margin: "0 auto" }}>
@@ -263,6 +315,23 @@ export default function LandingPage({ lp }) {
           </div>
         </div>
       </section>
+
+      {/* ── LEAD-MAGNET / ANGEBOT ────────────────────────────── */}
+      {leadMagnet && (
+        <section style={{ background: accent + "0f", padding: "64px 20px", borderTop: "1px solid " + accent + "30", borderBottom: "1px solid " + accent + "30" }}>
+          <div style={{ maxWidth: 760, margin: "0 auto", textAlign: "center" }}>
+            <div style={{ display: "inline-block", background: accent, color: "#fff", padding: "6px 18px", borderRadius: 999, fontSize: 13, fontWeight: 700, marginBottom: 20 }}>
+              🎁 Unser Angebot für Sie
+            </div>
+            <h2 style={{ fontSize: "clamp(22px,3vw,32px)", fontWeight: 900, color: dark, marginBottom: 16, letterSpacing: -0.3 }}>
+              {leadMagnet}
+            </h2>
+            <a href="#form-cta" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "14px 32px", background: accent, color: "#fff", borderRadius: 10, fontSize: 16, fontWeight: 800, textDecoration: "none", marginTop: 8 }}>
+              Jetzt sichern →
+            </a>
+          </div>
+        </section>
+      )}
 
       {/* ── FINAL CTA SECTION ────────────────────────────────── */}
       <section id="form-cta" style={{ background: dark, color: "#fff", padding: "88px 20px" }}>
