@@ -839,7 +839,7 @@ export default function KundeDetailPage() {
                         <div style={{ gridColumn: "1/-1" }}>
                           <label style={S.label}>Zitat / Text</label>
                           <textarea value={t.text || ""} onChange={e => setTestimonial(i, "text", e.target.value)} rows={2}
-                            placeholder="„Sehr professionell und schnell – wir empfehlen es weiter!"" style={{ ...S.input, resize: "vertical" }} />
+                            placeholder={'Sehr professionell und schnell – absolut empfehlenswert!'} style={{ ...S.input, resize: "vertical" }} />
                         </div>
                       </div>
                     ))}

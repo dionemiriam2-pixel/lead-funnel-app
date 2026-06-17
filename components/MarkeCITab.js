@@ -190,7 +190,7 @@ export default function MarkeCITab({
           <label style={S.label}>Claim / Slogan</label>
           <input value={ci.claim || ""}
             onChange={e => setCI("claim", e.target.value)}
-            placeholder="z. B. „Qualität, die überzeugt." oder „Dein Partner für mehr Sichtbarkeit.""
+            placeholder={'z. B. Qualitaet, die ueberzeugt. oder: Dein Partner fuer mehr Sichtbarkeit.'}
             style={S.input} />
         </div>
 
@@ -233,7 +233,7 @@ export default function MarkeCITab({
           <textarea value={ci.mission || ""}
             onChange={e => setCI("mission", e.target.value)}
             rows={3}
-            placeholder="z. B. „Wir machen Handwerksbetriebe sichtbar, damit gute Arbeit gerecht belohnt wird.""
+            placeholder={'z. B. Wir machen Handwerksbetriebe sichtbar, damit gute Arbeit gerecht belohnt wird.'}
             style={S.textarea} />
         </div>
 
@@ -375,7 +375,7 @@ export default function MarkeCITab({
               <div>
                 <label style={S.label}>Zitat / Text</label>
                 <textarea value={t.text || ""} onChange={e => setTestimonial(i, "text", e.target.value)} rows={2}
-                  placeholder="„Sehr professionell und schnell – absolut empfehlenswert!""
+                  placeholder={'Sehr professionell und schnell – absolut empfehlenswert!'}
                   style={S.textarea} />
               </div>
             </div>
