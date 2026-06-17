@@ -1613,7 +1613,7 @@ export default function KundeDetailPage() {
                                 Verbinde den LinkedIn-Account von <strong>{client.name}</strong>, um direkt aus dem Dashboard Beiträge zu posten.
                               </p>
                               <a
-                                href={`/api/social?action=connect&client_id=${id}`}
+                                href={`/api/social/linkedin/connect?client_id=${id}`}
                                 style={{ ...S.btn, display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none" }}>
                                 <Link2 size={14} strokeWidth={2} />
                                 Mit LinkedIn verbinden
