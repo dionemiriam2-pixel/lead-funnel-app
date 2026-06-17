@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { apiFetch } from "@/lib/api";
-import { Copy, Check, Trash2, Linkedin, Instagram, Facebook, Send, ExternalLink, Sparkles, RefreshCw } from "lucide-react";
+import { Copy, Check, Trash2, Linkedin, Instagram, Facebook, Send, ExternalLink, Sparkles, RefreshCw, Image, Download } from "lucide-react";
 
 /* ── Plattform-Konfig ──────────────────────────────────────── */
 const PLAT = {
@@ -20,14 +20,17 @@ function PlatBadge({ platform }) {
 }
 
 /* ── Einzelne Post-Karte ───────────────────────────────────── */
-function PostCard({ post, hasLinkedIn, onDelete, onLinkedInPost }) {
-  const [text,    setText]    = useState(post.text || "");
-  const [saving,  setSaving]  = useState(false);
-  const [copied,  setCopied]  = useState(false);
-  const [posting, setPosting] = useState(false);
-  const [postOk,  setPostOk]  = useState(false);
-  const [postErr, setPostErr] = useState("");
-  const [deleted, setDeleted] = useState(false);
+function PostCard({ post, hasLinkedIn, hasImageKey, onDelete, onLinkedInPost }) {
+  const [text,       setText]       = useState(post.text || "");
+  const [imageUrl,   setImageUrl]   = useState(post.image_url || null);
+  const [saving,     setSaving]     = useState(false);
+  const [copied,     setCopied]     = useState(false);
+  const [posting,    setPosting]    = useState(false);
+  const [postOk,     setPostOk]     = useState(false);
+  const [postErr,    setPostErr]    = useState("");
+  const [deleted,    setDeleted]    = useState(false);
+  const [imgLoading, setImgLoading] = useState(false);
+  const [imgErr,     setImgErr]     = useState("");
   const saveTimer = useRef(null);
 
   // Auto-save on text change (debounced 800ms)
@@ -62,6 +65,25 @@ function PostCard({ post, hasLinkedIn, onDelete, onLinkedInPost }) {
     setDeleted(true);
     await apiFetch(`/api/content/posts?id=${post.id}`, { method: "DELETE" });
     onDelete(post.id);
+  }
+
+  async function generateImage() {
+    const prompt = post.image_prompt || text.slice(0, 200);
+    if (!prompt) return;
+    setImgLoading(true); setImgErr("");
+    const res = await apiFetch("/api/content/image", {
+      method: "POST",
+      body: JSON.stringify({ post_id: post.id, image_prompt: prompt }),
+    });
+    setImgLoading(false);
+    if (res.canva) {
+      // Kein OpenAI-Key → Canva öffnen
+      window.open(`https://www.canva.com/search?q=${encodeURIComponent(prompt)}`, "_blank");
+    } else if (res.image_url) {
+      setImageUrl(res.image_url);
+    } else {
+      setImgErr(res.error || "Fehler beim Generieren");
+    }
   }
 
   if (deleted) return null;
@@ -112,10 +134,28 @@ function PostCard({ post, hasLinkedIn, onDelete, onLinkedInPost }) {
       )}
 
       {/* Bild-Idee */}
-      {post.image_prompt && (
+      {post.image_prompt && !imageUrl && (
         <div style={{ margin: "0 16px 12px", padding: "8px 12px", background: "var(--bg)", borderRadius: 8, border: "1px solid var(--border)" }}>
           <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".07em", color: "var(--text-tertiary)" }}>Bildidee</span>
           <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: "3px 0 0", lineHeight: 1.5 }}>{post.image_prompt}</p>
+        </div>
+      )}
+
+      {/* Generiertes Bild */}
+      {imageUrl && (
+        <div style={{ margin: "0 16px 12px", borderRadius: 10, overflow: "hidden", border: "1px solid var(--border)", position: "relative" }}>
+          <img src={imageUrl} alt="Generiertes Bild" loading="lazy"
+            style={{ width: "100%", display: "block", aspectRatio: "1/1", objectFit: "cover" }} />
+          <div style={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 6 }}>
+            <a href={imageUrl} download target="_blank" rel="noopener noreferrer"
+              style={{ padding: "5px 8px", borderRadius: 6, background: "rgba(0,0,0,.55)", color: "#fff", display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, textDecoration: "none" }}>
+              <Download size={12} strokeWidth={2} /> Speichern
+            </a>
+            <button onClick={generateImage} disabled={imgLoading}
+              style={{ padding: "5px 8px", borderRadius: 6, background: "rgba(0,0,0,.55)", color: "#fff", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600 }}>
+              <RefreshCw size={12} strokeWidth={2} style={imgLoading ? { animation: "spin 1s linear infinite" } : {}} /> Neu
+            </button>
+          </div>
         </div>
       )}
 
@@ -137,17 +177,39 @@ function PostCard({ post, hasLinkedIn, onDelete, onLinkedInPost }) {
           </button>
         )}
 
-        {/* CapCut / Canva Link */}
+        {/* Bild generieren oder Canva */}
+        {!imageUrl ? (
+          hasImageKey
+            ? (
+              <button onClick={generateImage} disabled={imgLoading}
+                style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 8, border: "1.5px solid var(--border)", background: "var(--bg)", color: "var(--ink)", fontSize: 12, fontWeight: 600, cursor: imgLoading ? "not-allowed" : "pointer", opacity: imgLoading ? 0.6 : 1 }}>
+                {imgLoading
+                  ? <RefreshCw size={13} strokeWidth={1.5} style={{ animation: "spin 1s linear infinite" }} />
+                  : <Image size={13} strokeWidth={1.5} />}
+                {imgLoading ? "Generiert…" : "Bild erzeugen"}
+              </button>
+            ) : (
+              <a href={`https://www.canva.com/search?q=${encodeURIComponent(post.image_prompt || text.slice(0,80))}`}
+                target="_blank" rel="noopener noreferrer"
+                style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 8, border: "1.5px solid var(--border)", background: "var(--bg)", color: "var(--text-secondary)", fontSize: 12, fontWeight: 600, textDecoration: "none" }}>
+                <ExternalLink size={12} strokeWidth={1.5} /> In Canva öffnen
+              </a>
+            )
+        ) : (
+          <button onClick={generateImage} disabled={imgLoading}
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 8, border: "1.5px solid var(--border)", background: "var(--bg)", color: "var(--text-secondary)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+            <RefreshCw size={13} strokeWidth={1.5} /> Bild neu generieren
+          </button>
+        )}
+
+        {/* CapCut */}
         <a href="https://www.capcut.com" target="_blank" rel="noopener noreferrer"
           style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 8, border: "1.5px solid var(--border)", background: "var(--bg)", color: "var(--text-secondary)", fontSize: 12, fontWeight: 600, textDecoration: "none" }}>
           <ExternalLink size={12} strokeWidth={1.5} /> Video in CapCut
         </a>
-        <a href="https://www.canva.com" target="_blank" rel="noopener noreferrer"
-          style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 8, border: "1.5px solid var(--border)", background: "var(--bg)", color: "var(--text-secondary)", fontSize: 12, fontWeight: 600, textDecoration: "none" }}>
-          <ExternalLink size={12} strokeWidth={1.5} /> Design in Canva
-        </a>
       </div>
 
+      {imgErr  && <div style={{ padding: "0 16px 10px", fontSize: 12, color: "#dc2626" }}>{imgErr}</div>}
       {postErr && <div style={{ padding: "0 16px 12px", fontSize: 12, color: "#dc2626" }}>{postErr}</div>}
     </div>
   );
@@ -155,11 +217,12 @@ function PostCard({ post, hasLinkedIn, onDelete, onLinkedInPost }) {
 
 /* ── Haupt-Komponente ──────────────────────────────────────── */
 export default function ContentTab({ clientId, client }) {
-  const [posts,     setPosts]     = useState([]);
-  const [loading,   setLoading]   = useState(true);
-  const [generating, setGenerating] = useState(false);
-  const [genErr,    setGenErr]    = useState("");
+  const [posts,       setPosts]       = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [generating,  setGenerating]  = useState(false);
+  const [genErr,      setGenErr]      = useState("");
   const [hasLinkedIn, setHasLinkedIn] = useState(false);
+  const [hasImageKey, setHasImageKey] = useState(false);
 
   // Group by week
   const byWeek = posts.reduce((acc, p) => {
@@ -172,12 +235,14 @@ export default function ContentTab({ clientId, client }) {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [pr, sr] = await Promise.all([
+    const [pr, sr, ir] = await Promise.all([
       apiFetch(`/api/content/posts?client_id=${clientId}`),
       apiFetch(`/api/social?action=list&client_id=${clientId}`),
+      apiFetch("/api/content/image"),
     ]);
     setPosts(pr.data || []);
     setHasLinkedIn(!!(sr.connections || []).find(c => c.platform === "linkedin"));
+    setHasImageKey(!!ir.hasKey);
     setLoading(false);
   }, [clientId]);
 
@@ -267,6 +332,7 @@ export default function ContentTab({ clientId, client }) {
                   key={post.id}
                   post={post}
                   hasLinkedIn={hasLinkedIn}
+                  hasImageKey={hasImageKey}
                   onDelete={removePost}
                   onLinkedInPost={linkedInPost}
                 />
