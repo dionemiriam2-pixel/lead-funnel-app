@@ -145,19 +145,19 @@ export default function KundeDetailPage() {
   /* ── Daten laden ─────────────────────────────────────── */
   async function load() {
     const [cr, pr, lr, lpRes, scRes] = await Promise.all([
-      apiFetch("/api/clients"),
+      apiFetch("/api/clients?id=" + id),
       apiFetch("/api/products?client_id=" + id),
-      apiFetch("/api/leads"),
+      apiFetch("/api/leads?client_id=" + id),
       apiFetch("/api/landing-pages?client_id=" + id),
       apiFetch("/api/social?action=list&client_id=" + id),
     ]);
     setLandingPages(lpRes.data || []);
     setSocialConnections(scRes.data || []);
-    const c = (cr.data || []).find(x => x.id === id);
-    setClient(c || null);
+    const c = (cr.data || [])[0] || null;
+    setClient(c);
     setForm(c || {});
     setProducts(pr.data || []);
-    setLeads((lr.data || []).filter(l => l.client_id === id));
+    setLeads(lr.data || []);
   }
 
   useEffect(() => { if (id) load(); }, [id]);

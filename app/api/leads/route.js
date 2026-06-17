@@ -5,13 +5,15 @@ export async function GET(req) {
   if (!await verifyAuth(req)) return NextResponse.json({ error: "Unauth" }, { status: 401 });
   const sb = supabaseAdmin();
   const { searchParams } = new URL(req.url);
-  const client = searchParams.get("client");
-  const source = searchParams.get("source");
-  const status = searchParams.get("status");
-  const q      = searchParams.get("q");
+  const client    = searchParams.get("client");
+  const client_id = searchParams.get("client_id");
+  const source    = searchParams.get("source");
+  const status    = searchParams.get("status");
+  const q         = searchParams.get("q");
 
   let query = sb.from("leads").select("*").order("score", { ascending: false }).order("created_at", { ascending: false });
-  if (client) query = query.eq("client", client);
+  if (client_id) query = query.eq("client_id", client_id);
+  else if (client) query = query.eq("client", client);
   if (source) query = query.eq("source", source);
   if (status) query = query.eq("pipeline_status", status);
   if (q)      query = query.ilike("company_name", `%${q}%`);

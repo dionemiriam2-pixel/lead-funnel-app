@@ -4,7 +4,11 @@ import { supabaseAdmin, verifyAuth } from "@/lib/supabase";
 export async function GET(req) {
   if (!await verifyAuth(req)) return NextResponse.json({ error: "Unauth" }, { status: 401 });
   const sb = supabaseAdmin();
-  const { data, error } = await sb.from("clients").select("*").order("created_at");
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
+  let query = sb.from("clients").select("*").order("created_at");
+  if (id) query = query.eq("id", id);
+  const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ data });
 }
