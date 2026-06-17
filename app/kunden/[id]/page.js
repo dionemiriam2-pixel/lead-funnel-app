@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import { apiFetch, authHeaders } from "@/lib/api";
 import CustomerDashboard from "@/components/CustomerDashboard";
+import ContentTab from "@/components/ContentTab";
 import {
   MapPin, Globe, Link2, Mail, Target, MessageSquare,
   AlertCircle, Users, Zap, Map, Search, ChevronRight,
@@ -13,7 +14,7 @@ import {
 } from "lucide-react";
 
 /* ─── Konstanten ─────────────────────────────────────────── */
-const TABS = ["Übersicht", "Dashboard", "Profil", "Marketing", "Landing Pages", "Webseite", "Pipeline", "Leads", "Kanäle"];
+const TABS = ["Übersicht", "Dashboard", "Content", "Profil", "Marketing", "Landing Pages", "Webseite", "Pipeline", "Leads", "Kanäle"];
 
 const TEMPLATE_SOURCES = [
   {
@@ -577,6 +578,11 @@ export default function KundeDetailPage() {
             {/* ═══════════ DASHBOARD ══════════════════════ */}
             {tab === "Dashboard" && (
               <CustomerDashboard clientId={client?.id} />
+            )}
+
+            {/* ═══════════ CONTENT ════════════════════════ */}
+            {tab === "Content" && (
+              <ContentTab clientId={client?.id} client={client} />
             )}
 
             {/* ═══════════ ÜBERSICHT ══════════════════════ */}
