@@ -672,31 +672,6 @@ export default function KundeDetailPage() {
                     ))}
                   </div>
 
-                  {/* Landing-Page-Design */}
-                  <div style={{ marginTop: 20, paddingTop: 18, borderTop: "1px solid var(--border)" }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em", color: "var(--text-tertiary)", marginBottom: 14 }}>
-                      Landing-Page-Design
-                    </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
-                      {[["brand_color","Hauptfarbe"],["accent_color","Akzentfarbe"]].map(([k, l]) => (
-                        <div key={k}>
-                          <label style={S.label}>{l}</label>
-                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <input type="color" value={form[k] || "#111111"} onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))}
-                              style={{ width: 38, height: 38, border: "1px solid var(--border)", borderRadius: 6, cursor: "pointer", padding: 2, background: "var(--surface)" }} />
-                            <input value={form[k] || ""} onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))}
-                              placeholder="#111111" style={{ ...S.input, fontFamily: "monospace", fontSize: 13 }} />
-                          </div>
-                        </div>
-                      ))}
-                      <div>
-                        <label style={S.label}>Logo-URL</label>
-                        <input value={form.logo_url || ""} onChange={e => setForm(f => ({ ...f, logo_url: e.target.value }))}
-                          placeholder="https://..." style={S.input} />
-                      </div>
-                    </div>
-                  </div>
-
                   <div style={{ marginTop: 16, display: "flex", gap: 10, alignItems: "center" }}>
                     <button onClick={() => saveClient()} style={S.btn}>Speichern</button>
                   </div>
@@ -735,6 +710,34 @@ export default function KundeDetailPage() {
             {/* ═══════════ MARKETING ═══════════════════════ */}
             {tab === "Marketing" && (
               <div>
+
+                {/* Branding */}
+                <div style={{ ...S.card, marginBottom: 16 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em", color: "var(--text-tertiary)", marginBottom: 16 }}>
+                    Branding &amp; Design
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+                    {[["brand_color","Hauptfarbe","#111111"],["accent_color","Akzentfarbe","#e8600a"]].map(([k, l, def]) => (
+                      <div key={k}>
+                        <label style={S.label}>{l}</label>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <input type="color" value={form[k] || def} onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))}
+                            style={{ width: 38, height: 38, border: "1px solid var(--border)", borderRadius: 6, cursor: "pointer", padding: 2, background: "var(--surface)" }} />
+                          <input value={form[k] || ""} onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))}
+                            placeholder={def} style={{ ...S.input, fontFamily: "monospace", fontSize: 13 }} />
+                        </div>
+                      </div>
+                    ))}
+                    <div>
+                      <label style={S.label}>Logo-URL</label>
+                      <input value={form.logo_url || ""} onChange={e => setForm(f => ({ ...f, logo_url: e.target.value }))}
+                        placeholder="https://..." style={S.input} />
+                    </div>
+                  </div>
+                  <div style={{ marginTop: 14 }}>
+                    <button onClick={() => saveClient()} style={S.btn}>Speichern</button>
+                  </div>
+                </div>
 
                 {/* Analyse-Ergebnisse */}
                 <div style={{ ...S.card, marginBottom: 16 }}>
