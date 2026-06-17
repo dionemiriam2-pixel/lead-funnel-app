@@ -96,12 +96,14 @@ export default function AppShell({ children }) {
         position: "fixed", top: 0, left: 0, height: "100vh", zIndex: 50,
       }}>
         <div style={{ padding: "22px 16px 18px", borderBottom: "1px solid var(--border)" }}>
-          <div style={{ fontFamily: "var(--font-serif)", fontSize: 20, fontWeight: 500, color: "var(--ink)", letterSpacing: "-.3px" }}>
-            LeadOS<span style={{ color: "var(--accent)", marginLeft: 1 }}>.</span>
-          </div>
-          <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginTop: 3, letterSpacing: ".08em", textTransform: "uppercase" }}>
-            Lead-Plattform
-          </div>
+          <a href="/dashboard" style={{ textDecoration: "none" }}>
+            <div style={{ fontFamily: "var(--font-serif)", fontSize: 20, fontWeight: 500, color: "var(--ink)", letterSpacing: "-.3px" }}>
+              LeadOS<span style={{ color: "var(--accent)", marginLeft: 1 }}>.</span>
+            </div>
+            <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginTop: 3, letterSpacing: ".08em", textTransform: "uppercase" }}>
+              Lead-Plattform
+            </div>
+          </a>
         </div>
 
         <nav style={{ flex: 1, padding: "10px 8px" }}>
