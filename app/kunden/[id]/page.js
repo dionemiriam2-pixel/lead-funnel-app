@@ -206,6 +206,12 @@ export default function KundeDetailPage() {
     if (lpPreview?.id === lpId) setLpPreview(null);
   }
 
+  async function exportLP(lp) {
+    const d = await apiFetch("/api/landingpage/export", { method: "POST", body: JSON.stringify({ slug: lp.slug }) });
+    if (d.ok) alert(`✅ Exportiert nach content/landingpages.js\nSlug: ${lp.slug}\n\nDatei in VS Code öffnen und bearbeiten, dann git push.`);
+    else alert("Export fehlgeschlagen: " + (d.error || "unbekannt") + "\n\nHinweis: Export funktioniert nur lokal (npm run dev), nicht auf Vercel.");
+  }
+
   async function togglePublish(lp) {
     const newStatus = lp.status === "published" ? "draft" : "published";
     const d = await apiFetch("/api/landing-pages", { method: "PATCH", body: JSON.stringify({ id: lp.id, status: newStatus }) });
@@ -935,6 +941,11 @@ export default function KundeDetailPage() {
                           style={{ ...S.btnOutline, fontSize: 12, cursor: "pointer",
                             ...(lpPreview.status === "published" ? { color: "#6b7280", borderColor: "#6b7280" } : { color: "#e8600a", borderColor: "#e8600a" }) }}>
                           {lpPreview.status === "published" ? "Zurück zu Entwurf" : "Veröffentlichen →"}
+                        </button>
+                        <button onClick={() => exportLP(lpPreview)}
+                          style={{ ...S.btnOutline, fontSize: 12, cursor: "pointer" }}
+                          title="Aktuellen Stand in content/landingpages.js schreiben (nur lokal)">
+                          ↓ VS Code
                         </button>
                         <a href={"/lp/" + lpPreview.slug} target="_blank"
                           style={{ ...S.btnOutline, display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none", fontSize: 12 }}>
