@@ -40,14 +40,11 @@ function ColorField({ label, value, onChange, placeholder = "#111111" }) {
 }
 
 /* ── Abschnitts-Kopf ───────────────────────────────────────── */
-function SectionHeader({ icon, title, sub }) {
+function SectionHeader({ title, sub }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
-      <span style={{ fontSize: 20 }}>{icon}</span>
-      <div>
-        <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)", lineHeight: 1 }}>{title}</div>
-        {sub && <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 2 }}>{sub}</div>}
-      </div>
+    <div style={{ marginBottom: 18 }}>
+      <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)", lineHeight: 1 }}>{title}</div>
+      {sub && <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 3 }}>{sub}</div>}
     </div>
   );
 }
@@ -122,7 +119,7 @@ export default function MarkeCITab({
       <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "16px 20px", marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
         <div>
           <div style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)", marginBottom: 3 }}>
-            ✦ Aus Website-Analyse vorbefüllen
+            Aus Website-Analyse vorbefüllen
           </div>
           <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>
             KI liest deine Website-Daten und schlägt Farben, Tonalität, USP, Mission und Texte vor — du kannst alles anpassen.
@@ -135,13 +132,13 @@ export default function MarkeCITab({
         </div>
         <button onClick={prefillFromAnalysis} disabled={prefilling}
           style={{ padding: "9px 20px", background: prefilling ? "var(--border)" : "var(--ink)", color: "#fff", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: prefilling ? "not-allowed" : "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>
-          {prefilling ? "⏳ Analysiert…" : "✦ Jetzt vorbefüllen"}
+          {prefilling ? "Analysiert…" : "Jetzt vorbefüllen"}
         </button>
       </div>
 
       {/* ══════════ BLOCK 1: VISUELL ══════════════════════════ */}
       <div style={S.card}>
-        <SectionHeader icon="🎨" title="Visuell" sub="Farben, Logo, Schrift — Basis aller Generatoren" />
+        <SectionHeader title="Visuell" sub="Farben, Logo, Schrift — Basis aller Generatoren" />
 
         {/* Farben */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 18 }}>
@@ -220,7 +217,7 @@ export default function MarkeCITab({
 
       {/* ══════════ BLOCK 2: SPRACHE / TON ════════════════════ */}
       <div style={S.card}>
-        <SectionHeader icon="💬" title="Sprache & Ton" sub="Wie das Unternehmen kommuniziert — für Content und Texte" />
+        <SectionHeader title="Sprache & Ton" sub="Wie das Unternehmen kommuniziert — für Content und Texte" />
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
           {/* Anrede */}
@@ -291,7 +288,7 @@ export default function MarkeCITab({
 
       {/* ══════════ BLOCK 3: POSITIONIERUNG ═══════════════════ */}
       <div style={S.card}>
-        <SectionHeader icon="🎯" title="Positionierung" sub="USP, Mission, Werte, Zielgruppe, Wettbewerb" />
+        <SectionHeader title="Positionierung" sub="USP, Mission, Werte, Zielgruppe, Wettbewerb" />
 
         {/* Mission */}
         <div style={{ marginBottom: 16 }}>
@@ -374,7 +371,7 @@ export default function MarkeCITab({
 
       {/* ══════════ BLOCK 4: INHALTE ══════════════════════════ */}
       <div style={S.card}>
-        <SectionHeader icon="📝" title="Inhalte" sub="Über-uns, Angebot, Garantie, Testimonials, Referenzbilder" />
+        <SectionHeader title="Inhalte" sub="Über-uns, Angebot, Garantie, Testimonials, Referenzbilder" />
 
         {/* Über uns */}
         <div style={{ marginBottom: 20 }}>
