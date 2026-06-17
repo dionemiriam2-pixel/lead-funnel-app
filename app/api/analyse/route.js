@@ -206,6 +206,35 @@ function extractSocialLinks(html) {
   return links;
 }
 
+/* ─── Farben aus HTML extrahieren ───────────────────────── */
+function extractColors(html) {
+  const result = {};
+
+  // 1. <meta name="theme-color"> → Hauptfarbe
+  const theme = (
+    html.match(/<meta[^>]+name=["']theme-color["'][^>]+content=["']([^"']+)/i)?.[1] ||
+    html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']theme-color["']/i)?.[1]
+  )?.trim();
+  if (theme && /^#[0-9a-f]{3,8}$/i.test(theme)) result.brand_color = theme.toLowerCase();
+
+  // 2. CSS-Variablen aus <style>-Blöcken
+  const css = [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)].map(m => m[1]).join("\n");
+  if (css) {
+    // Hauptfarbe
+    const primaryRe = /--(?:primary|brand|main|color-primary|primary-color|brand-color|color-brand)\s*:\s*(#[0-9a-f]{3,8})/gi;
+    if (!result.brand_color) {
+      const m = primaryRe.exec(css);
+      if (m) result.brand_color = m[1].toLowerCase();
+    }
+    // Akzentfarbe
+    const accentRe = /--(?:accent|secondary|highlight|color-accent|accent-color|secondary-color)\s*:\s*(#[0-9a-f]{3,8})/gi;
+    const a = accentRe.exec(css);
+    if (a) result.accent_color = a[1].toLowerCase();
+  }
+
+  return result;
+}
+
 /* ─── Website-Analyse ────────────────────────────────────── */
 async function analyseWebsite(client_id, sb) {
   const { data: client } = await sb.from("clients").select("*").eq("id", client_id).single();
@@ -248,10 +277,11 @@ async function analyseWebsite(client_id, sb) {
     seoCheck.robots.wert      = "robots.txt vorhanden";
   }
 
-  // 3. Sichtbaren Text + Links + Kontaktdaten extrahieren
+  // 3. Sichtbaren Text + Links + Kontaktdaten + Farben extrahieren
   const text         = extractText(html);
   const socialLinks  = extractSocialLinks(html);
   const regexContact = extractContact(text);
+  const colors       = extractColors(html);
 
   // 4. KI-Analyse via Anthropic Haiku
   const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
@@ -328,6 +358,9 @@ Text: ${text}`,
     ...(regexContact.mobile ? { mobile:  regexContact.mobile } : {}),
     ...(regexContact.email  ? { email:   regexContact.email  } : {}),
     contact: aiResult.contact || null,  // immer aktualisieren (löscht falschen alten Wert)
+    // Farben aus Website (immer aktualisieren wenn gefunden)
+    ...(colors.brand_color  ? { brand_color:  colors.brand_color  } : {}),
+    ...(colors.accent_color ? { accent_color: colors.accent_color } : {}),
     // Social-Links nur überschreiben wenn neu gefunden
     ...(socialLinks.instagram && !client.instagram ? { instagram: socialLinks.instagram } : {}),
     ...(socialLinks.facebook  && !client.facebook  ? { facebook:  socialLinks.facebook  } : {}),
