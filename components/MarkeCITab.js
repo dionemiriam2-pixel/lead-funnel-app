@@ -1,4 +1,6 @@
 "use client";
+import { useState } from "react";
+import { apiFetch } from "@/lib/api";
 
 /* ── Marke / CI – Markenbriefing ──────────────────────────────
    Props: form, setForm, saveClient, testimonials, addTestimonial,
@@ -52,13 +54,56 @@ function SectionHeader({ icon, title, sub }) {
 
 /* ═══════════════════════════════════════════════════════════════ */
 export default function MarkeCITab({
-  form, setForm, saveClient,
+  form, setForm, saveClient, clientId,
   testimonials, addTestimonial, setTestimonial, removeTestimonial,
   refImages, addRefImage, setRefImage, removeRefImage,
 }) {
+  const [prefilling, setPrefilling] = useState(false);
+  const [prefillMsg, setPrefillMsg] = useState("");
+
   /* Hilfsfunktion: CI-jsonb-Feld setzen */
   const ci    = form.ci || {};
   const setCI = (key, val) => setForm(f => ({ ...f, ci: { ...(f.ci || {}), [key]: val } }));
+
+  /* ── KI-Vorbefüllen ────────────────────────────────────────── */
+  async function prefillFromAnalysis() {
+    if (!clientId) return;
+    setPrefilling(true);
+    setPrefillMsg("");
+    try {
+      const res = await apiFetch("/api/ci/prefill", {
+        method: "POST",
+        body: JSON.stringify({ client_id: clientId }),
+      });
+      if (res.error) { setPrefillMsg("❌ " + res.error); return; }
+      const s = res.suggestions;
+      setForm(f => ({
+        ...f,
+        brand_color:  s.brand_color  || f.brand_color,
+        accent_color: s.accent_color || f.accent_color,
+        ci: {
+          ...(f.ci || {}),
+          tonalitaet:    s.tonalitaet    || f.ci?.tonalitaet    || "",
+          anrede:        s.anrede        || f.ci?.anrede        || "Sie",
+          claim:         s.claim         || f.ci?.claim         || "",
+          sprache_dos:   s.sprache_dos   || f.ci?.sprache_dos   || "",
+          sprache_donts: s.sprache_donts || f.ci?.sprache_donts || "",
+          mission:       s.mission       || f.ci?.mission       || "",
+          werte:         s.werte         || f.ci?.werte         || "",
+          kernbotschaften: s.kernbotschaften || f.ci?.kernbotschaften || [],
+          persona:       s.persona       || f.ci?.persona       || "",
+          wettbewerb:    s.wettbewerb    || f.ci?.wettbewerb    || "",
+          bildstil:      s.bildstil      || f.ci?.bildstil      || "",
+          ueber_uns:     s.ueber_uns     || f.ci?.ueber_uns     || "",
+        },
+      }));
+      setPrefillMsg("✓ Vorschläge geladen — bitte prüfen und anpassen, dann Speichern klicken.");
+    } catch (e) {
+      setPrefillMsg("❌ Netzwerkfehler — bitte nochmal versuchen.");
+    } finally {
+      setPrefilling(false);
+    }
+  }
 
   /* Kernbotschaften (Array in ci.kernbotschaften) */
   const kernbotschaften = Array.isArray(ci.kernbotschaften) ? ci.kernbotschaften : [];
@@ -72,6 +117,27 @@ export default function MarkeCITab({
   /* ── Render ─────────────────────────────────────────────── */
   return (
     <div>
+
+      {/* ══════════ KI-VORBEFÜLLEN ════════════════════════════ */}
+      <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "16px 20px", marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+        <div>
+          <div style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)", marginBottom: 3 }}>
+            ✦ Aus Website-Analyse vorbefüllen
+          </div>
+          <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>
+            KI liest deine Website-Daten und schlägt Farben, Tonalität, USP, Mission und Texte vor — du kannst alles anpassen.
+          </div>
+          {prefillMsg && (
+            <div style={{ marginTop: 8, fontSize: 12, fontWeight: 600, color: prefillMsg.startsWith("✓") ? "#15803d" : "var(--accent)" }}>
+              {prefillMsg}
+            </div>
+          )}
+        </div>
+        <button onClick={prefillFromAnalysis} disabled={prefilling}
+          style={{ padding: "9px 20px", background: prefilling ? "var(--border)" : "var(--ink)", color: "#fff", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: prefilling ? "not-allowed" : "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>
+          {prefilling ? "⏳ Analysiert…" : "✦ Jetzt vorbefüllen"}
+        </button>
+      </div>
 
       {/* ══════════ BLOCK 1: VISUELL ══════════════════════════ */}
       <div style={S.card}>

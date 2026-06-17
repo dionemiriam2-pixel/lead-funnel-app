@@ -4,10 +4,6 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import { apiFetch } from "@/lib/api";
-import {
-  Users, Zap, TrendingUp, Globe, Plus, ArrowRight,
-  MessageCircle, Mail, Link2, Camera, Phone,
-} from "lucide-react";
 
 /* ── Kanal-Badge-Farben ────────────────────────────────────── */
 const SRC = {
@@ -94,10 +90,10 @@ export default function DashboardPage() {
         {/* ── KPI-Streifen ───────────────────────────────────── */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
           {[
-            { icon: <Users size={16} strokeWidth={1.5} />,      label: "Kunden",         val: clients.length,       sub: "aktiv",         hi: false },
-            { icon: <Zap size={16} strokeWidth={1.5} />,        label: "Neu heute",      val: newToday.length,      sub: "letzte 24h",    hi: newToday.length > 0 },
-            { icon: <TrendingUp size={16} strokeWidth={1.5} />, label: "Diese Woche",    val: thisWeek.length,      sub: "neue Leads",    hi: false },
-            { icon: <Globe size={16} strokeWidth={1.5} />,      label: "Hot Leads",      val: hotLeads.length,      sub: "Score ≥ 7",     hi: hotLeads.length > 0 },
+            { icon: "👥", label: "Kunden",      val: clients.length,  sub: "aktiv",      hi: false },
+            { icon: "⚡", label: "Neu heute",   val: newToday.length, sub: "letzte 24h", hi: newToday.length > 0 },
+            { icon: "↗",  label: "Diese Woche", val: thisWeek.length, sub: "neue Leads", hi: false },
+            { icon: "🔥", label: "Hot Leads",   val: hotLeads.length, sub: "Score ≥ 7",  hi: hotLeads.length > 0 },
           ].map(({ icon, label, val, sub, hi }) => (
             <div key={label} style={{ ...S.card, padding: "18px 20px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
@@ -198,10 +194,10 @@ export default function DashboardPage() {
                 <span style={S.label}>Schnellaktionen</span>
               </div>
               {[
-                { label: "Alle Kunden",        sub: `${clients.length} Kunden`,     icon: <Users size={14} strokeWidth={1.5} />,         href: "/kunden" },
-                { label: "Outreach starten",   sub: "E-Mail / LinkedIn",             icon: <Mail size={14} strokeWidth={1.5} />,           href: "/outreach" },
-                { label: "Toolbox",            sub: "Bot & Scraping",                icon: <Zap size={14} strokeWidth={1.5} />,            href: "/toolbox" },
-                { label: "Analytics",          sub: "Auswertungen",                  icon: <TrendingUp size={14} strokeWidth={1.5} />,     href: "/analytics" },
+                { label: "Alle Kunden",      sub: `${clients.length} Kunden`, icon: "👥", href: "/kunden" },
+                { label: "Outreach starten", sub: "E-Mail / LinkedIn",        icon: "✉",  href: "/outreach" },
+                { label: "Toolbox",          sub: "Bot & Scraping",           icon: "⚡", href: "/toolbox" },
+                { label: "Analytics",        sub: "Auswertungen",             icon: "↗",  href: "/analytics" },
               ].map(({ label, sub, icon, href }) => (
                 <button key={label} onClick={() => router.push(href)}
                   style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "11px 18px", border: "none", borderTop: "1px solid var(--border)", background: "transparent", cursor: "pointer", textAlign: "left" }}
@@ -212,7 +208,7 @@ export default function DashboardPage() {
                     <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)", display: "block" }}>{label}</span>
                     <span style={{ fontSize: 11, color: "var(--text-tertiary)" }}>{sub}</span>
                   </span>
-                  <ArrowRight size={13} strokeWidth={1.5} color="var(--text-tertiary)" />
+                  <span style={{ color: "var(--text-tertiary)" }}>›</span>
                 </button>
               ))}
             </div>
@@ -223,7 +219,7 @@ export default function DashboardPage() {
                 <span style={S.label}>Kunden</span>
                 <button onClick={() => router.push("/kunden")}
                   style={{ fontSize: 11, color: "var(--text-tertiary)", background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
-                  Alle <ArrowRight size={11} strokeWidth={1.5} />
+                  Alle →
                 </button>
               </div>
               {clients.length === 0 ? (
@@ -244,13 +240,13 @@ export default function DashboardPage() {
                         {c.industry ? ` · ${c.industry}` : ""}
                       </span>
                     </span>
-                    <ArrowRight size={13} strokeWidth={1.5} color="var(--text-tertiary)" />
+                    <span style={{ color: "var(--text-tertiary)" }}>›</span>
                   </button>
                 ))
               )}
               <button onClick={() => router.push("/kunden")}
                 style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "12px 18px", border: "none", borderTop: "1px solid var(--border)", background: "transparent", cursor: "pointer", color: "var(--accent)", fontSize: 13, fontWeight: 600 }}>
-                <Plus size={14} strokeWidth={2} /> Neuen Kunden anlegen
+                + Neuen Kunden anlegen
               </button>
             </div>
 

@@ -1,13 +1,11 @@
 "use client";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { apiFetch } from "@/lib/api";
-import { Copy, Check, Trash2, Linkedin, Instagram, Facebook, Send, ExternalLink, Sparkles, RefreshCw, Image, Download } from "lucide-react";
-
 /* ── Plattform-Konfig ──────────────────────────────────────── */
 const PLAT = {
-  linkedin:  { label: "LinkedIn",  bg: "#0a66c2", icon: <Linkedin  size={13} strokeWidth={2} /> },
-  instagram: { label: "Instagram", bg: "#e1306c", icon: <Instagram size={13} strokeWidth={2} /> },
-  facebook:  { label: "Facebook",  bg: "#1877f2", icon: <Facebook  size={13} strokeWidth={2} /> },
+  linkedin:  { label: "LinkedIn",  bg: "#0a66c2", icon: "in" },
+  instagram: { label: "Instagram", bg: "#e1306c", icon: "📸" },
+  facebook:  { label: "Facebook",  bg: "#1877f2", icon: "f"  },
 };
 
 function PlatBadge({ platform }) {
@@ -104,7 +102,7 @@ function PostCard({ post, hasLinkedIn, hasImageKey, onDelete, onLinkedInPost }) 
           <span style={{ fontSize: 11, fontWeight: 600, color: "#16a34a", marginLeft: "auto" }}>✓ Gepostet</span>
         )}
         <button onClick={doDelete} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "var(--text-tertiary)", padding: 4 }}>
-          <Trash2 size={13} strokeWidth={1.5} />
+          ✕
         </button>
       </div>
 
@@ -149,11 +147,11 @@ function PostCard({ post, hasLinkedIn, hasImageKey, onDelete, onLinkedInPost }) 
           <div style={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 6 }}>
             <a href={imageUrl} download target="_blank" rel="noopener noreferrer"
               style={{ padding: "5px 8px", borderRadius: 6, background: "rgba(0,0,0,.55)", color: "#fff", display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, textDecoration: "none" }}>
-              <Download size={12} strokeWidth={2} /> Speichern
+              ↓ Speichern
             </a>
             <button onClick={generateImage} disabled={imgLoading}
               style={{ padding: "5px 8px", borderRadius: 6, background: "rgba(0,0,0,.55)", color: "#fff", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600 }}>
-              <RefreshCw size={12} strokeWidth={2} style={imgLoading ? { animation: "spin 1s linear infinite" } : {}} /> Neu
+              {imgLoading ? "↺" : "↺"} Neu
             </button>
           </div>
         </div>
@@ -164,7 +162,7 @@ function PostCard({ post, hasLinkedIn, hasImageKey, onDelete, onLinkedInPost }) 
         {/* Kopieren */}
         <button onClick={copy}
           style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 8, border: "1.5px solid var(--border)", background: "var(--bg)", color: "var(--ink)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
-          {copied ? <Check size={13} strokeWidth={2} color="#16a34a" /> : <Copy size={13} strokeWidth={1.5} />}
+          {copied ? "✓" : "⎘"}
           {copied ? "Kopiert!" : "Kopieren"}
         </button>
 
@@ -172,7 +170,7 @@ function PostCard({ post, hasLinkedIn, hasImageKey, onDelete, onLinkedInPost }) 
         {post.platform === "linkedin" && (
           <button onClick={doLinkedInPost} disabled={posting || postOk}
             style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 8, border: "none", background: postOk ? "#dcfce7" : "#0a66c2", color: postOk ? "#16a34a" : "#fff", fontSize: 12, fontWeight: 600, cursor: posting || postOk ? "default" : "pointer", opacity: posting ? 0.7 : 1 }}>
-            <Send size={13} strokeWidth={1.5} />
+            →
             {postOk ? "Gepostet ✓" : posting ? "Wird gepostet…" : "Direkt posten"}
           </button>
         )}
@@ -184,28 +182,28 @@ function PostCard({ post, hasLinkedIn, hasImageKey, onDelete, onLinkedInPost }) 
               <button onClick={generateImage} disabled={imgLoading}
                 style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 8, border: "1.5px solid var(--border)", background: "var(--bg)", color: "var(--ink)", fontSize: 12, fontWeight: 600, cursor: imgLoading ? "not-allowed" : "pointer", opacity: imgLoading ? 0.6 : 1 }}>
                 {imgLoading
-                  ? <RefreshCw size={13} strokeWidth={1.5} style={{ animation: "spin 1s linear infinite" }} />
-                  : <Image size={13} strokeWidth={1.5} />}
+                  ? "↺"
+                  : "🖼"}
                 {imgLoading ? "Generiert…" : "Bild erzeugen"}
               </button>
             ) : (
               <a href={`https://www.canva.com/search?q=${encodeURIComponent(post.image_prompt || text.slice(0,80))}`}
                 target="_blank" rel="noopener noreferrer"
                 style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 8, border: "1.5px solid var(--border)", background: "var(--bg)", color: "var(--text-secondary)", fontSize: 12, fontWeight: 600, textDecoration: "none" }}>
-                <ExternalLink size={12} strokeWidth={1.5} /> In Canva öffnen
+                ↗ In Canva öffnen
               </a>
             )
         ) : (
           <button onClick={generateImage} disabled={imgLoading}
             style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 8, border: "1.5px solid var(--border)", background: "var(--bg)", color: "var(--text-secondary)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
-            <RefreshCw size={13} strokeWidth={1.5} /> Bild neu generieren
+            ↺ Bild neu generieren
           </button>
         )}
 
         {/* CapCut */}
         <a href="https://www.capcut.com" target="_blank" rel="noopener noreferrer"
           style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 8, border: "1.5px solid var(--border)", background: "var(--bg)", color: "var(--text-secondary)", fontSize: 12, fontWeight: 600, textDecoration: "none" }}>
-          <ExternalLink size={12} strokeWidth={1.5} /> Video in CapCut
+          ↗ Video in CapCut
         </a>
       </div>
 
@@ -289,8 +287,8 @@ export default function ContentTab({ clientId, client }) {
         <button onClick={generate} disabled={generating}
           style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 20px", borderRadius: 10, border: "none", background: "var(--ink)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: generating ? "not-allowed" : "pointer", opacity: generating ? 0.7 : 1, flexShrink: 0 }}>
           {generating
-            ? <><RefreshCw size={14} strokeWidth={2} style={{ animation: "spin 1s linear infinite" }} /> Generiert…</>
-            : <><Sparkles size={14} strokeWidth={1.5} /> Wochen-Content erstellen</>}
+            ? "↺ Generiert…"
+            : "✦ Wochen-Content erstellen"}
         </button>
       </div>
 
@@ -314,7 +312,7 @@ export default function ContentTab({ clientId, client }) {
           </div>
           <button onClick={generate} disabled={generating}
             style={{ padding: "10px 22px", borderRadius: 10, border: "none", background: "var(--ink)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-            <Sparkles size={13} strokeWidth={1.5} style={{ marginRight: 6, verticalAlign: "middle" }} />
+            <span style={{ marginRight: 6 }}>✦</span>
             Jetzt generieren
           </button>
         </div>

@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import { apiFetch, authHeaders } from "@/lib/api";
-import { Trash2, MapPin, Zap } from "lucide-react";
 
 const inp = { width: "100%", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: 14, color: "var(--ink)", background: "var(--surface)", boxSizing: "border-box", fontFamily: "inherit" };
 const lbl = { fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", display: "block", marginBottom: 4 };
@@ -40,14 +39,14 @@ function ClientCard({ c, onDelete, onClick }) {
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {analysed && (
             <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, color: "#2E6FD6", background: "#2E6FD610", padding: "2px 8px", borderRadius: 99 }}>
-              <Zap size={10} strokeWidth={2} /> KI
+              ⚡ KI
             </span>
           )}
           <button onClick={e => { e.stopPropagation(); onDelete(c.id); }}
             style={{ background: "none", border: "none", color: "var(--text-tertiary)", cursor: "pointer", display: "flex", padding: 2, borderRadius: 6 }}
             onMouseEnter={e => e.currentTarget.style.color = "var(--accent)"}
             onMouseLeave={e => e.currentTarget.style.color = "var(--text-tertiary)"}>
-            <Trash2 size={14} strokeWidth={1.5} />
+            ✕
           </button>
         </div>
       </div>
@@ -59,7 +58,7 @@ function ClientCard({ c, onDelete, onClick }) {
       <div style={{ display: "flex", flexDirection: "column", gap: 3, marginBottom: 10 }}>
         {c.region && (
           <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: "var(--text-secondary)" }}>
-            <MapPin size={11} strokeWidth={1.5} />
+            📍
             {c.region}
           </div>
         )}

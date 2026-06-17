@@ -3,19 +3,14 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { checkSession, logout, TOKEN_KEY } from "@/lib/auth";
 import { supabaseBrowser } from "@/lib/supabase";
-import {
-  LayoutDashboard, Building2, Mail, LayoutGrid,
-  TrendingUp, BarChart2, Upload, Play, LogOut,
-} from "lucide-react";
-
 const NAV = [
-  { href: "/dashboard", label: "Leads",     Icon: LayoutDashboard },
-  { href: "/kunden",    label: "Kunden",    Icon: Building2 },
-  { href: "/outreach",  label: "Outreach",  Icon: Mail },
-  { href: "/toolbox",   label: "Toolbox",   Icon: LayoutGrid },
-  { href: "/tracking",  label: "Tracking",  Icon: TrendingUp },
-  { href: "/analytics", label: "Analytics", Icon: BarChart2 },
-  { href: "/import",    label: "Import",    Icon: Upload },
+  { href: "/dashboard", label: "Leads"     },
+  { href: "/kunden",    label: "Kunden"    },
+  { href: "/outreach",  label: "Outreach"  },
+  { href: "/toolbox",   label: "Toolbox"   },
+  { href: "/tracking",  label: "Tracking"  },
+  { href: "/analytics", label: "Analytics" },
+  { href: "/import",    label: "Import"    },
 ];
 
 function BotButton() {
@@ -49,8 +44,7 @@ function BotButton() {
         fontSize: 13, cursor: status === "running" ? "default" : "pointer",
         textAlign: "left", transition: "border-color .2s, color .2s", opacity: status === "running" ? .5 : 1,
       }}>
-      <Play size={15} strokeWidth={1.5} />
-      {label}
+      ▶ {label}
     </button>
   );
 }
@@ -107,18 +101,17 @@ export default function AppShell({ children }) {
         </div>
 
         <nav style={{ flex: 1, padding: "10px 8px" }}>
-          {NAV.map(({ href, label, Icon }) => {
+          {NAV.map(({ href, label }) => {
             const active = path.startsWith(href);
             return (
               <a key={href} href={href} style={{
-                display: "flex", alignItems: "center", gap: 9,
-                padding: "8px 10px", borderRadius: 7, marginBottom: 2,
+                display: "flex", alignItems: "center",
+                padding: "8px 12px", borderRadius: 7, marginBottom: 2,
                 background: active ? "var(--ink)" : "transparent",
                 color: active ? "#fff" : "var(--text-secondary)",
                 textDecoration: "none", fontSize: 13, fontWeight: active ? 500 : 400,
                 transition: "background .12s, color .12s",
               }}>
-                <Icon size={16} strokeWidth={1.5} />
                 {label}
               </a>
             );
@@ -133,8 +126,7 @@ export default function AppShell({ children }) {
               padding: "7px 10px", border: "none", borderRadius: 7, background: "transparent",
               color: "var(--text-secondary)", fontSize: 13, cursor: "pointer", textAlign: "left",
             }}>
-            <LogOut size={15} strokeWidth={1.5} />
-            Abmelden
+            → Abmelden
           </button>
         </div>
       </aside>

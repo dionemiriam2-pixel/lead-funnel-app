@@ -7,12 +7,6 @@ import { apiFetch, authHeaders } from "@/lib/api";
 import CustomerDashboard from "@/components/CustomerDashboard";
 import ContentTab from "@/components/ContentTab";
 import MarkeCITab from "@/components/MarkeCITab";
-import {
-  MapPin, Globe, Link2, Mail, Target, MessageSquare,
-  AlertCircle, Users, Zap, Map, Search, ChevronRight,
-  Trash2, ExternalLink, Plus, CheckCircle2, Circle,
-  MessageCircle, Camera,
-} from "lucide-react";
 
 /* ─── Konstanten ─────────────────────────────────────────── */
 const TABS = ["Übersicht", "Dashboard", "Profil", "Marke / CI", "Content", "Marketing", "Landing Pages", "Webseite", "Pipeline", "Leads", "Kanäle"];
@@ -60,14 +54,14 @@ const PIPELINE = [
 ];
 
 const KANALE = [
-  { key: "google-maps",  Icon: MapPin,        label: "Google Maps",      desc: "Firmen-Scraping & Leads",    soon: false },
-  { key: "landing-page", Icon: Globe,         label: "Landing Page",     desc: "Inbound Lead-Erfassung",     soon: false },
-  { key: "linkedin",     Icon: Link2,         label: "LinkedIn",         desc: "Verbinden & Beiträge posten", soon: false },
-  { key: "email",        Icon: Mail,          label: "E-Mail",           desc: "Mails senden & empfangen",   soon: false },
-  { key: "messenger",    Icon: MessageCircle, label: "Messenger",        desc: "Facebook Messenger DMs",     soon: false },
-  { key: "instagram",   Icon: Camera,        label: "Instagram DM",     desc: "Instagram Direktnachrichten", soon: false },
-  { key: "ads",          Icon: Target,        label: "Werbeanzeigen",    desc: "Meta / Google Ads",          soon: true  },
-  { key: "chat",         Icon: MessageSquare, label: "ManyChat / Chat",  desc: "Chat-Automatisierung",       soon: true  },
+  { key: "google-maps",  emoji: "📍", label: "Google Maps",      desc: "Firmen-Scraping & Leads",     soon: false },
+  { key: "landing-page", emoji: "🌐", label: "Landing Page",     desc: "Inbound Lead-Erfassung",      soon: false },
+  { key: "linkedin",     emoji: "🔗", label: "LinkedIn",         desc: "Verbinden & Beiträge posten", soon: false },
+  { key: "email",        emoji: "✉",  label: "E-Mail",           desc: "Mails senden & empfangen",    soon: false },
+  { key: "messenger",    emoji: "💬", label: "Messenger",        desc: "Facebook Messenger DMs",      soon: false },
+  { key: "instagram",    emoji: "📸", label: "Instagram DM",     desc: "Instagram Direktnachrichten", soon: false },
+  { key: "ads",          emoji: "🎯", label: "Werbeanzeigen",    desc: "Meta / Google Ads",           soon: true  },
+  { key: "chat",         emoji: "💬", label: "ManyChat / Chat",  desc: "Chat-Automatisierung",        soon: true  },
 ];
 
 const SOURCES_DEF = [
@@ -440,7 +434,7 @@ export default function KundeDetailPage() {
         {/* Breadcrumb */}
         <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 18, display: "flex", alignItems: "center", gap: 6 }}>
           <a href="/kunden" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>Kunden</a>
-          <ChevronRight size={13} strokeWidth={1.5} />
+          <span style={{ fontSize: 13, color: "var(--text-tertiary)" }}>›</span>
           <span style={{ color: "var(--ink)", fontWeight: 500 }}>{client.name}</span>
         </div>
 
@@ -476,19 +470,19 @@ export default function KundeDetailPage() {
               <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 16 }}>
                 {client.email && (
                   <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12, color: "var(--text-secondary)", overflow: "hidden" }}>
-                    <Mail size={13} strokeWidth={1.5} color="var(--text-tertiary)" style={{ flexShrink: 0 }} />
+                    <span style={{ flexShrink: 0, color: "var(--text-tertiary)", fontSize: 12 }}>✉</span>
                     <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{client.email}</span>
                   </div>
                 )}
                 {client.city && (
                   <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12, color: "var(--text-secondary)" }}>
-                    <MapPin size={13} strokeWidth={1.5} color="var(--text-tertiary)" style={{ flexShrink: 0 }} />
+                    <span style={{ flexShrink: 0, color: "var(--text-tertiary)", fontSize: 12 }}>📍</span>
                     {client.city}
                   </div>
                 )}
                 {client.industry && (
                   <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12, color: "var(--text-secondary)" }}>
-                    <Target size={13} strokeWidth={1.5} color="var(--text-tertiary)" style={{ flexShrink: 0 }} />
+                    <span style={{ flexShrink: 0, color: "var(--text-tertiary)", fontSize: 12 }}>🎯</span>
                     {client.industry}
                   </div>
                 )}
@@ -497,8 +491,7 @@ export default function KundeDetailPage() {
               {/* Website-Eingabe + Analysieren */}
               <div style={{ marginBottom: 16 }}>
                 <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 6, display: "flex", alignItems: "center", gap: 5 }}>
-                  <Globe size={11} strokeWidth={2} />
-                  Website
+                  🌐 Website
                 </div>
                 <input
                   value={form.website || ""}
@@ -533,7 +526,7 @@ export default function KundeDetailPage() {
                 {!quickProdOpen ? (
                   <button onClick={() => setQuickProdOpen(true)}
                     style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "7px 0", border: "1px dashed var(--border)", borderRadius: 8, background: "transparent", color: "var(--text-secondary)", fontSize: 12, cursor: "pointer" }}>
-                    <Plus size={13} strokeWidth={2} /> Leistung hinzufügen
+                    + Leistung hinzufügen
                   </button>
                 ) : (
                   <div>
@@ -599,6 +592,7 @@ export default function KundeDetailPage() {
                 form={form}
                 setForm={setForm}
                 saveClient={saveClient}
+                clientId={id}
                 testimonials={testimonials}
                 addTestimonial={addTestimonial}
                 setTestimonial={setTestimonial}
@@ -674,8 +668,8 @@ export default function KundeDetailPage() {
                       <div key={label} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "14px 0", borderBottom: i < arr.length - 1 ? "1px solid var(--border)" : "none" }}>
                         <div style={{ marginTop: 1, flexShrink: 0 }}>
                           {done
-                            ? <CheckCircle2 size={18} strokeWidth={1.5} color="#15803d" />
-                            : <Circle size={18} strokeWidth={1.5} color="var(--border)" />
+                            ? <span style={{ fontSize: 16, color: "#15803d" }}>✓</span>
+                            : <span style={{ fontSize: 16, color: "var(--border)" }}>○</span>
                           }
                         </div>
                         <div style={{ flex: 1 }}>
@@ -699,7 +693,7 @@ export default function KundeDetailPage() {
                 {unprocessed.length > 0 && (
                   <div style={{ ...S.card, marginTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--bg)" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 7, color: "var(--accent)", fontSize: 13, fontWeight: 500 }}>
-                      <AlertCircle size={15} strokeWidth={1.5} />
+                      <span>⚠</span>
                       {unprocessed.length} Lead{unprocessed.length !== 1 ? "s" : ""} warten auf Bearbeitung
                     </div>
                     <button onClick={() => { setTab("Leads"); setStatusFilter("kalt"); }}
@@ -1178,7 +1172,7 @@ export default function KundeDetailPage() {
                     <div key={p.id} style={{ border: "1px solid var(--border)", borderRadius: 10, padding: "14px 16px", marginBottom: 10 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
                         <div style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)" }}>{p.name}</div>
-                        <button onClick={() => delProduct(p.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-tertiary)" }}><Trash2 size={14} strokeWidth={1.5} /></button>
+                        <button onClick={() => delProduct(p.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-tertiary)" }}>✕</button>
                       </div>
                       {p.description && <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 8 }}>{p.description}</div>}
                       {p.target_groups && <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 6 }}>Zielgruppen: {p.target_groups}</div>}
@@ -1251,11 +1245,11 @@ export default function KundeDetailPage() {
                     </button>
                     <a href={"/lp/" + lp.slug} target="_blank" onClick={e => e.stopPropagation()}
                       style={{ color: "var(--text-tertiary)", display: "flex" }}>
-                      <ExternalLink size={14} strokeWidth={1.5} />
+                      ↗
                     </a>
                     <button onClick={e => { e.stopPropagation(); deleteLP(lp.id); }}
                       style={{ background: "none", border: "none", color: "var(--text-tertiary)", cursor: "pointer", display: "flex" }}>
-                      <Trash2 size={14} strokeWidth={1.5} />
+                      ✕
                     </button>
                   </div>
                 ))}
@@ -1279,7 +1273,7 @@ export default function KundeDetailPage() {
                         </button>
                         <a href={"/lp/" + lpPreview.slug} target="_blank"
                           style={{ ...S.btnOutline, display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none", fontSize: 12 }}>
-                          <ExternalLink size={12} strokeWidth={1.5} /> Seite öffnen
+                          ↗ Seite öffnen
                         </a>
                       </div>
                     </div>
@@ -1519,7 +1513,7 @@ export default function KundeDetailPage() {
                 {unprocessed.length > 0 && (
                   <div style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 10, padding: "10px 16px", marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 7, color: "var(--accent)", fontSize: 14, fontWeight: 500 }}>
-                      <AlertCircle size={15} strokeWidth={1.5} />
+                      <span>⚠</span>
                       {unprocessed.length} Lead{unprocessed.length !== 1 ? "s" : ""} warten auf Bearbeitung
                     </div>
                     <button onClick={() => setStatusFilter("kalt")} style={{ fontSize: 12, padding: "5px 12px", border: "1px solid var(--accent)", borderRadius: 6, background: "transparent", color: "var(--accent)", cursor: "pointer" }}>
@@ -1530,14 +1524,14 @@ export default function KundeDetailPage() {
 
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 14 }}>
                   {[
-                    { Icon: Users,  top:"GESAMT",  sub:"LEADS",       val: leads.length,        hi: false },
-                    { Icon: Zap,    top:"HOT",     sub:"SCORE ≥ 6",   val: hot.length,          hi: hot.length > 0 },
-                    { Icon: Search, top:"NEU",     sub:"UNBEARBEITET",val: unprocessed.length,   hi: unprocessed.length > 0 },
-                    { Icon: Map,    top:"STÄDTE",  sub:"ORTE",        val: cities.size,          hi: false },
-                  ].map(({ Icon, top, sub, val, hi }) => (
+                    { emoji: "👥", top:"GESAMT",  sub:"LEADS",       val: leads.length,        hi: false },
+                    { emoji: "⚡", top:"HOT",     sub:"SCORE ≥ 6",   val: hot.length,          hi: hot.length > 0 },
+                    { emoji: "🆕", top:"NEU",     sub:"UNBEARBEITET",val: unprocessed.length,   hi: unprocessed.length > 0 },
+                    { emoji: "📍", top:"STÄDTE",  sub:"ORTE",        val: cities.size,          hi: false },
+                  ].map(({ emoji, top, sub, val, hi }) => (
                     <div key={top} style={{ ...S.card, padding: "14px 16px" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                        <Icon size={14} strokeWidth={1.5} color="var(--text-tertiary)" />
+                        <span style={{ fontSize: 14 }}>{emoji}</span>
                         <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", color: hi && val > 0 ? "var(--accent)" : "var(--text-tertiary)" }}>{top}</span>
                       </div>
                       <div style={{ fontSize: 30, fontWeight: 700, lineHeight: 1, marginBottom: 4, color: hi && val > 0 ? "var(--accent)" : "var(--ink)" }}>{val}</div>
@@ -1728,7 +1722,7 @@ export default function KundeDetailPage() {
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12, marginBottom: 16 }}>
-                  {KANALE.map(({ key, Icon, label, desc, soon }) => {
+                  {KANALE.map(({ key, emoji, label, desc, soon }) => {
                     const isOpen = openChannel === key;
                     return (
                       <div key={key}
@@ -1742,7 +1736,7 @@ export default function KundeDetailPage() {
                           transition: "all .15s",
                         }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
-                          <Icon size={20} strokeWidth={1.5} color={isOpen ? "#fff" : "var(--text-tertiary)"} />
+                          <span style={{ fontSize: 20 }}>{emoji}</span>
                           {soon && <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 99, background: "var(--border)", color: "var(--text-tertiary)" }}>Bald</span>}
                         </div>
                         <div style={{ fontWeight: 600, fontSize: 14, color: isOpen ? "#fff" : "var(--ink)", marginBottom: 3 }}>{label}</div>
@@ -1757,13 +1751,13 @@ export default function KundeDetailPage() {
                     {openChannel === "google-maps" && (
                       <div>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
-                          <MapPin size={18} strokeWidth={1.5} color="var(--accent)" />
+                          <span style={{ fontSize: 18 }}>📍</span>
                           <span style={{ fontWeight: 600, fontSize: 15, color: "var(--ink)" }}>Google Maps</span>
                         </div>
                         <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 18 }}>Leads aus der globalen Toolbox zuweisen oder neue Suche starten</p>
                         <div style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 10, padding: 16, marginBottom: 14 }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink)", marginBottom: 6 }}>
-                            <Search size={13} strokeWidth={1.5} /> Globale Google Maps Suche
+                            Globale Google Maps Suche
                           </div>
                           <p style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 12 }}>
                             Ergebnisse landen in der globalen Rohstoff-Datenbank — du wählst dann, welche Leads zu welchem Kunden gehören.
@@ -1772,7 +1766,7 @@ export default function KundeDetailPage() {
                             <input placeholder="Suchbegriff, z.B. Ladenbau Neueröffnung" style={{ ...S.input, flex: 2, minWidth: 180 }} />
                             <input placeholder="Ort, z.B. München" style={{ ...S.input, flex: 1, minWidth: 120 }} />
                             <input defaultValue="20" type="number" style={{ ...S.input, width: 70 }} />
-                            <button style={S.btn}><Plus size={13} strokeWidth={2} style={{ display: "inline", marginRight: 4 }} />Hinzufügen</button>
+                            <button style={S.btn}>+ Hinzufügen</button>
                           </div>
                         </div>
                         <div style={S.sectionHd}>Globale Suchaufträge (0)</div>
@@ -1783,7 +1777,7 @@ export default function KundeDetailPage() {
                     {openChannel === "landing-page" && (
                       <div>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
-                          <Globe size={18} strokeWidth={1.5} color="var(--accent)" />
+                          <span style={{ fontSize: 18 }}>🌐</span>
                           <span style={{ fontWeight: 600, fontSize: 15, color: "var(--ink)" }}>Landing Page</span>
                         </div>
                         <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 16 }}>URL der aktiven Landing Page für {client.name}</p>
@@ -1799,7 +1793,7 @@ export default function KundeDetailPage() {
                         </div>
                         {form.channels?.["lp-url"] && (
                           <a href={form.channels["lp-url"]} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 13, color: "var(--ink)" }}>
-                            <ExternalLink size={13} strokeWidth={1.5} /> Landing Page öffnen
+                            ↗ Landing Page öffnen
                           </a>
                         )}
                       </div>
@@ -1810,7 +1804,7 @@ export default function KundeDetailPage() {
                       return (
                         <div>
                           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                            <Mail size={18} strokeWidth={1.5} color="var(--accent)" />
+                            <span style={{ fontSize: 18 }}>✉</span>
                             <span style={{ fontWeight: 600, fontSize: 15, color: "var(--ink)" }}>E-Mail</span>
                           </div>
 
@@ -1821,7 +1815,7 @@ export default function KundeDetailPage() {
                               </p>
                               <a href={`/api/social/gmail/connect?client_id=${id}`}
                                 style={{ ...S.btn, display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none" }}>
-                                <Mail size={14} strokeWidth={2} /> Mit Gmail verbinden
+                                ✉ Mit Gmail verbinden
                               </a>
                             </div>
                           ) : (
@@ -1930,7 +1924,7 @@ export default function KundeDetailPage() {
                       return (
                         <div>
                           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                            <Link2 size={18} strokeWidth={1.5} color="var(--accent)" />
+                            <span style={{ fontSize: 18 }}>🔗</span>
                             <span style={{ fontWeight: 600, fontSize: 15, color: "var(--ink)" }}>LinkedIn</span>
                           </div>
 
@@ -2005,8 +1999,7 @@ export default function KundeDetailPage() {
                               <a
                                 href={`/api/social/linkedin/connect?client_id=${id}`}
                                 style={{ ...S.btn, display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none" }}>
-                                <Link2 size={14} strokeWidth={2} />
-                                Mit LinkedIn verbinden
+                                🔗 Mit LinkedIn verbinden
                               </a>
                             </div>
                           )}
@@ -2019,12 +2012,12 @@ export default function KundeDetailPage() {
                       const conn      = socialConnections.find(c => c.platform === platform);
                       const metaConn  = socialConnections.find(c => c.platform === "messenger");
                       const label     = platform === "messenger" ? "Messenger" : "Instagram DM";
-                      const Icon      = platform === "messenger" ? MessageCircle : Camera;
+                      const emoji     = platform === "messenger" ? "💬" : "📸";
                       const color     = platform === "messenger" ? "#0084FF" : "#E1306C";
                       return (
                         <div>
                           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                            <Icon size={18} strokeWidth={1.5} color={color} />
+                            <span style={{ fontSize: 18 }}>{emoji}</span>
                             <span style={{ fontWeight: 600, fontSize: 15, color: "var(--ink)" }}>{label}</span>
                           </div>
 
@@ -2062,8 +2055,7 @@ export default function KundeDetailPage() {
                               </p>
                               <a href={`/api/social/meta/connect?client_id=${id}`}
                                 style={{ ...S.btn, display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none", background: color, color: "#fff" }}>
-                                <MessageCircle size={14} strokeWidth={2} />
-                                Mit Facebook / Meta verbinden
+                                💬 Mit Facebook / Meta verbinden
                               </a>
                               {platform === "instagram" && (
                                 <p style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 10 }}>

@@ -2,7 +2,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { apiFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
-import { TrendingUp, TrendingDown, Minus, Globe, BarChart2 } from "lucide-react";
 
 /* ── Farben ────────────────────────────────────────────────── */
 const SRC_COLOR = {
@@ -104,11 +103,11 @@ function Empty({ text = "Noch keine Daten" }) {
 function Delta({ now, prev }) {
   if (prev === undefined || prev === null) return null;
   const diff = now - prev;
-  if (diff === 0) return <span style={{ fontSize: 11, color: "var(--text-tertiary)", display: "flex", alignItems: "center", gap: 2 }}><Minus size={10} /> {prev} Vorperiode</span>;
+  if (diff === 0) return <span style={{ fontSize: 11, color: "var(--text-tertiary)", display: "flex", alignItems: "center", gap: 2 }}>— {prev} Vorperiode</span>;
   const up = diff > 0;
   return (
     <span style={{ fontSize: 11, color: up ? "#16a34a" : "#ef4444", display: "flex", alignItems: "center", gap: 2 }}>
-      {up ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+      {up ? "↑" : "↓"}
       {up ? "+" : ""}{diff} vs. Vorperiode
     </span>
   );
@@ -167,7 +166,7 @@ export default function CustomerDashboard({ clientId }) {
 
       {/* ── Periode-Umschalter ─────────────────────────────── */}
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
-        <BarChart2 size={15} strokeWidth={1.5} color="var(--text-tertiary)" />
+        <span style={{ fontSize: 13, color: "var(--text-tertiary)" }}>▦</span>
         <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: ".07em", marginRight: 4 }}>Zeitraum:</span>
         {PERIODS.map(p => (
           <button key={p.key} onClick={() => setPeriod(p.key)}
