@@ -39,16 +39,18 @@ export async function POST(req) {
     headers: {
       "Authorization":              `Bearer ${conn.access_token}`,
       "Content-Type":               "application/json",
-      "LinkedIn-Version":           "202306",
+      "LinkedIn-Version":           "202405",
       "X-Restli-Protocol-Version":  "2.0.0",
     },
     body: JSON.stringify(body),
   });
 
   if (!res.ok) {
-    const err = await res.text();
-    console.error("LinkedIn post error:", err);
-    return NextResponse.json({ error: "LinkedIn-Fehler: " + err }, { status: 500 });
+    const errText = await res.text();
+    console.error(`LinkedIn post error — status ${res.status}:`, errText);
+    let detail = errText;
+    try { detail = JSON.stringify(JSON.parse(errText), null, 2); } catch (_) {}
+    return NextResponse.json({ error: `LinkedIn ${res.status}: ${detail}` }, { status: 500 });
   }
 
   /* Post-ID aus Location-Header */
