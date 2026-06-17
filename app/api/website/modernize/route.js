@@ -79,18 +79,21 @@ Analysiere die Website und erstelle eine strukturierte Bewertung. Antworte AUSSC
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const msg = await anthropic.messages.create({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 1800,
+    max_tokens: 4000,
+    system: "Du antwortest ausschließlich mit rohem JSON — kein Markdown, keine Erklärungen, kein Text vor oder nach dem JSON-Objekt.",
     messages: [{ role: "user", content: prompt }],
   });
 
   let audit;
   try {
     const raw = msg.content[0].text.trim();
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    // strip optional markdown code fences
+    const stripped = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/, "").trim();
+    const jsonMatch = stripped.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error("Kein JSON in Antwort");
     audit = JSON.parse(jsonMatch[0]);
   } catch {
-    return NextResponse.json({ error: "KI hat kein gültiges JSON geliefert", raw: msg.content[0].text }, { status: 500 });
+    return NextResponse.json({ error: "KI hat kein gültiges JSON geliefert", raw: msg.content[0]?.text }, { status: 500 });
   }
 
   /* Ergebnis am Kunden speichern */
