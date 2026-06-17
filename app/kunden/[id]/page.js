@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import { apiFetch, authHeaders } from "@/lib/api";
+import CustomerDashboard from "@/components/CustomerDashboard";
 import {
   MapPin, Globe, Link2, Mail, Target, MessageSquare,
   AlertCircle, Users, Zap, Map, Search, ChevronRight,
@@ -12,7 +13,7 @@ import {
 } from "lucide-react";
 
 /* ─── Konstanten ─────────────────────────────────────────── */
-const TABS = ["Übersicht", "Profil", "Marketing", "Landing Pages", "Webseite", "Pipeline", "Leads", "Kanäle"];
+const TABS = ["Übersicht", "Dashboard", "Profil", "Marketing", "Landing Pages", "Webseite", "Pipeline", "Leads", "Kanäle"];
 
 const TEMPLATE_SOURCES = [
   {
@@ -572,6 +573,11 @@ export default function KundeDetailPage() {
                 }}>{t}</button>
               ))}
             </div>
+
+            {/* ═══════════ DASHBOARD ══════════════════════ */}
+            {tab === "Dashboard" && (
+              <CustomerDashboard clientId={client?.id} />
+            )}
 
             {/* ═══════════ ÜBERSICHT ══════════════════════ */}
             {tab === "Übersicht" && (
