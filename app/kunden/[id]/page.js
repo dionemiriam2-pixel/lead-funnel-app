@@ -138,6 +138,13 @@ export default function KundeDetailPage() {
   const [liPostText,        setLiPostText]        = useState("");
   const [liPosting,         setLiPosting]         = useState(false);
   const [liPostMsg,         setLiPostMsg]         = useState("");
+  const [gmailView,         setGmailView]         = useState("inbox");
+  const [gmailMessages,     setGmailMessages]     = useState([]);
+  const [gmailLoadingInbox, setGmailLoadingInbox] = useState(false);
+  const [gmailSelected,     setGmailSelected]     = useState(null);
+  const [gmailCompose,      setGmailCompose]      = useState({ to: "", subject: "", body: "" });
+  const [gmailSending,      setGmailSending]      = useState(false);
+  const [gmailSendMsg,      setGmailSendMsg]      = useState("");
   const [generatingLP,      setGeneratingLP]      = useState(false);
   const [lpError,           setLpError]           = useState("");
   const [lpPreview,         setLpPreview]         = useState(null);
@@ -168,6 +175,11 @@ export default function KundeDetailPage() {
       setTab("Kanäle");
       setOpenChannel("linkedin");
       flash("✓ LinkedIn verbunden!");
+    }
+    if (searchParams.get("social") === "gmail_connected") {
+      setTab("Kanäle");
+      setOpenChannel("email");
+      flash("✓ Gmail verbunden!");
     }
   }, [searchParams]);
 
@@ -1520,20 +1532,125 @@ export default function KundeDetailPage() {
                       </div>
                     )}
 
-                    {openChannel === "email" && (
-                      <div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
-                          <Mail size={18} strokeWidth={1.5} color="var(--accent)" />
-                          <span style={{ fontWeight: 600, fontSize: 15, color: "var(--ink)" }}>E-Mail Outreach</span>
+                    {openChannel === "email" && (() => {
+                      const gmailConn = socialConnections.find(c => c.platform === "gmail");
+                      return (
+                        <div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                            <Mail size={18} strokeWidth={1.5} color="var(--accent)" />
+                            <span style={{ fontWeight: 600, fontSize: 15, color: "var(--ink)" }}>E-Mail</span>
+                          </div>
+
+                          {!gmailConn ? (
+                            <div>
+                              <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 16 }}>
+                                Verbinde <strong>hi@baeumlermarketing.de</strong> um direkt aus dem Dashboard Mails zu senden und zu empfangen.
+                              </p>
+                              <a href={`/api/social/gmail/connect?client_id=${id}`}
+                                style={{ ...S.btn, display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none" }}>
+                                <Mail size={14} strokeWidth={2} /> Mit Gmail verbinden
+                              </a>
+                            </div>
+                          ) : (
+                            <div>
+                              {/* Status + Tabs */}
+                              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 14px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 10, marginBottom: 14 }}>
+                                <span>✅</span>
+                                <span style={{ fontWeight: 600, fontSize: 13, color: "#15803d", flex: 1 }}>{gmailConn.account_name}</span>
+                                <button onClick={async () => {
+                                  if (!confirm("Gmail-Verbindung trennen?")) return;
+                                  await apiFetch(`/api/social?client_id=${id}&platform=gmail`, { method: "DELETE" });
+                                  await load();
+                                }} style={{ fontSize: 11, padding: "3px 9px", border: "1px solid #fca5a5", borderRadius: 6, background: "transparent", color: "#dc2626", cursor: "pointer" }}>
+                                  Trennen
+                                </button>
+                              </div>
+
+                              {/* Tab-Leiste */}
+                              <div style={{ display: "flex", gap: 4, marginBottom: 14, background: "var(--bg)", borderRadius: 8, padding: 4 }}>
+                                {["inbox","compose"].map(v => (
+                                  <button key={v} onClick={() => { setGmailView(v); if (v === "inbox" && !gmailMessages.length) { setGmailLoadingInbox(true); apiFetch(`/api/social/gmail/messages?client_id=${id}`).then(d => { setGmailMessages(d.data || []); setGmailLoadingInbox(false); }); } }}
+                                    style={{ flex: 1, padding: "6px 0", border: "none", borderRadius: 6, fontSize: 13, fontWeight: gmailView === v ? 600 : 400, background: gmailView === v ? "var(--ink)" : "transparent", color: gmailView === v ? "#fff" : "var(--text-secondary)", cursor: "pointer" }}>
+                                    {v === "inbox" ? "📥 Posteingang" : "✉️ Verfassen"}
+                                  </button>
+                                ))}
+                              </div>
+
+                              {/* Posteingang */}
+                              {gmailView === "inbox" && (
+                                <div>
+                                  {gmailLoadingInbox && <div style={{ fontSize: 13, color: "var(--text-secondary)", padding: "20px 0", textAlign: "center" }}>⏳ Lade Posteingang…</div>}
+                                  {!gmailLoadingInbox && gmailMessages.length === 0 && (
+                                    <div style={{ textAlign: "center", padding: "20px 0" }}>
+                                      <button onClick={() => { setGmailLoadingInbox(true); apiFetch(`/api/social/gmail/messages?client_id=${id}`).then(d => { setGmailMessages(d.data || []); setGmailLoadingInbox(false); }); }}
+                                        style={S.btnOutline}>Posteingang laden</button>
+                                    </div>
+                                  )}
+                                  {gmailSelected ? (
+                                    <div>
+                                      <button onClick={() => setGmailSelected(null)} style={{ ...S.btnOutline, marginBottom: 12 }}>← Zurück</button>
+                                      <div style={{ background: "var(--bg)", borderRadius: 10, padding: 16 }}>
+                                        <div style={{ fontWeight: 600, fontSize: 15, color: "var(--ink)", marginBottom: 4 }}>{gmailSelected.subject}</div>
+                                        <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 12 }}>Von: {gmailSelected.from} · {gmailSelected.date}</div>
+                                        <pre style={{ fontSize: 13, color: "var(--ink)", lineHeight: 1.7, whiteSpace: "pre-wrap", margin: 0 }}>{gmailSelected.body}</pre>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                                      {gmailMessages.map(m => (
+                                        <div key={m.id} onClick={async () => {
+                                          const d = await apiFetch(`/api/social/gmail/messages?client_id=${id}&message_id=${m.id}`);
+                                          setGmailSelected(d.data);
+                                        }}
+                                          style={{ padding: "10px 14px", borderRadius: 8, background: m.unread ? "var(--surface)" : "var(--bg)", border: "1px solid var(--border)", cursor: "pointer", display: "flex", flexDirection: "column", gap: 2 }}>
+                                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                            <span style={{ fontWeight: m.unread ? 700 : 500, fontSize: 13, color: "var(--ink)" }}>{m.from.split("<")[0].trim() || m.from}</span>
+                                            <span style={{ fontSize: 11, color: "var(--text-tertiary)" }}>{new Date(m.date).toLocaleDateString("de-DE")}</span>
+                                          </div>
+                                          <div style={{ fontWeight: m.unread ? 600 : 400, fontSize: 13, color: "var(--ink)" }}>{m.subject}</div>
+                                          <div style={{ fontSize: 12, color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.snippet}</div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Verfassen */}
+                              {gmailView === "compose" && (
+                                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                                  {[["to","An (E-Mail-Adresse)"],["subject","Betreff"]].map(([k,l]) => (
+                                    <div key={k}>
+                                      <label style={S.label}>{l}</label>
+                                      <input value={gmailCompose[k]} onChange={e => setGmailCompose(p => ({ ...p, [k]: e.target.value }))} style={S.input} />
+                                    </div>
+                                  ))}
+                                  <div>
+                                    <label style={S.label}>Nachricht</label>
+                                    <textarea value={gmailCompose.body} onChange={e => setGmailCompose(p => ({ ...p, body: e.target.value }))} rows={7} style={{ ...S.input, resize: "vertical" }} />
+                                  </div>
+                                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                    <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>Von: {gmailConn.account_name}</span>
+                                    <button onClick={async () => {
+                                      if (!gmailCompose.to || !gmailCompose.body) return;
+                                      setGmailSending(true); setGmailSendMsg("");
+                                      const d = await apiFetch("/api/social/gmail/messages", { method: "POST", body: JSON.stringify({ client_id: id, ...gmailCompose }) });
+                                      setGmailSending(false);
+                                      if (d.ok) { setGmailSendMsg("✅ Gesendet!"); setGmailCompose({ to: "", subject: "", body: "" }); }
+                                      else setGmailSendMsg("❌ " + (d.error || "Fehler"));
+                                    }} disabled={gmailSending || !gmailCompose.to || !gmailCompose.body}
+                                      style={{ ...S.btn, opacity: gmailSending || !gmailCompose.to || !gmailCompose.body ? .5 : 1 }}>
+                                      {gmailSending ? "⏳ Sendet…" : "Senden →"}
+                                    </button>
+                                  </div>
+                                  {gmailSendMsg && <div style={{ fontSize: 13, fontWeight: 500, color: gmailSendMsg.startsWith("✅") ? "#15803d" : "var(--accent)" }}>{gmailSendMsg}</div>}
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
-                        <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 16 }}>
-                          KI schreibt personalisierte E-Mails für Leads von {client.name}
-                        </p>
-                        <a href="/outreach" style={{ ...S.btn, display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none" }}>
-                          Zur Outreach-Seite →
-                        </a>
-                      </div>
-                    )}
+                      );
+                    })()}
 
                     {openChannel === "linkedin" && (() => {
                       const conn = socialConnections.find(c => c.platform === "linkedin");
