@@ -235,6 +235,27 @@ function extractColors(html) {
   return result;
 }
 
+/* ─── Kontaktseiten mitscrapen (Impressum, Kontakt) ─────── */
+async function fetchContactPages(baseUrl) {
+  const paths = ["/impressum", "/kontakt", "/contact", "/ueber-uns", "/about",
+                 "/impressum.html", "/kontakt.html", "/kontakt/", "/impressum/"];
+  const texts = [];
+  for (const path of paths) {
+    try {
+      const r = await fetch(baseUrl + path, {
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; LeadBot/1.0)" },
+        signal: AbortSignal.timeout(5000),
+      });
+      if (!r.ok) continue;
+      const html = await r.text();
+      const t = extractText(html);
+      if (t.length > 100) texts.push(t.slice(0, 3000));
+      if (texts.length >= 2) break; // max 2 Unterseiten
+    } catch { /* weiter */ }
+  }
+  return texts.join("\n\n");
+}
+
 /* ─── Website-Analyse ────────────────────────────────────── */
 async function analyseWebsite(client_id, sb) {
   const { data: client } = await sb.from("clients").select("*").eq("id", client_id).single();
@@ -278,10 +299,12 @@ async function analyseWebsite(client_id, sb) {
   }
 
   // 3. Sichtbaren Text + Links + Kontaktdaten + Farben extrahieren
-  const text         = extractText(html);
-  const socialLinks  = extractSocialLinks(html);
-  const regexContact = extractContact(text);
-  const colors       = extractColors(html);
+  const homeText      = extractText(html);
+  const contactPages  = await fetchContactPages(baseUrl);           // Impressum / Kontakt
+  const text          = homeText + (contactPages ? "\n\n" + contactPages : "");
+  const socialLinks   = extractSocialLinks(html);
+  const regexContact  = extractContact(text);                       // regex über Gesamttext
+  const colors        = extractColors(html);
 
   // 4. KI-Analyse via Anthropic Haiku
   const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
@@ -298,23 +321,28 @@ async function analyseWebsite(client_id, sb) {
       messages: [
         {
           role: "user",
-          content: `Analysiere diesen Website-Text und gib JSON zurück mit den Feldern:
-- industry (String, 1–3 Wörter): Branche des Unternehmens. z.B. "Marketing", "Handwerk", "Gastronomie", "IT-Dienstleistung", "Immobilien", "Gesundheit", "E-Commerce". Nur die Branche, keine Beschreibung.
+          content: `Analysiere diesen Website-Text (inkl. Impressum/Kontaktseite) und gib JSON zurück mit den Feldern:
+- industry (String, 1–3 Wörter): Branche, z.B. "Fotografie", "Marketing", "Handwerk", "Gastronomie", "IT", "Immobilien". Nur die Branche.
 - description (String, 2–3 Sätze): Was macht das Unternehmen? Was bietet es an?
 - target_audience (String, 1–2 Sätze): Wer ist die Zielgruppe?
 - usp (String, 1 Satz): Was ist das Alleinstellungsmerkmal?
 - keywords (Array von 8–12 Strings): Relevante SEO-Keywords
-- contact (String oder null): Nur der Vorname + Nachname einer echten Person (Inhaber/Ansprechpartner), falls im Text genannt. Keine E-Mail, keine Telefonnummer, nur ein Name. Sonst null.
+- region (String oder null): Stadt, Region oder Gebiet des Unternehmens, z.B. "München", "Bayern", "DACH", "Berlin & Umgebung". Nur wenn eindeutig im Text. Sonst null.
+- contact (String oder null): Vorname + Nachname des Inhabers/Ansprechpartners, falls genannt. Nur ein Name, keine E-Mail, keine Telefonnummer. Sonst null.
+- phone (String oder null): Festnetznummer, falls im Text sichtbar (z.B. im Impressum). Format so wie im Text. Sonst null.
+- mobile (String oder null): Mobilnummer (beginnt mit 015/016/017 oder +4915/16/17), falls im Text sichtbar. Sonst null.
+- email (String oder null): E-Mail-Adresse, falls im Text sichtbar. Sonst null.
 - products (Array von max. 5 Objekten): Erkannte Produkte/Leistungen, jedes mit:
   - name (String): Produktname oder Leistungsbezeichnung
   - description (String, 1 Satz): Kurze Beschreibung
   - target_groups (String): Für wen ist das gedacht?
   - keywords (String): 3–5 relevante Suchbegriffe, kommagetrennt
-  - offer (String): Was ist der Nutzen / Lead-Magnet für dieses Angebot? (1 kurzer Satz)
+  - offer (String): Nutzen / Lead-Magnet (1 kurzer Satz)
 
-Wichtig: Gib nur Werte zurück die wirklich im Text stehen. Keine Erfindungen.
+Wichtig: Nur Werte zurückgeben die wirklich im Text stehen. Keine Erfindungen. null wenn nicht vorhanden.
 
-Text: ${text}`,
+Text:
+${text.slice(0, 9000)}`,
         },
         { role: "assistant", content: "{" },
       ],
@@ -353,11 +381,12 @@ Text: ${text}`,
     keywords:        Array.isArray(aiResult.keywords)
                        ? aiResult.keywords.join(", ")
                        : aiResult.keywords || client.keywords,
-    // Kontaktdaten: bei Neu-Analyse immer überschreiben wenn neue Daten gefunden
-    ...(regexContact.phone  ? { phone:   regexContact.phone  } : {}),
-    ...(regexContact.mobile ? { mobile:  regexContact.mobile } : {}),
-    ...(regexContact.email  ? { email:   regexContact.email  } : {}),
-    contact: aiResult.contact || null,  // immer aktualisieren (löscht falschen alten Wert)
+    // Kontaktdaten: Regex hat Vorrang, AI als Fallback
+    phone:   regexContact.phone  || aiResult.phone  || null,
+    mobile:  regexContact.mobile || aiResult.mobile || null,
+    email:   regexContact.email  || aiResult.email  || null,
+    contact: aiResult.contact || null,
+    region:  aiResult.region  || client.region || null,
     // Farben aus Website (immer aktualisieren wenn gefunden)
     ...(colors.brand_color  ? { brand_color:  colors.brand_color  } : {}),
     ...(colors.accent_color ? { accent_color: colors.accent_color } : {}),
