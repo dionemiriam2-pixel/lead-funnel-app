@@ -56,9 +56,10 @@ export async function POST(req) {
     // 23505 = unique-Konflikt → trotzdem Erfolg zurückgeben
     if (insertErr && insertErr.code !== "23505") throw insertErr;
 
-    // 3. leads_count atomar hochzählen (Postgres-Funktion)
+    // 3. leads_count + form_submissions atomar hochzählen
     if (slug && !insertErr) {
-      await sb.rpc("increment_lp_leads_count", { p_slug: slug });
+      await sb.rpc("increment_lp_leads_count",      { p_slug: slug });
+      await sb.rpc("increment_lp_form_submissions", { p_slug: slug });
     }
 
     return NextResponse.json({ ok: true });

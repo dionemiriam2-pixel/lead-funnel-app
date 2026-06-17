@@ -44,8 +44,9 @@ export async function GET(req) {
       .eq("client_id", client_id)
       .order("created_at", { ascending: true }),
     db.from("landing_pages")
-      .select("id, leads_count, status")
-      .eq("client_id", client_id),
+      .select("id, name, slug, leads_count, page_views, form_submissions, status")
+      .eq("client_id", client_id)
+      .order("created_at", { ascending: false }),
   ]);
 
   if (leadsErr) return NextResponse.json({ error: leadsErr.message }, { status: 500 });
@@ -94,6 +95,19 @@ export async function GET(req) {
       count:       (lps || []).length,
       published:   (lps || []).filter(l => l.status === "published").length,
       totalLeads:  (lps || []).reduce((s, l) => s + (l.leads_count || 0), 0),
+      totalViews:  (lps || []).reduce((s, l) => s + (l.page_views  || 0), 0),
+      items:       (lps || []).map(l => ({
+        id:               l.id,
+        name:             l.name || l.slug,
+        slug:             l.slug,
+        status:           l.status,
+        page_views:       l.page_views       || 0,
+        form_submissions: l.form_submissions  || 0,
+        leads_count:      l.leads_count       || 0,
+        conv_rate:        (l.page_views || 0) > 0
+          ? Math.round(((l.form_submissions || 0) / l.page_views) * 100)
+          : null,
+      })),
     },
   });
 }

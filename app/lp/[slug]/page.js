@@ -62,6 +62,9 @@ export default async function Page({ params }) {
 
   if (error || !row) return notFound();
 
+  // Seitenaufruf tracken (fire-and-forget, kein await nötig)
+  supabaseAdmin().rpc("increment_lp_page_views", { p_id: row.id });
+
   const client = row.clients || {};
   const data = {
     name:         client.name         || "",

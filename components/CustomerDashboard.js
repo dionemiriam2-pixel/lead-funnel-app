@@ -252,7 +252,7 @@ export default function CustomerDashboard({ clientId }) {
             )}
         </Section>
 
-        {/* Landing Pages */}
+        {/* Landing Pages (Kurzübersicht) */}
         <Section title="Landing Pages"
           action={
             <button onClick={() => router.push(`?tab=Landing+Pages`)}
@@ -263,25 +263,89 @@ export default function CustomerDashboard({ clientId }) {
           {lps.count === 0
             ? <Empty text="Noch keine Landing Pages" />
             : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>Seiten gesamt</span>
-                  <span style={{ fontWeight: 800, fontSize: 20, color: "var(--ink)" }}>{lps.count}</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>Veröffentlicht</span>
-                  <span style={{ fontWeight: 800, fontSize: 20, color: "#16a34a" }}>{lps.published}</span>
-                </div>
-                <div style={{ height: 1, background: "var(--border)" }} />
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>LP-Leads gesamt</span>
-                  <span style={{ fontWeight: 800, fontSize: 22, color: "var(--accent)" }}>{lps.totalLeads}</span>
-                </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {[
+                  ["Seiten", lps.count,       "var(--ink)"],
+                  ["Live",   lps.published,   "#16a34a"],
+                  ["Aufrufe",lps.totalViews ?? 0, "var(--ink)"],
+                  ["Leads",  lps.totalLeads,  "var(--accent)"],
+                ].map(([l, v, c]) => (
+                  <div key={l} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>{l}</span>
+                    <span style={{ fontWeight: 800, fontSize: 18, color: c }}>{v}</span>
+                  </div>
+                ))}
               </div>
             )}
         </Section>
 
       </div>
+
+      {/* ── LP-Performance-Tabelle ─────────────────────────── */}
+      {lps.items?.length > 0 && (
+        <div style={{ marginTop: 16 }}>
+          <Section title="Landing Page Performance · Conversion-Tracking">
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                  {["Seite","Status","Aufrufe","Formular","Leads","Conv.-Rate"].map(h => (
+                    <th key={h} style={{ padding: "8px 12px", textAlign: h === "Seite" || h === "Status" ? "left" : "right", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".07em", color: "var(--text-tertiary)" }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {lps.items.map(lp => (
+                  <tr key={lp.id} style={{ borderTop: "1px solid var(--border)" }}>
+                    <td style={{ padding: "10px 12px" }}>
+                      <a href={`/lp/${lp.slug}`} target="_blank" rel="noopener noreferrer"
+                        style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)", textDecoration: "none" }}
+                        onMouseEnter={e => e.target.style.textDecoration="underline"}
+                        onMouseLeave={e => e.target.style.textDecoration="none"}>
+                        {lp.name}
+                      </a>
+                    </td>
+                    <td style={{ padding: "10px 12px" }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 99,
+                        background: lp.status === "published" ? "#dcfce7" : "#f3f4f6",
+                        color:      lp.status === "published" ? "#16a34a" : "#6b7280" }}>
+                        {lp.status === "published" ? "Live" : "Entwurf"}
+                      </span>
+                    </td>
+                    <td style={{ padding: "10px 12px", textAlign: "right", fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>{lp.page_views.toLocaleString("de")}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "right", fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>{lp.form_submissions.toLocaleString("de")}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "right", fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>{lp.leads_count.toLocaleString("de")}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "right" }}>
+                      {lp.conv_rate !== null
+                        ? <span style={{ fontSize: 13, fontWeight: 800, color: lp.conv_rate >= 5 ? "#16a34a" : lp.conv_rate >= 2 ? "var(--accent)" : "var(--ink)" }}>
+                            {lp.conv_rate} %
+                          </span>
+                        : <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>–</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              {lps.totalViews > 0 && (
+                <tfoot>
+                  <tr style={{ borderTop: "2px solid var(--border)", background: "var(--bg)" }}>
+                    <td colSpan={2} style={{ padding: "10px 12px", fontSize: 12, fontWeight: 700, color: "var(--text-secondary)" }}>Gesamt</td>
+                    <td style={{ padding: "10px 12px", textAlign: "right", fontSize: 13, fontWeight: 800 }}>{(lps.totalViews ?? 0).toLocaleString("de")}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "right", fontSize: 13, fontWeight: 800 }}>
+                      {lps.items.reduce((s, l) => s + l.form_submissions, 0).toLocaleString("de")}
+                    </td>
+                    <td style={{ padding: "10px 12px", textAlign: "right", fontSize: 13, fontWeight: 800, color: "var(--accent)" }}>{lps.totalLeads.toLocaleString("de")}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "right", fontSize: 13, fontWeight: 800, color: "#16a34a" }}>
+                      {lps.totalViews > 0
+                        ? Math.round((lps.items.reduce((s, l) => s + l.form_submissions, 0) / lps.totalViews) * 100) + " %"
+                        : "–"}
+                    </td>
+                  </tr>
+                </tfoot>
+              )}
+            </table>
+          </Section>
+        </div>
+      )}
+
     </div>
   );
 }
