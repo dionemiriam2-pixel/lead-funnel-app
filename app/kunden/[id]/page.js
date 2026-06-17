@@ -1,7 +1,7 @@
 "use client";
 export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import { apiFetch, authHeaders } from "@/lib/api";
 import {
@@ -11,7 +11,40 @@ import {
 } from "lucide-react";
 
 /* ─── Konstanten ─────────────────────────────────────────── */
-const TABS = ["Übersicht", "Profil", "Marketing", "Landing Pages", "Pipeline", "Leads", "Kanäle"];
+const TABS = ["Übersicht", "Profil", "Marketing", "Landing Pages", "Webseite", "Pipeline", "Leads", "Kanäle"];
+
+const TEMPLATE_SOURCES = [
+  {
+    key: "vercel",
+    name: "Vercel Templates",
+    desc: "Next.js-Vorlagen, deploy-fertig, viele kostenlos verfügbar.",
+    url: "https://vercel.com/templates",
+  },
+  {
+    key: "cruip",
+    name: "Cruip",
+    desc: "Moderne Landingpage-Templates in React und Tailwind.",
+    url: "https://cruip.com",
+  },
+  {
+    key: "tailwind-plus",
+    name: "Tailwind Plus",
+    desc: "Premium-Bausteine im Linear/Stripe-Stil von den Tailwind-Machern.",
+    url: "https://tailwindcss.com/plus",
+  },
+  {
+    key: "framer",
+    name: "Framer Marketplace",
+    desc: "Designer-Qualität, viele kostenlos — direkt im Browser editierbar.",
+    url: "https://framer.com/marketplace",
+  },
+  {
+    key: "figma",
+    name: "Figma Community",
+    desc: "Design-Dateien zum Anpassen und als Vorlage für Entwickler.",
+    url: "https://figma.com/community",
+  },
+];
 
 const PIPELINE = [
   { key: "kalt",         label: "Kalt",         color: "var(--text-tertiary)",  bg: "var(--bg)" },
@@ -25,7 +58,7 @@ const PIPELINE = [
 const KANALE = [
   { key: "google-maps",  Icon: MapPin,        label: "Google Maps",      desc: "Firmen-Scraping & Leads",    soon: false },
   { key: "landing-page", Icon: Globe,         label: "Landing Page",     desc: "Inbound Lead-Erfassung",     soon: false },
-  { key: "linkedin",     Icon: Link2,         label: "LinkedIn",         desc: "Kontakte & Outreach",        soon: true  },
+  { key: "linkedin",     Icon: Link2,         label: "LinkedIn",         desc: "Verbinden & Beiträge posten", soon: false },
   { key: "email",        Icon: Mail,          label: "E-Mail Outreach",  desc: "Mails senden & Verlauf",     soon: false },
   { key: "ads",          Icon: Target,        label: "Werbeanzeigen",    desc: "Meta / Google Ads",          soon: true  },
   { key: "chat",         Icon: MessageSquare, label: "ManyChat / Chat",  desc: "Chat-Automatisierung",       soon: true  },
@@ -69,10 +102,12 @@ function pStatus(lead) {
 
 /* ═══════════════════════════════════════════════════════════ */
 export default function KundeDetailPage() {
-  const { id } = useParams();
+  const { id }    = useParams();
+  const searchParams = useSearchParams();
 
   /* Daten */
-  const [client,    setClient]    = useState(null);
+  const [client,            setClient]            = useState(null);
+  const [socialConnections, setSocialConnections] = useState([]);
   const [products,  setProducts]  = useState([]);
   const [leads,     setLeads]     = useState([]);
 
@@ -96,6 +131,9 @@ export default function KundeDetailPage() {
   const [stratStep,         setStratStep]         = useState(1);
   const [analysingWebsite,  setAnalysingWebsite]  = useState(false);
   const [websiteAnalysisErr,setWebsiteAnalysisErr]= useState("");
+  const [modernizing,       setModernizing]       = useState(false);
+  const [modernizeErr,      setModernizeErr]      = useState("");
+  const [websiteAudit,      setWebsiteAudit]      = useState(null);
   const [landingPages,      setLandingPages]      = useState([]);
   const [generatingLP,      setGeneratingLP]      = useState(false);
   const [lpError,           setLpError]           = useState("");
@@ -103,13 +141,15 @@ export default function KundeDetailPage() {
 
   /* ── Daten laden ─────────────────────────────────────── */
   async function load() {
-    const [cr, pr, lr, lpRes] = await Promise.all([
+    const [cr, pr, lr, lpRes, scRes] = await Promise.all([
       apiFetch("/api/clients"),
       apiFetch("/api/products?client_id=" + id),
       apiFetch("/api/leads"),
       apiFetch("/api/landing-pages?client_id=" + id),
+      apiFetch("/api/social?action=list&client_id=" + id),
     ]);
     setLandingPages(lpRes.data || []);
+    setSocialConnections(scRes.data || []);
     const c = (cr.data || []).find(x => x.id === id);
     setClient(c || null);
     setForm(c || {});
@@ -118,6 +158,15 @@ export default function KundeDetailPage() {
   }
 
   useEffect(() => { if (id) load(); }, [id]);
+
+  /* OAuth-Redirect zurück: ?social=connected → Kanäle-Tab öffnen */
+  useEffect(() => {
+    if (searchParams.get("social") === "connected") {
+      setTab("Kanäle");
+      setOpenChannel("linkedin");
+      flash("✓ LinkedIn verbunden!");
+    }
+  }, [searchParams]);
 
   /* ── API-Handler ─────────────────────────────────────── */
   function flash(text) { setMsg(text); setTimeout(() => setMsg(""), 2500); }
@@ -187,6 +236,71 @@ export default function KundeDetailPage() {
     } finally {
       setAnalysingWebsite(false);
     }
+  }
+
+  async function modernizeWebsite() {
+    if (!client.analyzed_at) {
+      setModernizeErr("Bitte zuerst die Website analysieren (Profil-Tab → Analysieren).");
+      return;
+    }
+    setModernizing(true);
+    setModernizeErr("");
+    setWebsiteAudit(null);
+    try {
+      const d = await apiFetch("/api/website/modernize", { method: "POST", body: JSON.stringify({ client_id: id }) });
+      if (d.error) { setModernizeErr(d.error); return; }
+      setWebsiteAudit(d.audit);
+      await load();
+    } catch { setModernizeErr("Netzwerkfehler — bitte nochmal versuchen."); }
+    finally { setModernizing(false); }
+  }
+
+  function exportKundeConfig() {
+    const keywords = (client.keywords || "")
+      .split(",").map(k => k.trim()).filter(Boolean);
+    const lines = [
+      `// Kundenprofil: ${client.name}`,
+      `// Exportiert am ${new Date().toLocaleDateString("de-DE")}`,
+      `// Einfach in deine Vorlage kopieren und Platzhalter ersetzen`,
+      ``,
+      `export const kunde = {`,
+      `  name:        ${JSON.stringify(client.name || "")},`,
+      `  branche:     ${JSON.stringify(client.industry || "")},`,
+      `  region:      ${JSON.stringify(client.region || "")},`,
+      ``,
+      `  // Design`,
+      `  farbe:       ${JSON.stringify(client.brand_color || "#111111")},`,
+      `  akzent:      ${JSON.stringify(client.accent_color || "#e8600a")},`,
+      `  logo:        ${JSON.stringify(client.logo_url || "")},`,
+      ``,
+      `  // Texte`,
+      `  beschreibung: ${JSON.stringify(client.description || "")},`,
+      `  usp:          ${JSON.stringify(client.usp || "")},`,
+      `  zielgruppe:   ${JSON.stringify(client.target_audience || "")},`,
+      `  keywords:     ${JSON.stringify(keywords)},`,
+      ``,
+      `  // Kontakt`,
+      `  website:     ${JSON.stringify(client.website || "")},`,
+      `  email:       ${JSON.stringify(client.email || "")},`,
+      `  telefon:     ${JSON.stringify(client.phone || "")},`,
+      `  mobil:       ${JSON.stringify(client.mobile || "")},`,
+      `  ansprechpartner: ${JSON.stringify(client.contact || "")},`,
+      ``,
+      `  // Social Media`,
+      `  instagram:   ${JSON.stringify(client.instagram || "")},`,
+      `  facebook:    ${JSON.stringify(client.facebook || "")},`,
+      `  linkedin:    ${JSON.stringify(client.linkedin || "")},`,
+      `};`,
+    ];
+    const blob = new Blob([lines.join("\n")], { type: "text/javascript" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    const slug = (client.name || "kunde").toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+    a.href     = url;
+    a.download = `${slug}-config.js`;
+    a.click();
+    URL.revokeObjectURL(url);
+    flash("✓ Datei heruntergeladen");
   }
 
   async function generateLP() {
@@ -990,6 +1104,133 @@ export default function KundeDetailPage() {
               </div>
             )}
 
+            {/* ═══════════ WEBSEITE ════════════════════════ */}
+            {tab === "Webseite" && (
+              <div>
+                {/* ── Webseite modernisieren ── */}
+                <div style={{ ...S.card, marginBottom: 16 }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 15, color: "var(--ink)", marginBottom: 4 }}>Webseite modernisieren</div>
+                      <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6, maxWidth: 460 }}>
+                        KI analysiert die bestehende Website, findet Schwächen und schreibt einen modernen Textentwurf — basierend auf dem echten Kundenprofil.
+                      </div>
+                      {!client.analyzed_at && (
+                        <div style={{ marginTop: 6, fontSize: 12, color: "var(--accent)", fontWeight: 500 }}>
+                          ⚠ Erst Website analysieren (Profil-Tab), dann hier starten.
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={modernizeWebsite}
+                      disabled={modernizing}
+                      style={{ ...S.btn, opacity: modernizing ? .6 : 1, cursor: modernizing ? "not-allowed" : "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>
+                      {modernizing ? "⏳ Analysiert…" : client.website_audit ? "Neu analysieren" : "Webseite modernisieren"}
+                    </button>
+                  </div>
+                  {modernizeErr && (
+                    <div style={{ marginTop: 10, padding: "9px 12px", background: "#fef2f2", border: "1px solid #fca5a5", borderRadius: 8, fontSize: 13, color: "#dc2626" }}>
+                      {modernizeErr}
+                    </div>
+                  )}
+                  {/* JSON-Preview (temporär zum Review) */}
+                  {websiteAudit && (
+                    <div style={{ marginTop: 16 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em", color: "var(--text-tertiary)", marginBottom: 8 }}>
+                        KI-Ergebnis (JSON-Vorschau)
+                      </div>
+                      <pre style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 10, padding: 16, fontSize: 11, color: "var(--ink)", overflow: "auto", maxHeight: 400, lineHeight: 1.6, margin: 0 }}>
+                        {JSON.stringify(websiteAudit, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+
+                {/* Export-Box */}
+                <div style={{ ...S.card, marginBottom: 16, background: "var(--ink)", border: "none" }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 15, color: "#fff", marginBottom: 6 }}>
+                        Profil-Daten exportieren
+                      </div>
+                      <div style={{ fontSize: 13, color: "rgba(255,255,255,.7)", lineHeight: 1.6, maxWidth: 460 }}>
+                        Lädt eine fertige <code style={{ background: "rgba(255,255,255,.12)", padding: "1px 6px", borderRadius: 4, fontSize: 12 }}>{(client.name || "kunde").toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"")}-config.js</code> mit allen Kunden&shy;daten herunter — Farben, Texte, Kontakt. Einfach in deine Vorlage kopieren und Platzhalter ersetzen.
+                      </div>
+                    </div>
+                    <button onClick={exportKundeConfig}
+                      style={{ padding: "10px 22px", background: "#fff", color: "var(--ink)", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>
+                      ↓ Config herunterladen
+                    </button>
+                  </div>
+
+                  {/* Vorschau der Felder */}
+                  <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid rgba(255,255,255,.12)", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 8 }}>
+                    {[
+                      ["Name",        client.name],
+                      ["Farbe",       client.brand_color],
+                      ["Akzent",      client.accent_color],
+                      ["USP",         client.usp],
+                      ["Zielgruppe",  client.target_audience],
+                      ["Website",     client.website],
+                      ["E-Mail",      client.email],
+                      ["Telefon",     client.phone],
+                    ].map(([label, val]) => (
+                      <div key={label} style={{ fontSize: 11, color: val ? "rgba(255,255,255,.85)" : "rgba(255,255,255,.3)" }}>
+                        <span style={{ fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", fontSize: 10, color: "rgba(255,255,255,.45)", display: "block", marginBottom: 2 }}>{label}</span>
+                        {val
+                          ? <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "block", maxWidth: "100%" }}>{val}</span>
+                          : <span style={{ fontStyle: "italic" }}>leer — im Profil ergänzen</span>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Weg 1 — bestehende Landing Pages */}
+                <div style={{ ...S.card, marginBottom: 16 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+                    <div>
+                      <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em", color: "var(--text-tertiary)", marginBottom: 4 }}>Weg 1</div>
+                      <div style={{ fontWeight: 600, fontSize: 15, color: "var(--ink)", marginBottom: 3 }}>KI-Landing Page erstellen</div>
+                      <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                        Lass die KI automatisch Texte, Struktur und CTA generieren — basierend auf dem Kundenprofil.
+                      </div>
+                    </div>
+                    <button onClick={() => setTab("Landing Pages")} style={S.btn}>
+                      Zu Landing Pages →
+                    </button>
+                  </div>
+                </div>
+
+                {/* Weg 2 — Vorlagen-Quellen */}
+                <div style={S.card}>
+                  <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em", color: "var(--text-tertiary)", marginBottom: 4 }}>Weg 2</div>
+                  <div style={{ fontWeight: 600, fontSize: 15, color: "var(--ink)", marginBottom: 6 }}>Vorlagen-Quellen</div>
+                  <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 18, lineHeight: 1.6 }}>
+                    Such dir eine Vorlage aus und nutze „Webseite modernisieren", um das Kundenprofil einzufügen.
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }}>
+                    {TEMPLATE_SOURCES.map(src => (
+                      <div key={src.key} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 12, padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)", marginBottom: 4 }}>{src.name}</div>
+                          <div style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.5 }}>{src.desc}</div>
+                        </div>
+                        <a
+                          href={src.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={{ ...S.btnSm, display: "inline-flex", alignItems: "center", gap: 5, textDecoration: "none", alignSelf: "flex-start" }}
+                        >
+                          <ExternalLink size={11} strokeWidth={1.5} />
+                          Öffnen
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* ═══════════ PIPELINE ════════════════════════ */}
             {tab === "Pipeline" && (
               <div>
@@ -1291,7 +1532,59 @@ export default function KundeDetailPage() {
                       </div>
                     )}
 
-                    {!["google-maps","landing-page","email"].includes(openChannel) && (
+                    {openChannel === "linkedin" && (() => {
+                      const conn = socialConnections.find(c => c.platform === "linkedin");
+                      return (
+                        <div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
+                            <Link2 size={18} strokeWidth={1.5} color="var(--accent)" />
+                            <span style={{ fontWeight: 600, fontSize: 15, color: "var(--ink)" }}>LinkedIn</span>
+                          </div>
+
+                          {conn ? (
+                            <div>
+                              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 10, marginBottom: 16 }}>
+                                <span style={{ fontSize: 18 }}>✅</span>
+                                <div>
+                                  <div style={{ fontWeight: 600, fontSize: 13, color: "#15803d" }}>
+                                    Verbunden als {conn.account_name}
+                                  </div>
+                                  <div style={{ fontSize: 11, color: "#166534", marginTop: 1 }}>
+                                    Seit {new Date(conn.connected_at).toLocaleDateString("de-DE")}
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={async () => {
+                                    if (!confirm("LinkedIn-Verbindung trennen?")) return;
+                                    await apiFetch(`/api/social?client_id=${id}&platform=linkedin`, { method: "DELETE" });
+                                    await load();
+                                  }}
+                                  style={{ marginLeft: "auto", fontSize: 11, padding: "4px 10px", border: "1px solid #fca5a5", borderRadius: 6, background: "transparent", color: "#dc2626", cursor: "pointer" }}>
+                                  Trennen
+                                </button>
+                              </div>
+                              <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                                Schritt 4 (Beiträge posten) folgt im nächsten Update.
+                              </p>
+                            </div>
+                          ) : (
+                            <div>
+                              <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 16 }}>
+                                Verbinde den LinkedIn-Account von <strong>{client.name}</strong>, um direkt aus dem Dashboard Beiträge zu posten.
+                              </p>
+                              <a
+                                href={`/api/social?action=connect&client_id=${id}`}
+                                style={{ ...S.btn, display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none" }}>
+                                <Link2 size={14} strokeWidth={2} />
+                                Mit LinkedIn verbinden
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+
+                    {!["google-maps","landing-page","email","linkedin"].includes(openChannel) && (
                       <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>Dieser Kanal wird bald konfigurierbar sein.</p>
                     )}
                   </div>
