@@ -6,6 +6,7 @@ import AppShell from "@/components/AppShell";
 import { apiFetch, authHeaders } from "@/lib/api";
 import CustomerDashboard from "@/components/CustomerDashboard";
 import ContentTab from "@/components/ContentTab";
+import MarkeCITab from "@/components/MarkeCITab";
 import {
   MapPin, Globe, Link2, Mail, Target, MessageSquare,
   AlertCircle, Users, Zap, Map, Search, ChevronRight,
@@ -14,7 +15,7 @@ import {
 } from "lucide-react";
 
 /* ─── Konstanten ─────────────────────────────────────────── */
-const TABS = ["Übersicht", "Dashboard", "Content", "Profil", "Marketing", "Landing Pages", "Webseite", "Pipeline", "Leads", "Kanäle"];
+const TABS = ["Übersicht", "Dashboard", "Profil", "Marke / CI", "Content", "Marketing", "Landing Pages", "Webseite", "Pipeline", "Leads", "Kanäle"];
 
 const TEMPLATE_SOURCES = [
   {
@@ -590,6 +591,23 @@ export default function KundeDetailPage() {
             {/* ═══════════ DASHBOARD ══════════════════════ */}
             {tab === "Dashboard" && (
               <CustomerDashboard clientId={client?.id} />
+            )}
+
+            {/* ═══════════ MARKE / CI ══════════════════════ */}
+            {tab === "Marke / CI" && (
+              <MarkeCITab
+                form={form}
+                setForm={setForm}
+                saveClient={saveClient}
+                testimonials={testimonials}
+                addTestimonial={addTestimonial}
+                setTestimonial={setTestimonial}
+                removeTestimonial={removeTestimonial}
+                refImages={refImages}
+                addRefImage={addRefImage}
+                setRefImage={setRefImage}
+                removeRefImage={removeRefImage}
+              />
             )}
 
             {/* ═══════════ CONTENT ════════════════════════ */}
