@@ -8,6 +8,7 @@ import {
   MapPin, Globe, Link2, Mail, Target, MessageSquare,
   AlertCircle, Users, Zap, Map, Search, ChevronRight,
   Trash2, ExternalLink, Plus, CheckCircle2, Circle,
+  MessageCircle, Camera,
 } from "lucide-react";
 
 /* ─── Konstanten ─────────────────────────────────────────── */
@@ -60,6 +61,8 @@ const KANALE = [
   { key: "landing-page", Icon: Globe,         label: "Landing Page",     desc: "Inbound Lead-Erfassung",     soon: false },
   { key: "linkedin",     Icon: Link2,         label: "LinkedIn",         desc: "Verbinden & Beiträge posten", soon: false },
   { key: "email",        Icon: Mail,          label: "E-Mail",           desc: "Mails senden & empfangen",   soon: false },
+  { key: "messenger",    Icon: MessageCircle, label: "Messenger",        desc: "Facebook Messenger DMs",     soon: false },
+  { key: "instagram",   Icon: Camera,        label: "Instagram DM",     desc: "Instagram Direktnachrichten", soon: false },
   { key: "ads",          Icon: Target,        label: "Werbeanzeigen",    desc: "Meta / Google Ads",          soon: true  },
   { key: "chat",         Icon: MessageSquare, label: "ManyChat / Chat",  desc: "Chat-Automatisierung",       soon: true  },
 ];
@@ -182,6 +185,13 @@ export default function KundeDetailPage() {
       setOpenChannel("email");
       flash("✓ Gmail verbunden!");
     }
+    if (searchParams.get("social") === "meta_connected") {
+      setTab("Kanäle");
+      setOpenChannel("messenger");
+      flash("✓ Meta verbunden!");
+    }
+    const metaErr = searchParams.get("meta_error");
+    if (metaErr) flash(`❌ Meta-Fehler: ${metaErr}`);
   }, [searchParams]);
 
   /* ── API-Handler ─────────────────────────────────────── */
@@ -1796,7 +1806,69 @@ export default function KundeDetailPage() {
                       );
                     })()}
 
-                    {!["google-maps","landing-page","email","linkedin"].includes(openChannel) && (
+                    {["messenger","instagram"].includes(openChannel) && (() => {
+                      const platform  = openChannel; // 'messenger' or 'instagram'
+                      const conn      = socialConnections.find(c => c.platform === platform);
+                      const metaConn  = socialConnections.find(c => c.platform === "messenger");
+                      const label     = platform === "messenger" ? "Messenger" : "Instagram DM";
+                      const Icon      = platform === "messenger" ? MessageCircle : Camera;
+                      const color     = platform === "messenger" ? "#0084FF" : "#E1306C";
+                      return (
+                        <div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                            <Icon size={18} strokeWidth={1.5} color={color} />
+                            <span style={{ fontWeight: 600, fontSize: 15, color: "var(--ink)" }}>{label}</span>
+                          </div>
+
+                          {conn ? (
+                            <div>
+                              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 10, marginBottom: 16 }}>
+                                <span>✅</span>
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ fontWeight: 600, fontSize: 13, color: "#15803d" }}>Verbunden als {conn.account_name}</div>
+                                  {conn.connected_at && <div style={{ fontSize: 11, color: "#166534", marginTop: 1 }}>Seit {new Date(conn.connected_at).toLocaleDateString("de-DE")}</div>}
+                                </div>
+                                <button onClick={async () => {
+                                  if (!confirm(`${label}-Verbindung trennen?`)) return;
+                                  await apiFetch(`/api/social?client_id=${id}&platform=${platform}`, { method: "DELETE" });
+                                  await load();
+                                }} style={{ fontSize: 11, padding: "4px 10px", border: "1px solid #fca5a5", borderRadius: 6, background: "transparent", color: "#dc2626", cursor: "pointer" }}>
+                                  Trennen
+                                </button>
+                              </div>
+                              <div style={{ padding: "12px 14px", background: "var(--bg)", borderRadius: 10, border: "1px solid var(--border)", fontSize: 13, color: "var(--text-secondary)" }}>
+                                💬 Eingehende Nachrichten werden automatisch als Leads im Hub gespeichert, sobald der Webhook aktiv ist.
+                                {platform === "instagram" && !metaConn && (
+                                  <div style={{ marginTop: 8, color: "var(--accent)", fontWeight: 500 }}>
+                                    ⚠️ Instagram nutzt den gleichen Facebook-Login — über Messenger-Kachel verbinden.
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <div>
+                              <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 16 }}>
+                                {platform === "messenger"
+                                  ? `Verbinde die Facebook-Seite von ${client.name}, um Messenger-DMs als Leads zu erfassen.`
+                                  : `Instagram wird über denselben Facebook-Login verbunden — du erhältst auch Messenger-Zugang.`}
+                              </p>
+                              <a href={`/api/social/meta/connect?client_id=${id}`}
+                                style={{ ...S.btn, display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none", background: color, color: "#fff" }}>
+                                <MessageCircle size={14} strokeWidth={2} />
+                                Mit Facebook / Meta verbinden
+                              </a>
+                              {platform === "instagram" && (
+                                <p style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 10 }}>
+                                  Das Instagram-Konto muss als Business-Account mit einer Facebook-Seite verknüpft sein.
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+
+                    {!["google-maps","landing-page","email","linkedin","messenger","instagram"].includes(openChannel) && (
                       <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>Dieser Kanal wird bald konfigurierbar sein.</p>
                     )}
                   </div>
