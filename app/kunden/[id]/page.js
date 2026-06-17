@@ -659,6 +659,14 @@ export default function KundeDetailPage() {
                                 </div>
                               );
                             })}
+                            {/* Tech-Stack — nur nach neuer Analyse vorhanden */}
+                            {client.seo_check.tech_stack && (
+                              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 10px", background: "var(--bg)", borderRadius: 8, marginTop: 4, borderTop: "1px solid var(--border)" }}>
+                                <span style={{ fontSize: 14, flexShrink: 0 }}>🛠</span>
+                                <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)", minWidth: 160 }}>Technologie</span>
+                                <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>{client.seo_check.tech_stack.wert}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       )}

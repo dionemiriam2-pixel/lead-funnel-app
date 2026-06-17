@@ -19,11 +19,20 @@ function parseSEO(html, url) {
                     || html.match(/<link[^>]*href=["'][^"']*["'][^>]*rel=["']canonical["'][^>]*>/i)?.[0];
   const canonical = canonicalRaw ? (canonicalRaw.match(/href=["']([^"']+)["']/i)?.[1] || null) : null;
 
-  // Schema.org: JSON-LD ODER Microdata (itemscope/itemtype)
-  const schemaJsonLd  = /<script[^>]+type=["']application\/ld\+json["']/i.test(html);
-  const schemaMicro   = /itemscope/i.test(html) && /itemtype=["']https?:\/\/schema\.org/i.test(html);
-  const schemaOrg     = schemaJsonLd || schemaMicro;
-  const schemaWert    = schemaJsonLd ? "JSON-LD" : schemaMicro ? "Microdata (itemscope)" : null;
+  // Schema.org: JSON-LD mit echtem @type-Extrakt
+  const jsonLdMatch  = html.match(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/i);
+  let schemaTypes    = null;
+  if (jsonLdMatch) {
+    try {
+      const parsed = JSON.parse(jsonLdMatch[1].trim());
+      const items  = Array.isArray(parsed) ? parsed : [parsed];
+      const types  = items.map(p => p["@type"]).filter(Boolean);
+      if (types.length) schemaTypes = types.join(", ");
+    } catch { schemaTypes = "JSON-LD (nicht parsebar)"; }
+  }
+  const schemaMicro  = /itemscope/i.test(html) && /itemtype=["']https?:\/\/schema\.org/i.test(html);
+  const schemaOrg    = !!schemaTypes || schemaMicro;
+  const schemaWert   = schemaTypes || (schemaMicro ? "Microdata (itemscope)" : null);
 
   // Open Graph
   const ogTags = /<meta[^>]+property=["']og:/i.test(html);
@@ -49,6 +58,47 @@ function parseSEO(html, url) {
     https:            { vorhanden: isHttps,     wert: isHttps ? "HTTPS" : "HTTP (unsicher)" },
     sitemap:          { vorhanden: false,       wert: null },
   };
+}
+
+function detectTechStack(html) {
+  const h = html.toLowerCase();
+  const tech = [];
+
+  // CMS / Page-Builder
+  if (/wp-content\/|wp-includes\/|wp-json\//.test(h))             tech.push("WordPress");
+  if (/elementor/.test(h))                                        tech.push("Elementor");
+  if (/data-et-|\/et-pb-/.test(h))                               tech.push("Divi");
+  if (/\/typo3temp\/|typo3conf/.test(h))                         tech.push("TYPO3");
+  if (/\/components\/com_|joomla/.test(h))                       tech.push("Joomla");
+  if (/drupal\.settings|\/sites\/default\/files\//.test(h))      tech.push("Drupal");
+  if (/cdn\.shopify\.com/.test(h))                               tech.push("Shopify");
+  if (/static1\.squarespace\.com/.test(h))                       tech.push("Squarespace");
+  if (/cdn\.wix\.com|wixstatic\.com|x-wix/.test(h))             tech.push("Wix");
+  if (/cdn\.jimdo\.com/.test(h))                                 tech.push("Jimdo");
+  if (/ghost\.io|content="ghost/.test(h))                        tech.push("Ghost");
+  if (/webflow\.js|data-wf-domain/.test(h))                      tech.push("Webflow");
+  if (/\.myshopify\.com/.test(h))                                tech.push("Shopify");
+
+  // JS-Frameworks
+  if (/__next_data__|"\/_next\/static\//.test(h))                tech.push("Next.js");
+  if (/__nuxt__|"\/_nuxt\//.test(h))                             tech.push("Nuxt.js");
+  if (/gatsby-|__gatsby/.test(h))                                tech.push("Gatsby");
+  if (/data-reactroot|react\.development|react\.production/.test(h)) tech.push("React");
+  if (/ng-version=|angular\.min\.js/.test(h))                   tech.push("Angular");
+  if (/data-v-[a-z0-9]+|vue\.min\.js/.test(h))                  tech.push("Vue.js");
+  if (/svelte-/.test(h))                                         tech.push("Svelte");
+
+  // Generator-Meta
+  const gen = html.match(/<meta[^>]+name=["']generator["'][^>]+content=["']([^"']+)/i)?.[1]
+           || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']generator["']/i)?.[1];
+  if (gen && !tech.some(t => gen.toLowerCase().includes(t.toLowerCase()))) {
+    tech.push(gen.split(" ")[0]); // z.B. "Hugo 0.117"
+  }
+
+  if (tech.length === 0) tech.push("Vanilla HTML / Unbekannt");
+
+  // Duplikate entfernen (WordPress + Elementor beides drin = ok)
+  return [...new Set(tech)];
 }
 
 async function checkSitemap(baseUrl) {
@@ -177,8 +227,9 @@ async function analyseWebsite(client_id, sb) {
     return NextResponse.json({ error: "Website-Fetch fehlgeschlagen: " + e.message }, { status: 422 });
   }
 
-  // 2. SEO-Check (kein KI)
+  // 2. SEO-Check (kein KI) + Tech-Stack
   const seoCheck  = parseSEO(html, url);
+  seoCheck.tech_stack = { vorhanden: true, wert: detectTechStack(html).join(", ") };
   const baseUrl   = new URL(url).origin;
 
   // Sitemap: mehrere Pfade probieren + robots.txt auslesen
