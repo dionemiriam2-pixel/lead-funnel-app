@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 
-const BASE = () => process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-const REDIRECT_URI = () => `${BASE()}/api/social/linkedin/callback`;
+function getBase(req) {
+  const { host } = new URL(req.url);
+  const proto = req.headers.get("x-forwarded-proto") || "https";
+  return `${proto}://${host}`;
+}
+const REDIRECT_URI = (req) => `${getBase(req)}/api/social/linkedin/callback`;
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
@@ -10,8 +14,10 @@ export async function GET(req) {
   const clientId = searchParams.get("state");
   const error    = searchParams.get("error");
 
+  const base = getBase(req);
+
   if (error || !code || !clientId) {
-    return NextResponse.redirect(`${BASE()}/kunden?linkedin_error=1`);
+    return NextResponse.redirect(`${base}/kunden?linkedin_error=1`);
   }
 
   // Code gegen Token tauschen
@@ -21,7 +27,7 @@ export async function GET(req) {
     body: new URLSearchParams({
       grant_type:    "authorization_code",
       code,
-      redirect_uri:  REDIRECT_URI(),
+      redirect_uri:  REDIRECT_URI(req),
       client_id:     process.env.LINKEDIN_CLIENT_ID,
       client_secret: process.env.LINKEDIN_CLIENT_SECRET,
     }),
@@ -30,7 +36,7 @@ export async function GET(req) {
   if (!tokenRes.ok) {
     const err = await tokenRes.text();
     console.error("LinkedIn token error:", err);
-    return NextResponse.redirect(`${BASE()}/kunden/${clientId}?linkedin_error=token`);
+    return NextResponse.redirect(`${base}/kunden/${clientId}?linkedin_error=token`);
   }
 
   const token       = await tokenRes.json();
@@ -62,5 +68,5 @@ export async function GET(req) {
       account_id:    accountId,
     }, { onConflict: "client_id,platform" });
 
-  return NextResponse.redirect(`${BASE()}/kunden/${clientId}?social=connected`);
+  return NextResponse.redirect(`${base}/kunden/${clientId}?social=connected`);
 }
