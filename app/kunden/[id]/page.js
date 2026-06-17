@@ -687,6 +687,14 @@ export default function KundeDetailPage() {
                   <h3 style={{ fontFamily: "var(--font-serif)", fontSize: 17, fontWeight: 500, color: "var(--ink)", marginBottom: 16 }}>Marketing-Strategie</h3>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                     <div>
+                      <label style={S.label}>Branche</label>
+                      <input value={form.industry || ""} onChange={e => setForm(f => ({ ...f, industry: e.target.value }))} placeholder="z.B. Marketing, Handwerk, Gastronomie" style={S.input} />
+                    </div>
+                    <div>
+                      <label style={S.label}>Region / Standort</label>
+                      <input value={form.region || ""} onChange={e => setForm(f => ({ ...f, region: e.target.value }))} placeholder="z.B. München, DACH" style={S.input} />
+                    </div>
+                    <div>
                       <label style={S.label}>Keywords (kommagetrennt)</label>
                       <input value={form.keywords || ""} onChange={e => setForm(f => ({ ...f, keywords: e.target.value }))} style={S.input} />
                     </div>

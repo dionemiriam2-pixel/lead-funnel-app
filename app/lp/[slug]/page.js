@@ -37,7 +37,7 @@ export default async function Page({ params }) {
       id, client_id, name, slug, title, status,
       content, impressum, datenschutz, leads_count,
       clients (
-        id, name, website, region, description,
+        id, name, website, region, description, industry,
         brand_color, accent_color, logo_url,
         mobile, phone, email
       )
@@ -51,7 +51,7 @@ export default async function Page({ params }) {
   const client = row.clients || {};
   const data = {
     name:         client.name         || "",
-    industry:     "",
+    industry:     client.industry     || "",
     brand_color:  client.brand_color  || null,
     accent_color: client.accent_color || null,
     logo_url:     client.logo_url     || null,
