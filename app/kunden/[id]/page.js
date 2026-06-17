@@ -407,6 +407,18 @@ export default function KundeDetailPage() {
   function toggleSrc(key)    { const n = selSources.includes(key) ? selSources.filter(s=>s!==key) : [...selSources,key]; setForm(f=>({...f,strategy:{...strat,sources:n}})); }
   function toggleOut(sk, ok) { const c=selOutreach[sk]||[]; const n=c.includes(ok)?c.filter(o=>o!==ok):[...c,ok]; setForm(f=>({...f,strategy:{...strat,outreach:{...selOutreach,[sk]:n}}})); }
 
+  /* Testimonials */
+  const testimonials = Array.isArray(form.testimonials) ? form.testimonials : [];
+  function addTestimonial()          { setForm(f => ({ ...f, testimonials: [...testimonials, { name: "", firma: "", text: "" }] })); }
+  function setTestimonial(i, k, v)   { const a = testimonials.map((x,j) => j===i ? {...x,[k]:v} : x); setForm(f => ({ ...f, testimonials: a })); }
+  function removeTestimonial(i)      { setForm(f => ({ ...f, testimonials: testimonials.filter((_,j) => j!==i) })); }
+
+  /* Referenzbilder */
+  const refImages = Array.isArray(form.reference_images) ? form.reference_images : [];
+  function addRefImage()             { setForm(f => ({ ...f, reference_images: [...refImages, { url: "", beschreibung: "" }] })); }
+  function setRefImage(i, k, v)      { const a = refImages.map((x,j) => j===i ? {...x,[k]:v} : x); setForm(f => ({ ...f, reference_images: a })); }
+  function removeRefImage(i)         { setForm(f => ({ ...f, reference_images: refImages.filter((_,j) => j!==i) })); }
+
   /* Logo */
   const logoDomain = client.website ? (() => { try { return new URL(client.website).hostname.replace(/^www\./, ""); } catch { return null; } })() : null;
   const logoUrl    = logoDomain ? `https://logo.clearbit.com/${logoDomain}` : null;
@@ -721,6 +733,140 @@ export default function KundeDetailPage() {
                   </div>
                 </div>
 
+                {/* ── Marke / CI ───────────────────────────── */}
+                <div style={{ ...S.card, marginTop: 16 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em", color: "var(--text-tertiary)", marginBottom: 16 }}>
+                    Marke / CI
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+                    {[["brand_color","Hauptfarbe","#111111"],["accent_color","Akzentfarbe","#e8600a"]].map(([k,l,def]) => (
+                      <div key={k}>
+                        <label style={S.label}>{l}</label>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <input type="color" value={form[k] || def} onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))}
+                            style={{ width: 38, height: 38, border: "1px solid var(--border)", borderRadius: 6, cursor: "pointer", padding: 2, background: "var(--surface)", flexShrink: 0 }} />
+                          <input value={form[k] || ""} onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))}
+                            placeholder={def} style={{ ...S.input, fontFamily: "monospace", fontSize: 13 }} />
+                        </div>
+                      </div>
+                    ))}
+                    <div>
+                      <label style={S.label}>Schriftart (Brand Font)</label>
+                      <input value={form.brand_font || ""} onChange={e => setForm(f => ({ ...f, brand_font: e.target.value }))}
+                        placeholder="z.B. Inter, Playfair Display" style={S.input} />
+                    </div>
+                    <div style={{ gridColumn: "1/-1" }}>
+                      <label style={S.label}>Logo-URL</label>
+                      <input value={form.logo_url || ""} onChange={e => setForm(f => ({ ...f, logo_url: e.target.value }))}
+                        placeholder="https://…/logo.png" style={S.input} />
+                      {form.logo_url && (
+                        <img src={form.logo_url} alt="Logo-Vorschau" onError={e => e.target.style.display="none"}
+                          style={{ marginTop: 8, maxHeight: 48, maxWidth: 160, objectFit: "contain", borderRadius: 6, border: "1px solid var(--border)", padding: 4, background: "#fff" }} />
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ marginTop: 14 }}>
+                    <button onClick={() => saveClient()} style={S.btn}>Speichern</button>
+                  </div>
+                </div>
+
+                {/* ── Conversion-Elemente (für Landingpages) ── */}
+                <div style={{ ...S.card, marginTop: 16 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em", color: "var(--text-tertiary)", marginBottom: 4 }}>
+                    Conversion-Elemente
+                  </div>
+                  <p style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 18, marginTop: 0 }}>
+                    Diese Inhalte nutzt der Landingpage-Generator für hochwertige, conversion-optimierte Seiten.
+                  </p>
+
+                  {/* Lead-Magnet & Garantie */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 20 }}>
+                    <div>
+                      <label style={S.label}>Angebot / Lead-Magnet</label>
+                      <textarea value={form.lead_magnet || ""} onChange={e => setForm(f => ({ ...f, lead_magnet: e.target.value }))} rows={3}
+                        placeholder="z.B. Kostenlose Erstberatung (30 Min.), Gratis-Checkliste, …" style={{ ...S.input, resize: "vertical" }} />
+                    </div>
+                    <div>
+                      <label style={S.label}>Garantie / Versprechen</label>
+                      <textarea value={form.garantie || ""} onChange={e => setForm(f => ({ ...f, garantie: e.target.value }))} rows={3}
+                        placeholder="z.B. 30-Tage-Geld-zurück, Kostenlose Nachbesserung, …" style={{ ...S.input, resize: "vertical" }} />
+                    </div>
+                  </div>
+
+                  {/* Testimonials */}
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                      <label style={{ ...S.label, margin: 0 }}>Kundenstimmen / Testimonials</label>
+                      <button onClick={addTestimonial}
+                        style={{ fontSize: 11, fontWeight: 700, padding: "4px 12px", borderRadius: 8, border: "1.5px solid var(--ink)", background: "transparent", color: "var(--ink)", cursor: "pointer" }}>
+                        + Zeuge
+                      </button>
+                    </div>
+                    {testimonials.length === 0 && (
+                      <div style={{ fontSize: 12, color: "var(--text-tertiary)", padding: "12px 14px", background: "var(--bg)", borderRadius: 8, border: "1px dashed var(--border)" }}>
+                        Noch keine Testimonials — "Zeuge" klicken zum Hinzufügen.
+                      </div>
+                    )}
+                    {testimonials.map((t, i) => (
+                      <div key={i} style={{ padding: "12px 14px", background: "var(--bg)", borderRadius: 10, marginBottom: 8, border: "1px solid var(--border)", display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 10, alignItems: "start" }}>
+                        <div>
+                          <label style={S.label}>Name</label>
+                          <input value={t.name || ""} onChange={e => setTestimonial(i, "name", e.target.value)} placeholder="Max Mustermann" style={S.input} />
+                        </div>
+                        <div>
+                          <label style={S.label}>Firma (optional)</label>
+                          <input value={t.firma || ""} onChange={e => setTestimonial(i, "firma", e.target.value)} placeholder="Muster GmbH" style={S.input} />
+                        </div>
+                        <button onClick={() => removeTestimonial(i)} style={{ padding: 6, background: "none", border: "none", cursor: "pointer", color: "var(--text-tertiary)", marginTop: 20 }}>✕</button>
+                        <div style={{ gridColumn: "1/-1" }}>
+                          <label style={S.label}>Zitat / Text</label>
+                          <textarea value={t.text || ""} onChange={e => setTestimonial(i, "text", e.target.value)} rows={2}
+                            placeholder="„Sehr professionell und schnell – wir empfehlen es weiter!"" style={{ ...S.input, resize: "vertical" }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Referenz-/Vorher-Nachher-Bilder */}
+                  <div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                      <label style={{ ...S.label, margin: 0 }}>Referenzbilder / Vorher-Nachher</label>
+                      <button onClick={addRefImage}
+                        style={{ fontSize: 11, fontWeight: 700, padding: "4px 12px", borderRadius: 8, border: "1.5px solid var(--ink)", background: "transparent", color: "var(--ink)", cursor: "pointer" }}>
+                        + Bild
+                      </button>
+                    </div>
+                    {refImages.length === 0 && (
+                      <div style={{ fontSize: 12, color: "var(--text-tertiary)", padding: "12px 14px", background: "var(--bg)", borderRadius: 8, border: "1px dashed var(--border)" }}>
+                        Noch keine Referenzbilder — "+ Bild" klicken zum Hinzufügen.
+                      </div>
+                    )}
+                    {refImages.map((img, i) => (
+                      <div key={i} style={{ padding: "12px 14px", background: "var(--bg)", borderRadius: 10, marginBottom: 8, border: "1px solid var(--border)", display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "start" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                          <div style={{ gridColumn: "1/-1" }}>
+                            <label style={S.label}>Bild-URL</label>
+                            <input value={img.url || ""} onChange={e => setRefImage(i, "url", e.target.value)} placeholder="https://…/bild.jpg" style={{ ...S.input, fontFamily: "monospace", fontSize: 12 }} />
+                          </div>
+                          {img.url && (
+                            <img src={img.url} alt="" onError={e => e.target.style.display="none"}
+                              style={{ height: 60, width: "100%", objectFit: "cover", borderRadius: 6, border: "1px solid var(--border)" }} />
+                          )}
+                          <div>
+                            <label style={S.label}>Beschreibung</label>
+                            <input value={img.beschreibung || ""} onChange={e => setRefImage(i, "beschreibung", e.target.value)} placeholder="Vorher / Nachher – Küchensanierung" style={S.input} />
+                          </div>
+                        </div>
+                        <button onClick={() => removeRefImage(i)} style={{ padding: 6, background: "none", border: "none", cursor: "pointer", color: "var(--text-tertiary)", marginTop: 20 }}>✕</button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div style={{ marginTop: 16 }}>
+                    <button onClick={() => saveClient()} style={S.btn}>Speichern</button>
+                  </div>
+                </div>
+
                 {/* Website-Analyse */}
                 <div style={{ ...S.card, marginTop: 16 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
@@ -755,32 +901,13 @@ export default function KundeDetailPage() {
             {tab === "Marketing" && (
               <div>
 
-                {/* Branding */}
-                <div style={{ ...S.card, marginBottom: 16 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em", color: "var(--text-tertiary)", marginBottom: 16 }}>
-                    Branding &amp; Design
+                {/* CI → jetzt im Profil */}
+                <div style={{ ...S.card, marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "14px 18px" }}>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)", marginBottom: 3 }}>Marke / CI & Conversion-Elemente</div>
+                    <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>Farben, Logo, Schrift, Testimonials und Referenzbilder werden jetzt im Profil-Tab gepflegt.</div>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
-                    {[["brand_color","Hauptfarbe","#111111"],["accent_color","Akzentfarbe","#e8600a"]].map(([k, l, def]) => (
-                      <div key={k}>
-                        <label style={S.label}>{l}</label>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <input type="color" value={form[k] || def} onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))}
-                            style={{ width: 38, height: 38, border: "1px solid var(--border)", borderRadius: 6, cursor: "pointer", padding: 2, background: "var(--surface)" }} />
-                          <input value={form[k] || ""} onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))}
-                            placeholder={def} style={{ ...S.input, fontFamily: "monospace", fontSize: 13 }} />
-                        </div>
-                      </div>
-                    ))}
-                    <div>
-                      <label style={S.label}>Logo-URL</label>
-                      <input value={form.logo_url || ""} onChange={e => setForm(f => ({ ...f, logo_url: e.target.value }))}
-                        placeholder="https://..." style={S.input} />
-                    </div>
-                  </div>
-                  <div style={{ marginTop: 14 }}>
-                    <button onClick={() => saveClient()} style={S.btn}>Speichern</button>
-                  </div>
+                  <button onClick={() => setTab("Profil")} style={{ ...S.btn, whiteSpace: "nowrap", flexShrink: 0 }}>Zum Profil →</button>
                 </div>
 
                 {/* Analyse-Ergebnisse */}
