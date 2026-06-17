@@ -170,10 +170,11 @@ export default function KundeDetailPage() {
       if (d.error) { setWebsiteAnalysisErr(d.error); return; }
       setForm(f => ({
         ...f,
-        description:     d.description     || f.description,
-        target_audience: d.target_audience || f.target_audience,
-        usp:             d.usp             || f.usp,
-        keywords:        d.keywords        || f.keywords,
+        industry:        d.industry        || f.industry        || "",
+        description:     d.description     || f.description     || "",
+        target_audience: d.target_audience || f.target_audience || "",
+        usp:             d.usp             || f.usp             || "",
+        keywords:        d.keywords        || f.keywords        || "",
         phone:           d.phone   || f.phone   || "",
         mobile:          d.mobile  || f.mobile  || "",
         email:           d.email   || f.email   || "",
