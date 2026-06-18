@@ -207,6 +207,11 @@ function extractSocialLinks(html) {
 }
 
 /* ─── Farben aus HTML extrahieren ───────────────────────── */
+/* rgb(r,g,b) → #rrggbb */
+function rgbToHex(r, g, b) {
+  return "#" + [r, g, b].map(v => Math.min(255, Math.max(0, parseInt(v))).toString(16).padStart(2, "0")).join("");
+}
+
 /* Prüft ob eine Farbe neutral ist (weiß, schwarz, grau) */
 function isNeutralColor(hex) {
   let h = hex.replace("#", "");
@@ -215,12 +220,28 @@ function isNeutralColor(hex) {
   const r = parseInt(h.slice(0, 2), 16);
   const g = parseInt(h.slice(2, 4), 16);
   const b = parseInt(h.slice(4, 6), 16);
-  if (r > 215 && g > 215 && b > 215) return true; // zu hell (fast weiß)
-  if (r < 40  && g < 40  && b < 40)  return true; // zu dunkel (fast schwarz)
+  if (r > 215 && g > 215 && b > 215) return true;
+  if (r < 40  && g < 40  && b < 40)  return true;
   const max = Math.max(r, g, b), min = Math.min(r, g, b);
   if (max === 0) return true;
-  if ((max - min) / max < 0.18) return true; // zu grau (geringe Sättigung)
+  if ((max - min) / max < 0.15) return true;
   return false;
+}
+
+/* Alle Farben (hex + rgb) aus CSS-Text extrahieren und als Hex zurückgeben */
+function extractAllColors(css) {
+  const colors = [];
+  // #rrggbb und #rgb
+  for (const m of css.matchAll(/#([0-9a-f]{6}|[0-9a-f]{3})\b/gi)) {
+    let h = m[1];
+    if (h.length === 3) h = h.split("").map(c => c+c).join("");
+    colors.push("#" + h.toLowerCase());
+  }
+  // rgb(r, g, b)
+  for (const m of css.matchAll(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/gi)) {
+    colors.push(rgbToHex(m[1], m[2], m[3]));
+  }
+  return colors;
 }
 
 function extractColors(html) {
@@ -236,41 +257,36 @@ function extractColors(html) {
   }
 
   // 2. Alle CSS-Blöcke + Inline-Styles zusammenführen
-  const cssBlocks = [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)].map(m => m[1]).join("\n");
+  const cssBlocks    = [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)].map(m => m[1]).join("\n");
   const inlineStyles = [...html.matchAll(/style=["']([^"']+)/gi)].map(m => m[1]).join(" ");
-  const allCss = cssBlocks + " " + inlineStyles;
+  const allCss       = cssBlocks + " " + inlineStyles;
 
-  // 3. Breite Liste CSS-Variablen-Namen (Squarespace, Wix, Webflow, WP, Jimdo, ...)
+  // 3. CSS-Variablen — breite Liste (Squarespace, Wix, Webflow, WP, Jimdo, plain HTML)
   if (allCss && !result.brand_color) {
-    const varRe = /--(?:primary|brand|main|cta|action|button|link|highlight|accent|color-1|c1|theme|key|hero|site|global|focus|interactive|foreground-accent|sqs-[a-z-]*color|wix-[a-z-]*color|color-primary|primary-color|brand-color|color-brand|color-cta|color-accent)\s*:\s*(#[0-9a-f]{3,8})\b/gi;
+    const varRe = /--(?:primary|brand|main|cta|action|button|link|highlight|color-1|c1|theme|key|hero|site|global|focus|interactive|foreground-accent|sqs-[a-z-]*color|wix-[a-z-]*color|color-primary|primary-color|brand-color|color-brand|color-cta|color-accent)\s*:\s*(#[0-9a-f]{3,8}|rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\))\b/gi;
     let m;
     while ((m = varRe.exec(allCss)) !== null) {
-      if (!isNeutralColor(m[1])) { result.brand_color = m[1].toLowerCase(); break; }
+      const hex = m[1].startsWith("rgb") ? rgbToHex(...m[1].match(/\d+/g)) : m[1].toLowerCase();
+      if (!isNeutralColor(hex)) { result.brand_color = hex; break; }
     }
   }
 
   // 4. Akzentfarbe aus CSS-Variablen
   if (allCss && !result.accent_color) {
-    const accentRe = /--(?:accent|secondary|second|color-2|c2|color-secondary|secondary-color)\s*:\s*(#[0-9a-f]{3,8})\b/gi;
+    const accentRe = /--(?:accent|secondary|second|color-2|c2|color-secondary|secondary-color)\s*:\s*(#[0-9a-f]{3,8}|rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\))\b/gi;
     let a;
     while ((a = accentRe.exec(allCss)) !== null) {
-      const hex = a[1].toLowerCase();
+      const hex = a[1].startsWith("rgb") ? rgbToHex(...a[1].match(/\d+/g)) : a[1].toLowerCase();
       if (!isNeutralColor(hex) && hex !== result.brand_color) { result.accent_color = hex; break; }
     }
   }
 
-  // 5. Fallback: häufigste nicht-neutrale Farbe aus Button/Link/CTA-Kontext
+  // 5. Fallback: häufigste nicht-neutrale Farbe aus dem gesamten CSS (hex + rgb)
   if (!result.brand_color && allCss) {
-    // Alle 6-stelligen Hex-Farben aus dem gesamten CSS
-    const allHex = [...allCss.matchAll(/#([0-9a-f]{6})\b/gi)]
-      .map(m => "#" + m[1].toLowerCase())
-      .filter(h => !isNeutralColor(h));
-
-    // Häufigkeit zählen
+    const allColors = extractAllColors(allCss).filter(h => !isNeutralColor(h));
     const freq = {};
-    for (const h of allHex) freq[h] = (freq[h] || 0) + 1;
+    for (const h of allColors) freq[h] = (freq[h] || 0) + 1;
     const ranked = Object.entries(freq).sort((a, b) => b[1] - a[1]);
-
     if (ranked[0]) result.brand_color  = ranked[0][0];
     if (ranked[1] && ranked[1][0] !== result.brand_color) result.accent_color = ranked[1][0];
   }
@@ -475,9 +491,9 @@ Antworte NUR mit rohem JSON:
     ...(aiResult.lead_magnet    ? { lead_magnet:     aiResult.lead_magnet    } : {}),
     ...(aiResult.garantie       ? { garantie:        aiResult.garantie       } : {}),
     ...(aiResult.strategy_notes ? { strategy_notes:  aiResult.strategy_notes } : {}),
-    // Farben
-    ...(colors.brand_color  ? { brand_color:  colors.brand_color  } : {}),
-    ...(colors.accent_color ? { accent_color: colors.accent_color } : {}),
+    // Farben — immer überschreiben damit alte falsche Werte verschwinden
+    brand_color:  colors.brand_color  || null,
+    accent_color: colors.accent_color || null,
     // Social-Links
     ...(socialLinks.instagram && !client.instagram ? { instagram: socialLinks.instagram } : {}),
     ...(socialLinks.facebook  && !client.facebook  ? { facebook:  socialLinks.facebook  } : {}),
