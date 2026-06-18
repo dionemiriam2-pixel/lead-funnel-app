@@ -168,6 +168,8 @@ export default function KundeDetailPage() {
   const [gmailCompose,      setGmailCompose]      = useState({ to: "", subject: "", body: "" });
   const [gmailSending,      setGmailSending]      = useState(false);
   const [gmailSendMsg,      setGmailSendMsg]      = useState("");
+  const [gmailSavedIds,     setGmailSavedIds]     = useState(new Set());
+  const [gmailSavingId,     setGmailSavingId]     = useState(null);
   const [generatingLP,      setGeneratingLP]      = useState(false);
   const [lpError,           setLpError]           = useState("");
   const [lpPreview,         setLpPreview]         = useState(null);
@@ -282,6 +284,31 @@ export default function KundeDetailPage() {
       flash("✓ Lead-Strategie analysiert");
     } else {
       flash(d.error || "Strategie-Analyse fehlgeschlagen");
+    }
+  }
+
+  /* Gmail: erkennt ob eine Mail wahrscheinlich eine Kontaktanfrage ist */
+  function isLikelyLead(msg) {
+    const text = ((msg.subject || "") + " " + (msg.snippet || "")).toLowerCase();
+    return /anfrage|kontakt|formular|contact\s?form|neue nachricht|neue anfrage|webseite|website|bewerbung|interessent|lead|angebot|beratung|rückruf|callback|name:|telefon:|nachricht:/.test(text);
+  }
+
+  async function saveGmailLead(msg) {
+    setGmailSavingId(msg.id);
+    const detail = await apiFetch(`/api/social/gmail/messages?client_id=${id}&message_id=${msg.id}`);
+    if (!detail.data) { flash("Mail-Body nicht abrufbar"); setGmailSavingId(null); return; }
+    const res = await apiFetch("/api/social/gmail/extract-lead", {
+      method: "POST",
+      body: JSON.stringify({ client_id: id, message_id: msg.id, subject: detail.data.subject, from: detail.data.from, body: detail.data.body }),
+    });
+    setGmailSavingId(null);
+    if (res.skipped) { flash(res.reason || "Übersprungen"); return; }
+    if (res.data) {
+      setGmailSavedIds(s => new Set([...s, msg.id]));
+      setLeads(prev => [res.data, ...prev]);
+      flash("✓ Lead aus Gmail übernommen");
+    } else {
+      flash(res.error || "Fehler beim Speichern");
     }
   }
 
@@ -2191,7 +2218,21 @@ export default function KundeDetailPage() {
                                   )}
                                   {gmailSelected ? (
                                     <div>
-                                      <button onClick={() => setGmailSelected(null)} style={{ ...S.btnOutline, marginBottom: 12 }}>← Zurück</button>
+                                      <div style={{ display: "flex", gap: 8, marginBottom: 12, alignItems: "center" }}>
+                                        <button onClick={() => setGmailSelected(null)} style={S.btnOutline}>← Zurück</button>
+                                        {(() => {
+                                          const already = gmailSavedIds.has(gmailSelected.id);
+                                          const saving  = gmailSavingId === gmailSelected.id;
+                                          return (
+                                            <button
+                                              disabled={already || saving}
+                                              onClick={() => saveGmailLead(gmailSelected)}
+                                              style={{ ...S.btnSm, background: already ? "#16a34a" : "#6366f1", color: "#fff", opacity: saving ? .6 : 1 }}>
+                                              {saving ? "Wird gespeichert…" : already ? "✓ Lead gespeichert" : "📥 Als Lead übernehmen"}
+                                            </button>
+                                          );
+                                        })()}
+                                      </div>
                                       <div style={{ background: "var(--bg)", borderRadius: 10, padding: 16 }}>
                                         <div style={{ fontWeight: 600, fontSize: 15, color: "var(--ink)", marginBottom: 4 }}>{gmailSelected.subject}</div>
                                         <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 12 }}>Von: {gmailSelected.from} · {gmailSelected.date}</div>
@@ -2200,20 +2241,41 @@ export default function KundeDetailPage() {
                                     </div>
                                   ) : (
                                     <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                                      {gmailMessages.map(m => (
-                                        <div key={m.id} onClick={async () => {
-                                          const d = await apiFetch(`/api/social/gmail/messages?client_id=${id}&message_id=${m.id}`);
-                                          setGmailSelected(d.data);
-                                        }}
-                                          style={{ padding: "10px 14px", borderRadius: 8, background: m.unread ? "var(--surface)" : "var(--bg)", border: "1px solid var(--border)", cursor: "pointer", display: "flex", flexDirection: "column", gap: 2 }}>
-                                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                            <span style={{ fontWeight: m.unread ? 700 : 500, fontSize: 13, color: "var(--ink)" }}>{m.from.split("<")[0].trim() || m.from}</span>
-                                            <span style={{ fontSize: 11, color: "var(--text-tertiary)" }}>{new Date(m.date).toLocaleDateString("de-DE")}</span>
-                                          </div>
-                                          <div style={{ fontWeight: m.unread ? 600 : 400, fontSize: 13, color: "var(--ink)" }}>{m.subject}</div>
-                                          <div style={{ fontSize: 12, color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.snippet}</div>
+                                      {gmailMessages.filter(isLikelyLead).length > 0 && (
+                                        <div style={{ background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 9, padding: "8px 12px", marginBottom: 6, fontSize: 12, color: "#4338ca", fontWeight: 500 }}>
+                                          📩 {gmailMessages.filter(isLikelyLead).length} mögliche{gmailMessages.filter(isLikelyLead).length === 1 ? "" : ""} Lead-Anfrage{gmailMessages.filter(isLikelyLead).length !== 1 ? "n" : ""} erkannt — öffne die markierten Mails und klicke „Als Lead übernehmen"
                                         </div>
-                                      ))}
+                                      )}
+                                      {gmailMessages.map(m => {
+                                        const likely  = isLikelyLead(m);
+                                        const already = gmailSavedIds.has(m.id);
+                                        const saving  = gmailSavingId === m.id;
+                                        return (
+                                          <div key={m.id}
+                                            style={{ padding: "10px 14px", borderRadius: 8, background: m.unread ? "var(--surface)" : "var(--bg)", border: `1px solid ${likely && !already ? "#a5b4fc" : "var(--border)"}`, cursor: "pointer", display: "flex", flexDirection: "column", gap: 2, position: "relative" }}>
+                                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }} onClick={async () => { const d = await apiFetch(`/api/social/gmail/messages?client_id=${id}&message_id=${m.id}`); setGmailSelected(d.data); }}>
+                                              <div style={{ flex: 1, minWidth: 0 }}>
+                                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 2 }}>
+                                                  <span style={{ fontWeight: m.unread ? 700 : 500, fontSize: 13, color: "var(--ink)" }}>{m.from.split("<")[0].trim() || m.from}</span>
+                                                  <div style={{ display: "flex", gap: 6, alignItems: "center", flexShrink: 0, marginLeft: 8 }}>
+                                                    {likely && !already && <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 99, background: "#6366f1", color: "#fff" }}>Lead?</span>}
+                                                    {already && <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 99, background: "#16a34a", color: "#fff" }}>✓</span>}
+                                                    <span style={{ fontSize: 11, color: "var(--text-tertiary)" }}>{new Date(m.date).toLocaleDateString("de-DE")}</span>
+                                                  </div>
+                                                </div>
+                                                <div style={{ fontWeight: m.unread ? 600 : 400, fontSize: 13, color: "var(--ink)" }}>{m.subject}</div>
+                                                <div style={{ fontSize: 12, color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.snippet}</div>
+                                              </div>
+                                            </div>
+                                            {likely && !already && (
+                                              <button disabled={saving} onClick={() => saveGmailLead(m)}
+                                                style={{ ...S.btnSm, background: "#6366f1", color: "#fff", alignSelf: "flex-start", marginTop: 4, opacity: saving ? .6 : 1 }}>
+                                                {saving ? "Wird gespeichert…" : "📥 Als Lead übernehmen"}
+                                              </button>
+                                            )}
+                                          </div>
+                                        );
+                                      })}
                                     </div>
                                   )}
                                 </div>
