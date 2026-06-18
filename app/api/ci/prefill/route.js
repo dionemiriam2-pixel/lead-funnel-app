@@ -70,7 +70,9 @@ Antworte AUSSCHLIESSLICH mit rohem JSON (kein Markdown, keine Code-Fences) in di
   "bildstil": "Wie sollten Bilder/Fotos des Unternehmens aussehen?",
   "ueber_uns": "2-4 Sätze Über-uns-Text im Stil der Marke",
   "brand_color": "${client.brand_color || "#111111"}",
-  "accent_color": "${client.accent_color || "#e8600a"}"
+  "accent_color": "${client.accent_color || "#e8600a"}",
+  "brand_font": "Empfohlene Headline-Schriftart passend zur Branche (z.B. Playfair Display, Inter, Sora)",
+  "body_font": "Empfohlene Fliesstext-Schriftart (z.B. Inter, Lato, Georgia)"
 }
 
 Wichtig: Leite alles aus den gegebenen Daten ab. Erfinde keine Fakten. Schreibe auf Deutsch.`;

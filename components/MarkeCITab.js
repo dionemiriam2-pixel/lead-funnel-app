@@ -78,6 +78,8 @@ export default function MarkeCITab({
         ...f,
         brand_color:  s.brand_color  || f.brand_color,
         accent_color: s.accent_color || f.accent_color,
+        brand_font:   s.brand_font   || f.brand_font,
+        body_font:    s.body_font    || f.body_font,
         ci: {
           ...(f.ci || {}),
           tonalitaet:    s.tonalitaet    || f.ci?.tonalitaet    || "",
