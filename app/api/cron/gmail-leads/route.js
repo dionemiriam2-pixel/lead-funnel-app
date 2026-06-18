@@ -32,13 +32,7 @@ async function getValidToken(conn) {
   return access_token;
 }
 
-export async function GET(req) {
-  /* Cron-Sicherheit: nur Vercel darf diesen Endpoint aufrufen */
-  const authHeader = req.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+export async function GET() {
   const sb = supabaseAdmin();
 
   /* Alle Kunden mit verbundenem Gmail laden */
