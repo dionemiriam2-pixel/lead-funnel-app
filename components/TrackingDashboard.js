@@ -242,7 +242,6 @@ function WAdsPlaceholder() {
   return (
     <Card cols={2}>
       <div style={{ textAlign: "center", padding: "16px 0", opacity: 0.5 }}>
-        <div style={{ fontSize: 28, marginBottom: 8 }}>📊</div>
         <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", marginBottom: 4 }}>Werbung / Supermetrics</div>
         <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>Spend, Impressionen, CTR, Cost-per-Lead</div>
         <div style={{ marginTop: 12, fontSize: 11, padding: "4px 12px", display: "inline-block", borderRadius: 99, background: "var(--border)", color: "var(--text-tertiary)", fontWeight: 700 }}>

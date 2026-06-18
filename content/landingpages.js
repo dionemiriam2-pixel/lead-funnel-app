@@ -32,9 +32,9 @@ export const landingPages = [
 
     // Vorteile
     benefits: [
-      { icon: "📋", title: "Klare Checkliste", text: "Kein Rätselraten mehr. Du weißt Schritt für Schritt, was als Nächstes kommt." },
-      { icon: "💰", title: "Kosten im Griff", text: "Wir zeigen dir, wo die häufigsten Kostenfallen lauern — und wie du sie umgehst." },
-      { icon: "⏱️", title: "Zeit sparen", text: "Mit dem richtigen Plan sparst du Wochen an Planung und vermeidest teure Nacharbeiten." },
+      { icon: "", title: "Klare Checkliste", text: "Kein Rätselraten mehr. Du weißt Schritt für Schritt, was als Nächstes kommt." },
+      { icon: "", title: "Kosten im Griff", text: "Wir zeigen dir, wo die häufigsten Kostenfallen lauern — und wie du sie umgehst." },
+      { icon: "", title: "Zeit sparen", text: "Mit dem richtigen Plan sparst du Wochen an Planung und vermeidest teure Nacharbeiten." },
     ],
 
     brand: "Konzept mit Kopf",
@@ -90,9 +90,9 @@ export const landingPages = [
     intents: ["Restaurant neu eröffnen", "Café oder Bistro planen", "Bestandslokal umbauen"],
 
     benefits: [
-      { icon: "📄", title: "Alle Genehmigungen im Überblick", text: "Gaststättenerlaubnis, Hygieneschulung, Bauantrag — wir erklären was wann nötig ist." },
-      { icon: "🏗️", title: "Umbau ohne böse Überraschungen", text: "Realistische Kostenplanung statt Schätzungen auf gut Glück." },
-      { icon: "🚀", title: "Schneller zum ersten Gast", text: "Mit dem richtigen Zeitplan eröffnest du früher — und stressfreier." },
+      { icon: "", title: "Alle Genehmigungen im Überblick", text: "Gaststättenerlaubnis, Hygieneschulung, Bauantrag — wir erklären was wann nötig ist." },
+      { icon: "", title: "Umbau ohne böse Überraschungen", text: "Realistische Kostenplanung statt Schätzungen auf gut Glück." },
+      { icon: "", title: "Schneller zum ersten Gast", text: "Mit dem richtigen Zeitplan eröffnest du früher — und stressfreier." },
     ],
 
     brand: "Konzept mit Kopf",
@@ -145,9 +145,9 @@ export const landingPages = [
     intents: ["Ladengestaltung modernisieren", "Mehr Laufkundschaft gewinnen", "Umbau konkret planen"],
 
     benefits: [
-      { icon: "🛍️", title: "Mehr Verweildauer", text: "Ein durchdachtes Layout hält Kunden länger im Geschäft — und erhöht den Warenkorbwert." },
-      { icon: "💡", title: "Beleuchtung & Atmosphäre", text: "Die richtige Lichtführung entscheidet, ob Kunden kaufen oder nur schauen." },
-      { icon: "📐", title: "Professionelle Planung", text: "Wir bringen Erfahrung aus 40+ Projekten mit — du bekommst bewährte Konzepte." },
+      { icon: "", title: "Mehr Verweildauer", text: "Ein durchdachtes Layout hält Kunden länger im Geschäft — und erhöht den Warenkorbwert." },
+      { icon: "", title: "Beleuchtung & Atmosphäre", text: "Die richtige Lichtführung entscheidet, ob Kunden kaufen oder nur schauen." },
+      { icon: "", title: "Professionelle Planung", text: "Wir bringen Erfahrung aus 40+ Projekten mit — du bekommst bewährte Konzepte." },
     ],
 
     brand: "Konzept mit Kopf",

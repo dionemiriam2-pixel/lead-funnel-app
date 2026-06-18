@@ -31,7 +31,7 @@ export async function POST(req) {
   const seoSummary = client.seo_check
     ? Object.entries(client.seo_check)
         .filter(([, v]) => v && typeof v === "object" && "vorhanden" in v)
-        .map(([k, v]) => `${k}: ${v.vorhanden ? "✅" : "❌"}${v.wert ? ` (${v.wert})` : ""}`)
+        .map(([k, v]) => `${k}: ${v.vorhanden ? "ja" : "nein"}${v.wert ? ` (${v.wert})` : ""}`)
         .join("\n")
     : "keine SEO-Daten";
 

@@ -183,7 +183,7 @@ function PostCard({ post, hasLinkedIn, hasImageKey, onDelete, onLinkedInPost }) 
                 style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 8, border: "1.5px solid var(--border)", background: "var(--bg)", color: "var(--ink)", fontSize: 12, fontWeight: 600, cursor: imgLoading ? "not-allowed" : "pointer", opacity: imgLoading ? 0.6 : 1 }}>
                 {imgLoading
                   ? "↺"
-                  : "🖼"}
+                  : "+"}
                 {imgLoading ? "Generiert…" : "Bild erzeugen"}
               </button>
             ) : (
@@ -305,7 +305,6 @@ export default function ContentTab({ clientId, client }) {
         <div style={{ padding: "48px 0", textAlign: "center", color: "var(--text-tertiary)", fontSize: 13 }}>Lade…</div>
       ) : posts.length === 0 ? (
         <div style={{ padding: "60px 32px", textAlign: "center", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12 }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>✍️</div>
           <div style={{ fontWeight: 600, color: "var(--ink)", marginBottom: 6, fontSize: 15 }}>Noch keine Posts erstellt</div>
           <div style={{ fontSize: 13, color: "var(--text-secondary)", maxWidth: 320, margin: "0 auto 20px" }}>
             Klick auf "Wochen-Content erstellen" — die KI schreibt 5 fertige Posts basierend auf dem Kundenprofil.

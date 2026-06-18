@@ -143,7 +143,7 @@ export default function LandingPage({ lp }) {
             {lp.formSub && <p style={{ fontSize: 14, color: "#6b7280", marginBottom: 20 }}>{lp.formSub}</p>}
             <LeadForm lp={lp} accent={accent} />
             <p style={{ fontSize: 12, color: "#9ca3af", marginTop: 14, textAlign: "center" }}>
-              🔒 Kostenlos · Unverbindlich · Vertraulich
+              Kostenlos · Unverbindlich · Vertraulich
             </p>
           </div>
         </div>
@@ -168,7 +168,6 @@ export default function LandingPage({ lp }) {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 28 }}>
               {benefits.map((b, i) => (
                 <div key={i} style={{ padding: "32px 28px", background: "#f9fafb", borderRadius: 16, border: "1px solid #f3f4f6" }}>
-                  <div style={{ fontSize: 36, marginBottom: 16 }}>{b.icon || "✓"}</div>
                   <h3 style={{ fontSize: 18, fontWeight: 800, color: dark, marginBottom: 10, lineHeight: 1.3 }}>{b.title}</h3>
                   <p style={{ fontSize: 15, color: "#6b7280", lineHeight: 1.7, margin: 0 }}>{b.text}</p>
                 </div>
@@ -320,7 +319,7 @@ export default function LandingPage({ lp }) {
         <section style={{ background: accent + "0f", padding: "64px 20px", borderTop: "1px solid " + accent + "30", borderBottom: "1px solid " + accent + "30" }}>
           <div style={{ maxWidth: 760, margin: "0 auto", textAlign: "center" }}>
             <div style={{ display: "inline-block", background: accent, color: "#fff", padding: "6px 18px", borderRadius: 999, fontSize: 13, fontWeight: 700, marginBottom: 20 }}>
-              🎁 Unser Angebot für Sie
+              Unser Angebot für Sie
             </div>
             <h2 style={{ fontSize: "clamp(22px,3vw,32px)", fontWeight: 900, color: dark, marginBottom: 16, letterSpacing: -0.3 }}>
               {leadMagnet}
@@ -337,7 +336,7 @@ export default function LandingPage({ lp }) {
         <div style={{ maxWidth: 1060, margin: "0 auto", display: "flex", flexWrap: "wrap", gap: 56, alignItems: "center" }}>
           <div style={{ flex: "1 1 300px" }}>
             <div style={{ display: "inline-block", background: accent, color: "#fff", padding: "6px 16px", borderRadius: 999, fontSize: 13, fontWeight: 700, marginBottom: 24 }}>
-              ⏰ {urgency}
+              {urgency}
             </div>
             <h2 style={{ fontSize: "clamp(26px,4vw,42px)", fontWeight: 900, marginBottom: 18, lineHeight: 1.15, letterSpacing: -0.5 }}>
               {lp.ctaTitle || "Jetzt kostenloses Erstgespräch sichern"}
@@ -359,7 +358,7 @@ export default function LandingPage({ lp }) {
             </h3>
             <LeadForm lp={lp} accent={accent} />
             <p style={{ fontSize: 12, color: "#9ca3af", marginTop: 14, textAlign: "center" }}>
-              🔒 Kostenlos · Unverbindlich · Vertraulich
+              Kostenlos · Unverbindlich · Vertraulich
             </p>
           </div>
         </div>

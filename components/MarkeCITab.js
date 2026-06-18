@@ -72,7 +72,7 @@ export default function MarkeCITab({
         method: "POST",
         body: JSON.stringify({ client_id: clientId }),
       });
-      if (res.error) { setPrefillMsg("❌ " + res.error); return; }
+      if (res.error) { setPrefillMsg(res.error); return; }
       const s = res.suggestions;
       setForm(f => ({
         ...f,
@@ -98,7 +98,7 @@ export default function MarkeCITab({
       }));
       setPrefillMsg("✓ Vorschläge geladen — bitte prüfen und anpassen, dann Speichern klicken.");
     } catch (e) {
-      setPrefillMsg("❌ Netzwerkfehler — bitte nochmal versuchen.");
+      setPrefillMsg("Netzwerkfehler — bitte nochmal versuchen.");
     } finally {
       setPrefilling(false);
     }
