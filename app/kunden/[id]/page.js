@@ -254,9 +254,14 @@ export default function KundeDetailPage() {
         mobile:          d.mobile  || f.mobile  || "",
         email:           d.email   || f.email   || "",
         contact:         d.contact || "",
+        lead_magnet:     d.lead_magnet     || f.lead_magnet     || "",
+        garantie:        d.garantie        || f.garantie        || "",
+        strategy_notes:  d.strategy_notes  || f.strategy_notes  || "",
       }));
       await load();
-      flash(d.savedProducts > 0 ? `✓ Analysiert · ${d.savedProducts} Leistung${d.savedProducts !== 1 ? "en" : ""} erkannt` : "✓ Website analysiert");
+      const parts = ["Alle Tabs befüllt"];
+      if (d.savedProducts > 0) parts.push(`${d.savedProducts} Leistung${d.savedProducts !== 1 ? "en" : ""} erkannt`);
+      flash("✓ " + parts.join(" · "));
     } catch {
       setWebsiteAnalysisErr("Netzwerkfehler — bitte nochmal versuchen.");
     } finally {
@@ -500,7 +505,7 @@ export default function KundeDetailPage() {
                   onClick={analyseWebsite}
                   disabled={analysingWebsite}
                   style={{ ...S.btn, width: "100%", textAlign: "center", opacity: analysingWebsite ? .6 : 1, cursor: analysingWebsite ? "not-allowed" : "pointer" }}>
-                  {analysingWebsite ? "Analysiert…" : client.analyzed_at ? "Neu analysieren" : "Analysieren"}
+                  {analysingWebsite ? "Analysiert…" : client.analyzed_at ? "Neu analysieren" : "Komplett-Analyse starten"}
                 </button>
                 {websiteAnalysisErr && (
                   <div style={{ marginTop: 7, fontSize: 11, color: "#dc2626", lineHeight: 1.4 }}>{websiteAnalysisErr}</div>
@@ -880,9 +885,9 @@ export default function KundeDetailPage() {
                 <div style={{ ...S.card, marginTop: 16 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)", marginBottom: 3 }}>Website analysieren</div>
+                      <div style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)", marginBottom: 3 }}>Komplett-Analyse</div>
                       <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>
-                        Lädt die Website, prüft SEO-Felder und füllt Zielgruppe, USP und Keywords per KI aus.
+                        Füllt alle Tabs auf einmal: Profil, Marke & CI, Conversion-Elemente, Leistungen, Strategie.
                       </div>
                       {client.analyzed_at && (
                         <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginTop: 5 }}>
@@ -894,7 +899,7 @@ export default function KundeDetailPage() {
                       onClick={analyseWebsite}
                       disabled={analysingWebsite}
                       style={{ ...S.btn, opacity: analysingWebsite ? .6 : 1, cursor: analysingWebsite ? "not-allowed" : "pointer", whiteSpace: "nowrap" }}>
-                      {analysingWebsite ? "Analysiert…" : client.analyzed_at ? "Neu analysieren" : "Analysieren"}
+                      {analysingWebsite ? "Analysiert…" : client.analyzed_at ? "Neu analysieren" : "Komplett-Analyse starten"}
                     </button>
                   </div>
                   {websiteAnalysisErr && (

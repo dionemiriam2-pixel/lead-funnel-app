@@ -306,48 +306,81 @@ async function analyseWebsite(client_id, sb) {
   const regexContact  = extractContact(text);                       // regex über Gesamttext
   const colors        = extractColors(html);
 
-  // 4. KI-Analyse via Anthropic Haiku
-  const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "x-api-key": process.env.ANTHROPIC_API_KEY,
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 2000,
-      system: "Du bist SEO- und Marketing-Analyst. Antworte ausschließlich mit gültigem JSON, kein Fließtext.",
-      messages: [
-        {
-          role: "user",
-          content: `Analysiere diesen Website-Text (inkl. Impressum/Kontaktseite) und gib JSON zurück mit den Feldern:
-- industry (String, 1–3 Wörter): Branche, z.B. "Fotografie", "Marketing", "Handwerk", "Gastronomie", "IT", "Immobilien". Nur die Branche.
-- description (String, 2–3 Sätze): Was macht das Unternehmen? Was bietet es an?
+  // 4. KI-Analyse: Profil + CI parallel
+  const profilePrompt = `Analysiere diesen Website-Text und gib JSON zurück:
+- industry (String, 1–3 Wörter): Branche
+- description (String, 2–3 Sätze): Was macht das Unternehmen?
 - target_audience (String, 1–2 Sätze): Wer ist die Zielgruppe?
-- usp (String, 1 Satz): Was ist das Alleinstellungsmerkmal?
-- keywords (Array von 8–12 Strings): Relevante SEO-Keywords
-- region (String oder null): Stadt, Region oder Gebiet des Unternehmens, z.B. "München", "Bayern", "DACH", "Berlin & Umgebung". Nur wenn eindeutig im Text. Sonst null.
-- contact (String oder null): Vorname + Nachname des Inhabers/Ansprechpartners, falls genannt. Nur ein Name, keine E-Mail, keine Telefonnummer. Sonst null.
-- phone (String oder null): Festnetznummer, falls im Text sichtbar (z.B. im Impressum). Format so wie im Text. Sonst null.
-- mobile (String oder null): Mobilnummer (beginnt mit 015/016/017 oder +4915/16/17), falls im Text sichtbar. Sonst null.
-- email (String oder null): E-Mail-Adresse, falls im Text sichtbar. Sonst null.
-- products (Array von max. 5 Objekten): Erkannte Produkte/Leistungen, jedes mit:
-  - name (String): Produktname oder Leistungsbezeichnung
-  - description (String, 1 Satz): Kurze Beschreibung
-  - target_groups (String): Für wen ist das gedacht?
-  - keywords (String): 3–5 relevante Suchbegriffe, kommagetrennt
-  - offer (String): Nutzen / Lead-Magnet (1 kurzer Satz)
+- usp (String, 1 Satz): Alleinstellungsmerkmal
+- keywords (Array 8–12 Strings): SEO-Keywords
+- region (String|null): Stadt/Region, nur wenn eindeutig erkennbar
+- contact (String|null): Name des Inhabers/Ansprechpartners, falls genannt
+- phone (String|null): Festnetznummer falls sichtbar
+- mobile (String|null): Mobilnummer falls sichtbar
+- email (String|null): E-Mail-Adresse falls sichtbar
+- lead_magnet (String, 1 Satz): Passendes kostenloses Angebot das Leads generiert (z.B. "Kostenlose Erstberatung 30 Min.", "Gratis-Checkliste herunterladen")
+- garantie (String, 1 Satz): Überzeugendes Versprechen/Garantie für potenzielle Kunden (z.B. "30 Tage Geld-zurück-Garantie", "Kostenlose Nachbesserung")
+- strategy_notes (String, 3–5 Sätze): Kurze Marketingstrategie: Welche Kanäle, welche Botschaft, welche Zielgruppe ansprechen?
+- products (Array max. 5): Leistungen mit {name, description, target_groups, keywords, offer}
 
-Wichtig: Nur Werte zurückgeben die wirklich im Text stehen. Keine Erfindungen. null wenn nicht vorhanden.
+Nur belegte Werte, null wenn nicht vorhanden.
 
 Text:
-${text.slice(0, 9000)}`,
-        },
-        { role: "assistant", content: "{" },
-      ],
+${text.slice(0, 8000)}`;
+
+  const ciPrompt = `Du bist Marken-Stratege. Analysiere diese Unternehmens-Website und erstelle ein Marken-Briefing.
+
+Firmenname: ${client.name}
+Branche: ${client.industry || "unbekannt"}
+Website-Text (Auszug):
+${text.slice(0, 4000)}
+
+Antworte NUR mit rohem JSON:
+{
+  "tonalitaet": "professionell|persoenlich|freundlich|direkt|inspirierend",
+  "anrede": "Sie|du",
+  "claim": "kurzer Claim/Slogan",
+  "sprache_dos": "3–5 Punkte was die Marke kommunikativ ausmacht, zeilengetrennt",
+  "sprache_donts": "3–5 Punkte was die Marke vermeiden sollte, zeilengetrennt",
+  "mission": "1–2 Sätze warum das Unternehmen existiert",
+  "werte": "3–5 Kernwerte, kommagetrennt",
+  "kernbotschaften": ["Botschaft 1", "Botschaft 2", "Botschaft 3"],
+  "persona": "Typische Zielgruppe: Alter, Situation, Bedürfnisse",
+  "wettbewerb": "Typische Wettbewerber und was dieses Unternehmen anders macht",
+  "bildstil": "Wie sollten Bilder/Fotos aussehen?",
+  "ueber_uns": "2–4 Sätze Über-uns-Text im Stil der Marke",
+  "brand_font": "Empfohlene Headline-Schrift (z.B. Playfair Display, Inter, Sora)",
+  "body_font": "Empfohlene Fließtext-Schrift (z.B. Inter, Lato, Georgia)"
+}`;
+
+  const aiHeaders = {
+    "x-api-key": process.env.ANTHROPIC_API_KEY,
+    "anthropic-version": "2023-06-01",
+    "content-type": "application/json",
+  };
+
+  const [aiRes, ciRes] = await Promise.all([
+    fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: aiHeaders,
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 2500,
+        system: "Antworte ausschließlich mit gültigem JSON, kein Fließtext.",
+        messages: [{ role: "user", content: profilePrompt }, { role: "assistant", content: "{" }],
+      }),
     }),
-  });
+    fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: aiHeaders,
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 1500,
+        system: "Antworte ausschließlich mit rohem JSON ohne Erklärungen.",
+        messages: [{ role: "user", content: ciPrompt }],
+      }),
+    }),
+  ]);
 
   if (!aiRes.ok) {
     const t = await aiRes.text();
@@ -360,7 +393,6 @@ ${text.slice(0, 9000)}`,
   try {
     aiResult = JSON.parse(rawText);
   } catch {
-    // Abgeschnittenes JSON: alles bis zur letzten vollständigen Property reparieren
     try {
       const trimmed = rawText.slice(0, rawText.lastIndexOf(",")).trimEnd() + "}";
       aiResult = JSON.parse(trimmed);
@@ -369,33 +401,61 @@ ${text.slice(0, 9000)}`,
     }
   }
 
+  // CI-Ergebnis parsen (Fehler hier sind nicht kritisch)
+  let ciResult = {};
+  if (ciRes.ok) {
+    try {
+      const ciData = await ciRes.json();
+      let ciRaw = (ciData.content?.[0]?.text || "").replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+      const a = ciRaw.indexOf("{"), b = ciRaw.lastIndexOf("}");
+      if (a !== -1 && b !== -1) ciResult = JSON.parse(ciRaw.slice(a, b + 1));
+    } catch { /* CI-Fehler nicht kritisch */ }
+  }
+
   // 5. In Supabase speichern
   const update = {
     seo_check:       seoCheck,
     raw_html:        html.slice(0, 50000),
     analyzed_at:     new Date().toISOString(),
+    // Profil
     industry:        aiResult.industry        || client.industry        || null,
     description:     aiResult.description     || client.description,
     target_audience: aiResult.target_audience || client.target_audience,
     usp:             aiResult.usp             || client.usp,
-    keywords:        Array.isArray(aiResult.keywords)
-                       ? aiResult.keywords.join(", ")
-                       : aiResult.keywords || client.keywords,
-    // Kontaktdaten: Regex hat Vorrang, AI als Fallback
-    phone:   regexContact.phone  || aiResult.phone  || null,
-    mobile:  regexContact.mobile || aiResult.mobile || null,
-    email:   regexContact.email  || aiResult.email  || null,
-    contact: aiResult.contact || null,
-    region:  aiResult.region  || client.region || null,
-    // Farben aus Website (immer aktualisieren wenn gefunden)
+    keywords:        Array.isArray(aiResult.keywords) ? aiResult.keywords.join(", ") : aiResult.keywords || client.keywords,
+    phone:           regexContact.phone  || aiResult.phone  || null,
+    mobile:          regexContact.mobile || aiResult.mobile || null,
+    email:           regexContact.email  || aiResult.email  || null,
+    contact:         aiResult.contact || null,
+    region:          aiResult.region  || client.region || null,
+    // Conversion-Elemente
+    ...(aiResult.lead_magnet    ? { lead_magnet:     aiResult.lead_magnet    } : {}),
+    ...(aiResult.garantie       ? { garantie:        aiResult.garantie       } : {}),
+    ...(aiResult.strategy_notes ? { strategy_notes:  aiResult.strategy_notes } : {}),
+    // Farben
     ...(colors.brand_color  ? { brand_color:  colors.brand_color  } : {}),
     ...(colors.accent_color ? { accent_color: colors.accent_color } : {}),
-    // Social-Links nur überschreiben wenn neu gefunden
+    // Social-Links
     ...(socialLinks.instagram && !client.instagram ? { instagram: socialLinks.instagram } : {}),
     ...(socialLinks.facebook  && !client.facebook  ? { facebook:  socialLinks.facebook  } : {}),
     ...(socialLinks.linkedin  && !client.linkedin  ? { linkedin:  socialLinks.linkedin  } : {}),
     ...(socialLinks.tiktok    && !client.tiktok    ? { tiktok:    socialLinks.tiktok    } : {}),
     ...(socialLinks.youtube   && !client.youtube   ? { youtube:   socialLinks.youtube   } : {}),
+    // Marke & CI
+    ...(ciResult.tonalitaet    ? { tonalitaet:     ciResult.tonalitaet    } : {}),
+    ...(ciResult.anrede        ? { anrede:         ciResult.anrede        } : {}),
+    ...(ciResult.claim         ? { claim:          ciResult.claim         } : {}),
+    ...(ciResult.sprache_dos   ? { sprache_dos:    ciResult.sprache_dos   } : {}),
+    ...(ciResult.sprache_donts ? { sprache_donts:  ciResult.sprache_donts } : {}),
+    ...(ciResult.mission       ? { mission:        ciResult.mission       } : {}),
+    ...(ciResult.werte         ? { werte:          ciResult.werte         } : {}),
+    ...(ciResult.kernbotschaften && Array.isArray(ciResult.kernbotschaften) ? { kernbotschaften: ciResult.kernbotschaften } : {}),
+    ...(ciResult.persona       ? { persona:        ciResult.persona       } : {}),
+    ...(ciResult.wettbewerb    ? { wettbewerb:     ciResult.wettbewerb    } : {}),
+    ...(ciResult.bildstil      ? { bildstil:       ciResult.bildstil      } : {}),
+    ...(ciResult.ueber_uns     ? { ueber_uns:      ciResult.ueber_uns     } : {}),
+    ...(ciResult.brand_font    ? { brand_font:     ciResult.brand_font    } : {}),
+    ...(ciResult.body_font     ? { body_font:      ciResult.body_font     } : {}),
   };
 
   const { error: saveErr } = await sb.from("clients").update(update).eq("id", client_id);
