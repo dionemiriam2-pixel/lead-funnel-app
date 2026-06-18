@@ -10,7 +10,19 @@ import MarkeCITab from "@/components/MarkeCITab";
 import { ExternalLink } from "lucide-react";
 
 /* ─── Konstanten ─────────────────────────────────────────── */
-const TABS = ["Übersicht", "Dashboard", "Profil", "Marke / CI", "Content", "Marketing", "Landing Pages", "Webseite", "Pipeline", "Leads", "Kanäle"];
+const TABS = [
+  { key: "Übersicht",     label: "Überbl."  },
+  { key: "Dashboard",     label: "Dash."    },
+  { key: "Profil",        label: "Profil"   },
+  { key: "Marke / CI",    label: "CI"       },
+  { key: "Content",       label: "Content"  },
+  { key: "Marketing",     label: "Mktg."    },
+  { key: "Landing Pages", label: "LPs"      },
+  { key: "Webseite",      label: "Web"      },
+  { key: "Pipeline",      label: "Pipeline" },
+  { key: "Leads",         label: "Leads"    },
+  { key: "Kanäle",        label: "Kanäle"   },
+];
 
 const TEMPLATE_SOURCES = [
   {
@@ -125,6 +137,12 @@ export default function KundeDetailPage() {
   const [addLeadOpen,  setAddLeadOpen]  = useState(false);
   const [addLeadForm,  setAddLeadForm]  = useState({ contact_name: "", phone: "", email: "", source: "manuell", notes: "" });
   const [addLeadSaving,setAddLeadSaving]= useState(false);
+  const [selectedLead, setSelectedLead] = useState(null);
+  const [leadForm,     setLeadForm]     = useState({});
+  const [leadSaving,   setLeadSaving]   = useState(false);
+  const [leadScoring,  setLeadScoring]  = useState(false);
+  const [kiStrategie,  setKiStrategie]  = useState(null);
+  const [kiStratLoading, setKiStratLoading] = useState(false);
   const [msg,          setMsg]          = useState("");
 
   /* Produkte & Strategie */
@@ -168,6 +186,7 @@ export default function KundeDetailPage() {
     const c = (cr.data || [])[0] || null;
     setClient(c);
     setForm(c || {});
+    if (c?.strategy?.ki_analyse) setKiStrategie(c.strategy.ki_analyse);
     setProducts(pr.data || []);
     setLeads(lr.data || []);
   }
@@ -213,6 +232,57 @@ export default function KundeDetailPage() {
   async function updateLeadStatus(leadId, newStatus) {
     await apiFetch("/api/leads", { method: "PATCH", body: JSON.stringify({ id: leadId, pipeline_status: newStatus }) });
     setLeads(prev => prev.map(l => l.id === leadId ? { ...l, pipeline_status: newStatus } : l));
+  }
+
+  function openLeadDetail(lead) {
+    setSelectedLead(lead);
+    setLeadForm({
+      ...lead,
+      qualifizierung: lead.qualifizierung || {},
+    });
+  }
+
+  async function saveLead() {
+    setLeadSaving(true);
+    const patch = { ...leadForm };
+    const prevStatus = selectedLead.pipeline_status;
+    const newStatus  = patch.pipeline_status;
+    if (newStatus === "gewonnen" && prevStatus !== "gewonnen") patch.won_at  = new Date().toISOString();
+    if (newStatus === "verloren" && prevStatus !== "verloren") patch.lost_at = new Date().toISOString();
+    if (newStatus !== "kalt" && newStatus !== "neu" && !selectedLead.first_contact_at) {
+      patch.first_contact_at = new Date().toISOString();
+    }
+    await apiFetch("/api/leads", { method: "PATCH", body: JSON.stringify(patch) });
+    setLeads(prev => prev.map(l => l.id === patch.id ? { ...l, ...patch } : l));
+    setSelectedLead(s => ({ ...s, ...patch }));
+    setLeadSaving(false);
+    flash("✓ Lead gespeichert");
+  }
+
+  async function scoreLead() {
+    setLeadScoring(true);
+    const d = await apiFetch("/api/leads/score", { method: "POST", body: JSON.stringify({ id: selectedLead.id }) });
+    setLeadScoring(false);
+    if (d.score != null) {
+      setLeadForm(f => ({ ...f, score: d.score, score_reason: d.reason }));
+      setLeads(prev => prev.map(l => l.id === selectedLead.id ? { ...l, score: d.score, score_reason: d.reason } : l));
+      flash(`✓ KI-Score: ${d.score}/100`);
+    } else {
+      flash(d.error || "KI-Score fehlgeschlagen");
+    }
+  }
+
+  async function analyseStrategie() {
+    setKiStratLoading(true);
+    const d = await apiFetch("/api/leads/strategy", { method: "POST", body: JSON.stringify({ client_id: id }) });
+    setKiStratLoading(false);
+    if (d.data) {
+      setKiStrategie(d.data);
+      setForm(f => ({ ...f, strategy: { ...(f.strategy || {}), ki_analyse: d.data } }));
+      flash("✓ Lead-Strategie analysiert");
+    } else {
+      flash(d.error || "Strategie-Analyse fehlgeschlagen");
+    }
   }
 
   async function addProduct() {
@@ -572,15 +642,15 @@ export default function KundeDetailPage() {
           <div style={{ flex: 1, minWidth: 0 }}>
 
             {/* Tab-Navigation */}
-            <div style={{ display: "flex", gap: 2, flexWrap: "wrap", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "5px 7px", marginBottom: 20 }}>
-              {TABS.map(t => (
-                <button key={t} onClick={() => setTab(t)} style={{
-                  padding: "7px 14px", border: "none", borderRadius: 7, fontSize: 13, cursor: "pointer",
-                  background: tab === t ? "var(--ink)" : "transparent",
-                  color:      tab === t ? "#fff"       : "var(--text-secondary)",
-                  fontWeight: tab === t ? 600           : 400,
+            <div style={{ display: "flex", gap: 2, flexWrap: "nowrap", overflowX: "auto", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "5px 7px", marginBottom: 20, scrollbarWidth: "none" }}>
+              {TABS.map(({ key, label }) => (
+                <button key={key} onClick={() => setTab(key)} style={{
+                  padding: "6px 10px", border: "none", borderRadius: 7, fontSize: 12, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0,
+                  background: tab === key ? "var(--ink)" : "transparent",
+                  color:      tab === key ? "#fff"       : "var(--text-secondary)",
+                  fontWeight: tab === key ? 600           : 400,
                   transition: "all .15s",
-                }}>{t}</button>
+                }}>{label}</button>
               ))}
             </div>
 
@@ -1012,6 +1082,116 @@ export default function KundeDetailPage() {
                   <div style={{ marginTop: 14 }}>
                     <button onClick={() => saveClient()} style={S.btn}>Speichern</button>
                   </div>
+                </div>
+
+                {/* ── KI Lead-Strategie ──────────────────────────── */}
+                <div style={{ ...S.card, marginBottom: 16, borderColor: kiStrategie ? "#c7d2fe" : "var(--border)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: kiStrategie ? 20 : 0 }}>
+                    <div>
+                      <h3 style={{ fontFamily: "var(--font-serif)", fontSize: 17, fontWeight: 500, color: "var(--ink)", marginBottom: 2 }}>KI Lead-Strategie</h3>
+                      {kiStrategie?.analysiert_am && (
+                        <div style={{ fontSize: 11, color: "var(--text-tertiary)" }}>
+                          Analysiert: {new Date(kiStrategie.analysiert_am).toLocaleDateString("de-DE")} · {kiStrategie.lead_count ?? 0} Leads einbezogen
+                        </div>
+                      )}
+                    </div>
+                    <button onClick={analyseStrategie} disabled={kiStratLoading}
+                      style={{ ...S.btn, background: "#6366f1", display: "flex", alignItems: "center", gap: 6, flexShrink: 0, opacity: kiStratLoading ? .6 : 1 }}>
+                      {kiStratLoading ? "Analysiert…" : kiStrategie ? "✦ Strategie aktualisieren" : "✦ Lead-Strategie analysieren"}
+                    </button>
+                  </div>
+
+                  {kiStrategie && (<>
+                    {/* Buyer Persona */}
+                    <div style={{ background: "#eef2ff", borderRadius: 10, padding: "12px 16px", marginBottom: 14 }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", color: "#6366f1", marginBottom: 5 }}>Buyer Persona</div>
+                      <div style={{ fontSize: 13, color: "var(--ink)", lineHeight: 1.55 }}>{kiStrategie.buyer_persona}</div>
+                    </div>
+
+                    {/* Empfohlene Kanäle */}
+                    {(kiStrategie.empfohlene_kanaele || []).length > 0 && (
+                      <div style={{ marginBottom: 16 }}>
+                        <div style={S.sectionHd}>Empfohlene Kanäle</div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                          {kiStrategie.empfohlene_kanaele.map((k, i) => {
+                            const qualCol = { hoch: "#16a34a", mittel: "#d97706", niedrig: "#6b7280" }[k.erwartete_qualitaet] || "#6b7280";
+                            const aufwandCol = { niedrig: "#16a34a", mittel: "#d97706", hoch: "#dc2626" }[k.aufwand] || "#6b7280";
+                            return (
+                              <div key={i} style={{ border: "1px solid var(--border)", borderRadius: 10, padding: "12px 14px" }}>
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 5 }}>
+                                  <span style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)" }}>{k.kanal}</span>
+                                  <div style={{ display: "flex", gap: 5, flexShrink: 0, marginLeft: 10 }}>
+                                    <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 7px", borderRadius: 99, background: "#f3f4f6", color: aufwandCol }}>Aufwand: {k.aufwand}</span>
+                                    <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 7px", borderRadius: 99, background: "#f3f4f6", color: qualCol }}>Qualität: {k.erwartete_qualitaet}</span>
+                                  </div>
+                                </div>
+                                <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: k.kosten ? 5 : 0 }}>{k.warum_passt}</div>
+                                {k.kosten && <div style={{ fontSize: 11, color: "var(--text-tertiary)" }}>Kosten: {k.kosten}</div>}
+                                {k.uwg_hinweis && (
+                                  <div style={{ marginTop: 6, fontSize: 11, color: "#92400e", background: "#fef3c7", padding: "5px 9px", borderRadius: 6 }}>
+                                    ⚠ {k.uwg_hinweis}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Start-Strategie */}
+                    {kiStrategie.start_strategie && (
+                      <div style={{ marginBottom: 16 }}>
+                        <div style={S.sectionHd}>Erste 30 Tage (kein/wenig Budget)</div>
+                        <div style={{ fontSize: 13, color: "var(--ink)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{kiStrategie.start_strategie}</div>
+                      </div>
+                    )}
+
+                    {/* Ausbau mit Budget */}
+                    {kiStrategie.ausbau_strategie && (
+                      <div style={{ marginBottom: 16 }}>
+                        <div style={S.sectionHd}>Ausbau mit Budget</div>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
+                          {[["200eur","200€/Mo"],["500eur","500€/Mo"],["1000eur","1.000€/Mo"]].map(([key, label]) =>
+                            kiStrategie.ausbau_strategie[key] ? (
+                              <div key={key} style={{ border: "1px solid var(--border)", borderRadius: 9, padding: "10px 12px" }}>
+                                <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-tertiary)", marginBottom: 5 }}>{label}</div>
+                                <div style={{ fontSize: 12, color: "var(--ink)", lineHeight: 1.5 }}>{kiStrategie.ausbau_strategie[key]}</div>
+                              </div>
+                            ) : null
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Nächste Schritte */}
+                    {(kiStrategie.naechste_schritte || []).length > 0 && (
+                      <div style={{ marginBottom: 14 }}>
+                        <div style={S.sectionHd}>Nächste Schritte</div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                          {kiStrategie.naechste_schritte.map((step, i) => (
+                            <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                              <span style={{ width: 22, height: 22, borderRadius: "50%", background: "var(--ink)", color: "#fff", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>{i + 1}</span>
+                              <span style={{ fontSize: 13, color: "var(--ink)", lineHeight: 1.5 }}>{step}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Datenbasierte Erkenntnisse */}
+                    {kiStrategie.datenbasierte_erkenntnisse && (
+                      <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 9, padding: "10px 14px", marginBottom: 14 }}>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: "#16a34a", marginBottom: 4, letterSpacing: ".06em", textTransform: "uppercase" }}>Datenbasiert</div>
+                        <div style={{ fontSize: 12, color: "var(--ink)" }}>{kiStrategie.datenbasierte_erkenntnisse}</div>
+                      </div>
+                    )}
+
+                    {/* UWG-Hinweis */}
+                    <div style={{ fontSize: 11, color: "#92400e", background: "#fef3c7", border: "1px solid #fde68a", borderRadius: 8, padding: "8px 12px" }}>
+                      <strong>Rechtlicher Hinweis:</strong> Outbound-Kontakt (Cold-Mail, Cold-Call) ohne vorherige Einwilligung ist im B2C nach UWG §7 unzulässig. Im B2B nur bei mutmaßlichem Interesse an der beworbenen Leistung erlaubt. Immer Opt-out ermöglichen.
+                    </div>
+                  </>)}
                 </div>
 
                 {/* Marketing-Strategie Felder */}
@@ -1626,7 +1806,7 @@ export default function KundeDetailPage() {
                           }[src] || { bg: "var(--border)", color: "var(--text-secondary)" };
                           const isNew = l.created_at > since24h;
                           return (
-                            <tr key={l.id} style={{ borderTop: "1px solid var(--border)", background: isNew ? "#fffbf5" : "transparent" }}>
+                            <tr key={l.id} onClick={() => openLeadDetail(l)} style={{ borderTop: "1px solid var(--border)", background: isNew ? "#fffbf5" : "transparent", cursor: "pointer" }}>
                               <td style={{ padding: "11px 13px", fontWeight: 500, fontSize: 14, color: "var(--ink)" }}>
                                 {isNew && <span style={{ display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: "#e8600a", marginRight: 6, verticalAlign: "middle" }} />}
                                 {l.company_name}
@@ -1700,6 +1880,168 @@ export default function KundeDetailPage() {
                           } else flash(d.error || "Fehler");
                         }} style={{ ...S.btn, flex: 1, opacity: addLeadSaving || !addLeadForm.contact_name.trim() ? .5 : 1 }}>
                           {addLeadSaving ? "Speichert…" : "Lead speichern"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Lead-Detail-Drawer ──────────────────────── */}
+                {selectedLead && (
+                  <div onClick={() => setSelectedLead(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.45)", zIndex: 300, display: "flex", justifyContent: "flex-end" }}>
+                    <div onClick={e => e.stopPropagation()} style={{ width: "min(520px, 100vw)", height: "100%", background: "var(--surface)", boxShadow: "-8px 0 40px rgba(0,0,0,.2)", overflowY: "auto", display: "flex", flexDirection: "column" }}>
+
+                      {/* Header */}
+                      <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexShrink: 0 }}>
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: 16, color: "var(--ink)", marginBottom: 2 }}>{selectedLead.company_name || selectedLead.contact_name || "Lead"}</div>
+                          <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{selectedLead.contact_name}{selectedLead.city ? ` · ${selectedLead.city}` : ""}</div>
+                        </div>
+                        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                          <button onClick={scoreLead} disabled={leadScoring} style={{ ...S.btnSm, background: leadScoring ? "var(--border)" : "#6366f1", color: "#fff", padding: "6px 14px", display: "flex", alignItems: "center", gap: 5 }}>
+                            {leadScoring ? "…" : "✦"} KI-Score
+                          </button>
+                          <button onClick={() => setSelectedLead(null)} style={{ border: "none", background: "none", fontSize: 22, cursor: "pointer", color: "var(--text-tertiary)", lineHeight: 1 }}>×</button>
+                        </div>
+                      </div>
+
+                      {/* KI-Score Anzeige */}
+                      {leadForm.score != null && (
+                        <div style={{ margin: "16px 24px 0", padding: "12px 16px", background: leadForm.score >= 70 ? "#f0fdf4" : leadForm.score >= 40 ? "#fefce8" : "#fef2f2", border: `1px solid ${leadForm.score >= 70 ? "#bbf7d0" : leadForm.score >= 40 ? "#fde68a" : "#fecaca"}`, borderRadius: 10 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: leadForm.score_reason ? 6 : 0 }}>
+                            <span style={{ fontSize: 28, fontWeight: 800, color: leadForm.score >= 70 ? "#16a34a" : leadForm.score >= 40 ? "#d97706" : "#dc2626" }}>{leadForm.score}</span>
+                            <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>/ 100 KI-Score</span>
+                          </div>
+                          {leadForm.score_reason && <div style={{ fontSize: 12, color: "var(--text-secondary)", fontStyle: "italic" }}>{leadForm.score_reason}</div>}
+                        </div>
+                      )}
+
+                      {/* Felder */}
+                      <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 20, flex: 1 }}>
+
+                        {/* Herkunft */}
+                        <div>
+                          <div style={S.sectionHd}>Herkunft</div>
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                            <div>
+                              <label style={S.label}>Quelle</label>
+                              <select value={leadForm.source || ""} onChange={e => setLeadForm(f => ({ ...f, source: e.target.value }))} style={{ ...S.input, cursor: "pointer" }}>
+                                {["landingpage","google-maps","linkedin","facebook","instagram","whatsapp","messenger","email","empfehlung","manuell"].map(v => <option key={v} value={v}>{v}</option>)}
+                              </select>
+                            </div>
+                            <div>
+                              <label style={S.label}>Quelle Detail</label>
+                              <input value={leadForm.source_detail || ""} onChange={e => setLeadForm(f => ({ ...f, source_detail: e.target.value }))} style={S.input} placeholder="z.B. Google Ads – Retargeting" />
+                            </div>
+                            <div>
+                              <label style={S.label}>Landing Page</label>
+                              <input value={leadForm.lp || ""} onChange={e => setLeadForm(f => ({ ...f, lp: e.target.value }))} style={S.input} placeholder="LP-Slug oder URL" />
+                            </div>
+                            <div>
+                              <label style={S.label}>Kampagne</label>
+                              <input value={leadForm.campaign || ""} onChange={e => setLeadForm(f => ({ ...f, campaign: e.target.value }))} style={S.input} placeholder="z.B. Sommer-Aktion 2026" />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Qualifizierung */}
+                        <div>
+                          <div style={S.sectionHd}>Qualifizierung</div>
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                            <div>
+                              <label style={S.label}>Budget</label>
+                              <input value={leadForm.qualifizierung?.budget || ""} onChange={e => setLeadForm(f => ({ ...f, qualifizierung: { ...f.qualifizierung, budget: e.target.value } }))} style={S.input} placeholder="z.B. 5.000–10.000 EUR" />
+                            </div>
+                            <div>
+                              <label style={S.label}>Bedarf</label>
+                              <input value={leadForm.qualifizierung?.bedarf || ""} onChange={e => setLeadForm(f => ({ ...f, qualifizierung: { ...f.qualifizierung, bedarf: e.target.value } }))} style={S.input} placeholder="z.B. Website-Relaunch" />
+                            </div>
+                            <div>
+                              <label style={S.label}>Zeitrahmen</label>
+                              <input value={leadForm.qualifizierung?.zeitrahmen || ""} onChange={e => setLeadForm(f => ({ ...f, qualifizierung: { ...f.qualifizierung, zeitrahmen: e.target.value } }))} style={S.input} placeholder="z.B. Q3 2026" />
+                            </div>
+                            <div>
+                              <label style={S.label}>Entscheider?</label>
+                              <select value={leadForm.qualifizierung?.entscheider === true ? "ja" : leadForm.qualifizierung?.entscheider === false ? "nein" : ""} onChange={e => setLeadForm(f => ({ ...f, qualifizierung: { ...f.qualifizierung, entscheider: e.target.value === "ja" ? true : e.target.value === "nein" ? false : null } }))} style={{ ...S.input, cursor: "pointer" }}>
+                                <option value="">Unbekannt</option>
+                                <option value="ja">Ja</option>
+                                <option value="nein">Nein</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Wert & Status */}
+                        <div>
+                          <div style={S.sectionHd}>Wert & Status</div>
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                            <div>
+                              <label style={S.label}>Geschätzter Auftragswert (EUR)</label>
+                              <input type="number" value={leadForm.estimated_value ?? ""} onChange={e => setLeadForm(f => ({ ...f, estimated_value: e.target.value === "" ? null : Number(e.target.value) }))} style={S.input} placeholder="0" />
+                            </div>
+                            <div>
+                              <label style={S.label}>Pipeline-Status</label>
+                              <select value={leadForm.pipeline_status || "kalt"} onChange={e => setLeadForm(f => ({ ...f, pipeline_status: e.target.value }))} style={{ ...S.input, cursor: "pointer" }}>
+                                {PIPELINE.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
+                              </select>
+                            </div>
+                            <div style={{ gridColumn: "1 / -1" }}>
+                              <label style={S.label}>Follow-up Datum</label>
+                              <input type="date" value={leadForm.follow_up_date || ""} onChange={e => setLeadForm(f => ({ ...f, follow_up_date: e.target.value }))} style={S.input} />
+                            </div>
+                          </div>
+
+                          {/* Verloren-Grund */}
+                          {leadForm.pipeline_status === "verloren" && (
+                            <div style={{ marginTop: 10 }}>
+                              <label style={S.label}>Verloren-Grund</label>
+                              <textarea value={leadForm.lost_reason || ""} onChange={e => setLeadForm(f => ({ ...f, lost_reason: e.target.value }))} rows={2} style={{ ...S.input, resize: "vertical" }} placeholder="z.B. Preis zu hoch, Entscheidung vertagt …" />
+                            </div>
+                          )}
+
+                          {/* Gewonnen-Info */}
+                          {leadForm.pipeline_status === "gewonnen" && (
+                            <div style={{ marginTop: 10, padding: "10px 14px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 8, fontSize: 12, color: "#16a34a" }}>
+                              ✓ Gewonnen {selectedLead.won_at ? `am ${new Date(selectedLead.won_at).toLocaleDateString("de-DE")}` : "— won_at wird beim Speichern gesetzt"}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Notizen */}
+                        <div>
+                          <label style={S.label}>Notizen</label>
+                          <textarea value={leadForm.notes || ""} onChange={e => setLeadForm(f => ({ ...f, notes: e.target.value }))} rows={3} style={{ ...S.input, resize: "vertical" }} />
+                        </div>
+
+                        {/* Kontakt */}
+                        <div>
+                          <div style={S.sectionHd}>Kontakt</div>
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                            <div>
+                              <label style={S.label}>Name</label>
+                              <input value={leadForm.contact_name || ""} onChange={e => setLeadForm(f => ({ ...f, contact_name: e.target.value }))} style={S.input} />
+                            </div>
+                            <div>
+                              <label style={S.label}>Telefon</label>
+                              <input value={leadForm.phone || ""} onChange={e => setLeadForm(f => ({ ...f, phone: e.target.value }))} style={S.input} />
+                            </div>
+                            <div>
+                              <label style={S.label}>E-Mail</label>
+                              <input value={leadForm.email || ""} onChange={e => setLeadForm(f => ({ ...f, email: e.target.value }))} style={S.input} />
+                            </div>
+                            <div>
+                              <label style={S.label}>Website</label>
+                              <input value={leadForm.website || ""} onChange={e => setLeadForm(f => ({ ...f, website: e.target.value }))} style={S.input} />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Footer */}
+                      <div style={{ padding: "16px 24px", borderTop: "1px solid var(--border)", display: "flex", gap: 10, flexShrink: 0 }}>
+                        <button onClick={() => setSelectedLead(null)} style={{ ...S.btnOutline, flex: 1 }}>Schließen</button>
+                        <button onClick={saveLead} disabled={leadSaving} style={{ ...S.btn, flex: 2, opacity: leadSaving ? .6 : 1 }}>
+                          {leadSaving ? "Speichert…" : "Speichern"}
                         </button>
                       </div>
                     </div>
