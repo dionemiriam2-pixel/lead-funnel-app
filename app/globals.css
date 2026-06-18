@@ -1,7 +1,7 @@
 :root {
   /* Flächen */
   --bg:             #FFFFFF;  /* Weiß — Seiten- & Bereichshintergrund */
-  --surface:        #FFFFFF;  /* Weiß — Karten & Panels */
+  --surface:        #F9F9F9;  /* Zartes Grau — Karten & Panels */
   --ink:            #1A1A19;  /* Haupttext & Buttons */
 
   /* Text */
