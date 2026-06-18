@@ -12,13 +12,6 @@ const SRC_COLOR = {
   manuell:     "#6b7280",
   unbekannt:   "#d1d5db",
 };
-const SRC_ICON = {
-  landingpage: "🌐",
-  whatsapp:    "💬",
-  messenger:   "💙",
-  instagram:   "📸",
-  manuell:     "✏️",
-};
 const ST_COLOR = {
   neu:          "#94a3b8",
   kontaktiert:  "#60a5fa",
@@ -209,7 +202,7 @@ export default function CustomerDashboard({ clientId }) {
               <div key={source} style={{ marginBottom: 10 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
                   <span style={{ fontSize: 12, color: "var(--ink)", fontWeight: 500 }}>
-                    {SRC_ICON[source] || "📌"} {source}
+                    {source}
                   </span>
                   <span style={{ fontSize: 12, fontWeight: 700, color: "var(--ink)" }}>{count}</span>
                 </div>

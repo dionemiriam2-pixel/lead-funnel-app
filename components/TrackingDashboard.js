@@ -10,7 +10,6 @@ const SRC_COLOR = {
   landingpage:"#16a34a", whatsapp:"#25D366", messenger:"#1d4ed8",
   instagram:"#be185d",   manuell:"#6b7280",  unbekannt:"#d1d5db",
 };
-const SRC_ICON = { landingpage:"🌐", whatsapp:"💬", messenger:"💙", instagram:"📸", manuell:"✏️" };
 const ST_COLOR  = {
   neu:"#94a3b8", kontaktiert:"#60a5fa", qualifiziert:"#818cf8",
   angebot:"#f59e0b", gewonnen:"#16a34a", verloren:"#ef4444",
@@ -131,7 +130,7 @@ function WConversionRate({ data }) {
 function WTopKanal({ data }) {
   const src = data.bySource?.[0];
   if (!src) return <KpiCard label="Top Kanal" value="–" sub="Noch keine Leads" />;
-  return <KpiCard label="Top Kanal" value={SRC_ICON[src.source] || "📌"} sub={`${src.source} · ${src.count} Leads`} accent />;
+  return <KpiCard label="Top Kanal" value={src.source} sub={`${src.count} Leads`} accent />;
 }
 
 function WLeadsNachKanal({ data }) {
@@ -142,7 +141,7 @@ function WLeadsNachKanal({ data }) {
       {rows.length === 0 ? <Empty /> : rows.map(({ source, count }) => (
         <div key={source} style={{ marginBottom: 10 }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-            <span style={{ fontSize: 12, fontWeight: 500, color: "var(--ink)" }}>{SRC_ICON[source] || "📌"} {source}</span>
+            <span style={{ fontSize: 12, fontWeight: 500, color: "var(--ink)" }}>{source}</span>
             <span style={{ fontSize: 12, fontWeight: 700 }}>{count}</span>
           </div>
           <div style={{ height: 6, background: "var(--border)", borderRadius: 99, overflow: "hidden" }}>

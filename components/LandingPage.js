@@ -25,9 +25,9 @@ export default function LandingPage({ lp }) {
   const dark = "#111111";
 
   const benefits = lp.benefits || [
-    { icon: "⚡", title: "Schnelle Umsetzung", text: "Klare Abläufe und eingespieltes Team — dein Projekt bleibt im Zeitplan." },
-    { icon: "💰", title: "Transparente Kosten", text: "Kein verstecktes Kleingedrucktes. Du weißt vorher, was es kostet." },
-    { icon: "🏆", title: "Erfahrung aus 50+ Projekten", text: "Wir kennen die Stolpersteine — und wie man sie umgeht." },
+    { icon: "", title: "Schnelle Umsetzung", text: "Klare Abläufe und eingespieltes Team — dein Projekt bleibt im Zeitplan." },
+    { icon: "", title: "Transparente Kosten", text: "Kein verstecktes Kleingedrucktes. Du weißt vorher, was es kostet." },
+    { icon: "", title: "Erfahrung aus 50+ Projekten", text: "Wir kennen die Stolpersteine — und wie man sie umgeht." },
   ];
 
   const rawTestimonials = lp.testimonials;
@@ -134,7 +134,6 @@ export default function LandingPage({ lp }) {
           <div id="form-top" style={{ flex: "0 1 380px", minWidth: 280, background: "#fff", color: "#111", borderRadius: 18, padding: "36px 30px", boxShadow: "0 24px 72px rgba(0,0,0,.4)" }}>
             {garantie && (
               <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 14px", background: "#f0fdf4", borderRadius: 8, border: "1px solid #bbf7d0", marginBottom: 18 }}>
-                <span style={{ fontSize: 16 }}>✅</span>
                 <span style={{ fontSize: 12, color: "#15803d", fontWeight: 600, lineHeight: 1.4 }}>{garantie}</span>
               </div>
             )}
@@ -404,8 +403,8 @@ export default function LandingPage({ lp }) {
       {lp.whatsapp && (
         <a href={"https://wa.me/" + lp.whatsapp.replace(/\D/g, "")}
           target="_blank" rel="noopener"
-          style={{ position: "fixed", bottom: 24, right: 24, width: 56, height: 56, borderRadius: "50%", background: "#25d366", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, boxShadow: "0 4px 20px rgba(0,0,0,.25)", zIndex: 999, textDecoration: "none" }}>
-          💬
+          style={{ position: "fixed", bottom: 24, right: 24, width: 56, height: 56, borderRadius: "50%", background: "#25d366", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#fff", boxShadow: "0 4px 20px rgba(0,0,0,.25)", zIndex: 999, textDecoration: "none" }}>
+          WA
         </a>
       )}
 

@@ -52,7 +52,6 @@ export default function LeadForm({ lp, accent }) {
 
   if (done) return (
     <div style={{ textAlign: "center", padding: "32px 0" }}>
-      <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
       <h3 style={{ fontSize: 20, marginBottom: 8, color: "#111827" }}>Danke – wir melden uns!</h3>
       <p style={{ color: "#6b7280", fontSize: 15 }}>Du erhältst in Kürze eine Nachricht von uns.</p>
     </div>
@@ -135,7 +134,7 @@ export default function LeadForm({ lp, accent }) {
             <div>
               <p style={{ fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 8 }}>Wie dürfen wir dich erreichen?</p>
               <div style={{ display: "flex", gap: 8 }}>
-                {[["email","✉️ E-Mail"],["whatsapp","💬 WhatsApp"]].map(([v,l]) => (
+                {[["email","E-Mail"],["whatsapp","WhatsApp"]].map(([v,l]) => (
                   <button key={v} type="button" onClick={() => setChannel(v)}
                     style={{ flex: 1, padding: "10px 12px", border: "2px solid " + (channel === v ? ac : "#e5e7eb"), borderRadius: 10, background: channel === v ? "#fffbf5" : "#fff", fontSize: 14, fontWeight: channel === v ? 700 : 400, cursor: "pointer", color: "#111827" }}>
                     {l}
@@ -181,7 +180,7 @@ export default function LeadForm({ lp, accent }) {
               }}
               disabled={sending || !consent}
               style={{ ...nextBtn, flex: 1, background: consent ? ac : "#9ca3af", padding: 14, fontSize: 16, fontWeight: 800, cursor: consent ? "pointer" : "not-allowed" }}>
-              {sending ? "⏳ Wird gesendet…" : (lp.cta || "Jetzt anfragen")}
+              {sending ? "Wird gesendet…" : (lp.cta || "Jetzt anfragen")}
             </button>
           </div>
           {err && <p style={{ color: "#b91c1c", fontSize: 13, marginTop: 8 }}>{err}</p>}
@@ -193,7 +192,7 @@ export default function LeadForm({ lp, accent }) {
               <a href={`https://wa.me/${waNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent("Hallo, ich habe Interesse an einer Zusammenarbeit und würde mich gerne kurz vorstellen.")}`}
                 target="_blank" rel="noopener noreferrer"
                 style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "11px 20px", background: "#25D366", color: "#fff", borderRadius: 10, fontSize: 14, fontWeight: 700, textDecoration: "none" }}>
-                💬 Direkt per WhatsApp schreiben
+                Direkt per WhatsApp schreiben
               </a>
               <p style={{ fontSize: 11, color: "#9ca3af", marginTop: 8 }}>Öffnet WhatsApp mit vorausgefüllter Nachricht</p>
             </div>

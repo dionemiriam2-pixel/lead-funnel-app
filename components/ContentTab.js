@@ -4,7 +4,7 @@ import { apiFetch } from "@/lib/api";
 /* ── Plattform-Konfig ──────────────────────────────────────── */
 const PLAT = {
   linkedin:  { label: "LinkedIn",  bg: "#0a66c2", icon: "in" },
-  instagram: { label: "Instagram", bg: "#e1306c", icon: "📸" },
+  instagram: { label: "Instagram", bg: "#e1306c", icon: "IG" },
   facebook:  { label: "Facebook",  bg: "#1877f2", icon: "f"  },
 };
 

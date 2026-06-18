@@ -54,14 +54,14 @@ const PIPELINE = [
 ];
 
 const KANALE = [
-  { key: "google-maps",  emoji: "📍", label: "Google Maps",      desc: "Firmen-Scraping & Leads",     soon: false },
-  { key: "landing-page", emoji: "🌐", label: "Landing Page",     desc: "Inbound Lead-Erfassung",      soon: false },
-  { key: "linkedin",     emoji: "🔗", label: "LinkedIn",         desc: "Verbinden & Beiträge posten", soon: false },
-  { key: "email",        emoji: "✉",  label: "E-Mail",           desc: "Mails senden & empfangen",    soon: false },
-  { key: "messenger",    emoji: "💬", label: "Messenger",        desc: "Facebook Messenger DMs",      soon: false },
-  { key: "instagram",    emoji: "📸", label: "Instagram DM",     desc: "Instagram Direktnachrichten", soon: false },
-  { key: "ads",          emoji: "🎯", label: "Werbeanzeigen",    desc: "Meta / Google Ads",           soon: true  },
-  { key: "chat",         emoji: "💬", label: "ManyChat / Chat",  desc: "Chat-Automatisierung",        soon: true  },
+  { key: "google-maps",  label: "Google Maps",      desc: "Firmen-Scraping & Leads",     soon: false },
+  { key: "landing-page", label: "Landing Page",     desc: "Inbound Lead-Erfassung",      soon: false },
+  { key: "linkedin",     label: "LinkedIn",         desc: "Verbinden & Beiträge posten", soon: false },
+  { key: "email",        label: "E-Mail",           desc: "Mails senden & empfangen",    soon: false },
+  { key: "messenger",    label: "Messenger",        desc: "Facebook Messenger DMs",      soon: false },
+  { key: "instagram",    label: "Instagram DM",     desc: "Instagram Direktnachrichten", soon: false },
+  { key: "ads",          label: "Werbeanzeigen",    desc: "Meta / Google Ads",           soon: true  },
+  { key: "chat",         label: "ManyChat / Chat",  desc: "Chat-Automatisierung",        soon: true  },
 ];
 
 const SOURCES_DEF = [
@@ -191,7 +191,7 @@ export default function KundeDetailPage() {
       flash("✓ Meta verbunden!");
     }
     const metaErr = searchParams.get("meta_error");
-    if (metaErr) flash(`❌ Meta-Fehler: ${metaErr}`);
+    if (metaErr) flash(`Meta-Fehler: ${metaErr}`);
   }, [searchParams]);
 
   /* ── API-Handler ─────────────────────────────────────── */
@@ -349,7 +349,7 @@ export default function KundeDetailPage() {
 
   async function exportLP(lp) {
     const d = await apiFetch("/api/landingpage/export", { method: "POST", body: JSON.stringify({ slug: lp.slug }) });
-    if (d.ok) alert(`✅ Exportiert nach content/landingpages.js\nSlug: ${lp.slug}\n\nDatei in VS Code öffnen und bearbeiten, dann git push.`);
+    if (d.ok) alert(`Exportiert nach content/landingpages.js\nSlug: ${lp.slug}\n\nDatei in VS Code öffnen und bearbeiten, dann git push.`);
     else alert("Export fehlgeschlagen: " + (d.error || "unbekannt") + "\n\nHinweis: Export funktioniert nur lokal (npm run dev), nicht auf Vercel.");
   }
 
@@ -470,19 +470,16 @@ export default function KundeDetailPage() {
               <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 16 }}>
                 {client.email && (
                   <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12, color: "var(--text-secondary)", overflow: "hidden" }}>
-                    <span style={{ flexShrink: 0, color: "var(--text-tertiary)", fontSize: 12 }}>✉</span>
                     <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{client.email}</span>
                   </div>
                 )}
                 {client.city && (
                   <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12, color: "var(--text-secondary)" }}>
-                    <span style={{ flexShrink: 0, color: "var(--text-tertiary)", fontSize: 12 }}>📍</span>
                     {client.city}
                   </div>
                 )}
                 {client.industry && (
                   <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12, color: "var(--text-secondary)" }}>
-                    <span style={{ flexShrink: 0, color: "var(--text-tertiary)", fontSize: 12 }}>🎯</span>
                     {client.industry}
                   </div>
                 )}
@@ -491,7 +488,7 @@ export default function KundeDetailPage() {
               {/* Website-Eingabe + Analysieren */}
               <div style={{ marginBottom: 16 }}>
                 <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 6, display: "flex", alignItems: "center", gap: 5 }}>
-                  🌐 Website
+                  Website
                 </div>
                 <input
                   value={form.website || ""}
@@ -503,7 +500,7 @@ export default function KundeDetailPage() {
                   onClick={analyseWebsite}
                   disabled={analysingWebsite}
                   style={{ ...S.btn, width: "100%", textAlign: "center", opacity: analysingWebsite ? .6 : 1, cursor: analysingWebsite ? "not-allowed" : "pointer" }}>
-                  {analysingWebsite ? "⏳ Analysiert…" : client.analyzed_at ? "Neu analysieren" : "Analysieren"}
+                  {analysingWebsite ? "Analysiert…" : client.analyzed_at ? "Neu analysieren" : "Analysieren"}
                 </button>
                 {websiteAnalysisErr && (
                   <div style={{ marginTop: 7, fontSize: 11, color: "#dc2626", lineHeight: 1.4 }}>{websiteAnalysisErr}</div>
@@ -897,7 +894,7 @@ export default function KundeDetailPage() {
                       onClick={analyseWebsite}
                       disabled={analysingWebsite}
                       style={{ ...S.btn, opacity: analysingWebsite ? .6 : 1, cursor: analysingWebsite ? "not-allowed" : "pointer", whiteSpace: "nowrap" }}>
-                      {analysingWebsite ? "⏳ Analysiert…" : client.analyzed_at ? "Neu analysieren" : "Analysieren"}
+                      {analysingWebsite ? "Analysiert…" : client.analyzed_at ? "Neu analysieren" : "Analysieren"}
                     </button>
                   </div>
                   {websiteAnalysisErr && (
@@ -969,7 +966,7 @@ export default function KundeDetailPage() {
                               if (!entry) return null;
                               return (
                                 <div key={key} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 10px", background: "var(--bg)", borderRadius: 8 }}>
-                                  <span style={{ fontSize: 14, flexShrink: 0 }}>{entry.vorhanden ? "✅" : "❌"}</span>
+                                  <span style={{ fontSize: 12, flexShrink: 0, fontWeight: 700, color: entry.vorhanden ? "#15803d" : "#dc2626" }}>{entry.vorhanden ? "Ja" : "Nein"}</span>
                                   <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)", minWidth: 160 }}>{label}</span>
                                   {entry.wert && <span style={{ fontSize: 12, color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 280 }}>{entry.wert}</span>}
                                 </div>
@@ -978,7 +975,7 @@ export default function KundeDetailPage() {
                             {/* Tech-Stack — nur nach neuer Analyse vorhanden */}
                             {client.seo_check.tech_stack && (
                               <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 10px", background: "var(--bg)", borderRadius: 8, marginTop: 4, borderTop: "1px solid var(--border)" }}>
-                                <span style={{ fontSize: 14, flexShrink: 0 }}>🛠</span>
+                                <span style={{ fontSize: 12, flexShrink: 0, fontWeight: 700, color: "#15803d" }}>Tech</span>
                                 <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)", minWidth: 160 }}>Technologie</span>
                                 <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>{client.seo_check.tech_stack.wert}</span>
                               </div>
@@ -989,7 +986,6 @@ export default function KundeDetailPage() {
                     </div>
                   ) : (
                     <div style={{ padding: "32px 0", textAlign: "center" }}>
-                      <div style={{ fontSize: 32, marginBottom: 10 }}>🔍</div>
                       <div style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 14 }}>Noch keine Analyse-Daten vorhanden.</div>
                       <button onClick={() => setTab("Profil")} style={S.btn}>Zum Profil → Analysieren</button>
                     </div>
@@ -1177,7 +1173,7 @@ export default function KundeDetailPage() {
                       {p.description && <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 8 }}>{p.description}</div>}
                       {p.target_groups && <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 6 }}>Zielgruppen: {p.target_groups}</div>}
                       <button onClick={() => startAnalysis(p)} disabled={analysing === p.id} style={{ ...S.btnSm, marginTop: 4 }}>
-                        {analysing === p.id ? "⏳ Analysiert…" : "KI-Analyse starten"}
+                        {analysing === p.id ? "Analysiert…" : "KI-Analyse starten"}
                       </button>
                       {analysis[p.id] && (
                         <div style={{ marginTop: 10, background: "var(--bg)", borderRadius: 8, padding: 12, fontSize: 12, color: "var(--text-secondary)" }}>
@@ -1213,7 +1209,7 @@ export default function KundeDetailPage() {
                   </div>
                   <button onClick={generateLP} disabled={generatingLP}
                     style={{ ...S.btn, opacity: generatingLP ? .6 : 1, cursor: generatingLP ? "not-allowed" : "pointer" }}>
-                    {generatingLP ? "⏳ Wird erstellt…" : "+ Landingpage entwickeln"}
+                    {generatingLP ? "Wird erstellt…" : "+ Landingpage entwickeln"}
                   </button>
                 </div>
 
@@ -1221,7 +1217,6 @@ export default function KundeDetailPage() {
 
                 {landingPages.length === 0 && !generatingLP && (
                   <div style={{ ...S.card, padding: "48px 40px", textAlign: "center" }}>
-                    <div style={{ fontSize: 40, marginBottom: 12 }}>🌐</div>
                     <div style={{ fontSize: 16, fontWeight: 600, color: "var(--ink)", marginBottom: 6 }}>Noch keine Landing Pages</div>
                     <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 20 }}>
                       KI generiert in Sekunden Texte, Struktur und CTA — basierend auf dem Profil von {client.name}.
@@ -1326,7 +1321,7 @@ export default function KundeDetailPage() {
                       onClick={modernizeWebsite}
                       disabled={modernizing}
                       style={{ ...S.btn, opacity: modernizing ? .6 : 1, cursor: modernizing ? "not-allowed" : "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>
-                      {modernizing ? "⏳ Analysiert…" : client.website_audit ? "Neu analysieren" : "Webseite modernisieren"}
+                      {modernizing ? "Analysiert…" : client.website_audit ? "Neu analysieren" : "Webseite modernisieren"}
                     </button>
                   </div>
                   {modernizeErr && (
@@ -1437,7 +1432,6 @@ export default function KundeDetailPage() {
               <div>
                 {leads.length === 0 ? (
                   <div style={{ ...S.card, padding: "48px 40px", textAlign: "center" }}>
-                    <div style={{ fontSize: 40, marginBottom: 12 }}>📊</div>
                     <div style={{ fontSize: 16, fontWeight: 600, color: "var(--ink)", marginBottom: 6 }}>Pipeline ist leer</div>
                     <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 20 }}>
                       Sobald Leads zugewiesen sind, kannst du sie hier durch die Pipeline ziehen.
@@ -1524,14 +1518,13 @@ export default function KundeDetailPage() {
 
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 14 }}>
                   {[
-                    { emoji: "👥", top:"GESAMT",  sub:"LEADS",       val: leads.length,        hi: false },
-                    { emoji: "⚡", top:"HOT",     sub:"SCORE ≥ 6",   val: hot.length,          hi: hot.length > 0 },
-                    { emoji: "🆕", top:"NEU",     sub:"UNBEARBEITET",val: unprocessed.length,   hi: unprocessed.length > 0 },
-                    { emoji: "📍", top:"STÄDTE",  sub:"ORTE",        val: cities.size,          hi: false },
-                  ].map(({ emoji, top, sub, val, hi }) => (
+                    { top:"GESAMT",  sub:"LEADS",       val: leads.length,        hi: false },
+                    { top:"HOT",     sub:"SCORE ≥ 6",   val: hot.length,          hi: hot.length > 0 },
+                    { top:"NEU",     sub:"UNBEARBEITET",val: unprocessed.length,   hi: unprocessed.length > 0 },
+                    { top:"STÄDTE",  sub:"ORTE",        val: cities.size,          hi: false },
+                  ].map(({ top, sub, val, hi }) => (
                     <div key={top} style={{ ...S.card, padding: "14px 16px" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                        <span style={{ fontSize: 14 }}>{emoji}</span>
                         <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", color: hi && val > 0 ? "var(--accent)" : "var(--text-tertiary)" }}>{top}</span>
                       </div>
                       <div style={{ fontSize: 30, fontWeight: 700, lineHeight: 1, marginBottom: 4, color: hi && val > 0 ? "var(--accent)" : "var(--ink)" }}>{val}</div>
@@ -1590,7 +1583,6 @@ export default function KundeDetailPage() {
                 <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
                   {displayLeads.length === 0 ? (
                     <div style={{ padding: "48px 40px", textAlign: "center" }}>
-                      <div style={{ fontSize: 40, marginBottom: 12 }}>👥</div>
                       <div style={{ fontSize: 16, fontWeight: 600, color: "var(--ink)", marginBottom: 6 }}>
                         {leads.length === 0 ? "Noch keine Leads" : "Keine Leads mit diesem Filter"}
                       </div>
@@ -1626,7 +1618,6 @@ export default function KundeDetailPage() {
                             instagram:   { bg: "#fce7f3", color: "#be185d" },
                             manuell:     { bg: "var(--border)", color: "var(--text-secondary)" },
                           }[src] || { bg: "var(--border)", color: "var(--text-secondary)" };
-                          const srcIcon = { landingpage:"🌐", whatsapp:"💬", messenger:"💙", instagram:"📸", manuell:"✏️" }[src] || "📌";
                           const isNew = l.created_at > since24h;
                           return (
                             <tr key={l.id} style={{ borderTop: "1px solid var(--border)", background: isNew ? "#fffbf5" : "transparent" }}>
@@ -1650,7 +1641,7 @@ export default function KundeDetailPage() {
                               </td>
                               <td style={{ padding: "11px 13px" }}>
                                 <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 99, background: srcStyle.bg, color: srcStyle.color, whiteSpace: "nowrap" }}>
-                                  {srcIcon} {src}
+                                  {src}
                                 </span>
                               </td>
                               <td style={{ padding: "11px 13px", fontSize: 12, color: "var(--text-secondary)" }}>{l.phone || "–"}</td>
@@ -1680,7 +1671,7 @@ export default function KundeDetailPage() {
                         <div>
                           <label style={S.label}>Quelle</label>
                           <select value={addLeadForm.source} onChange={e => setAddLeadForm(f => ({ ...f, source: e.target.value }))} style={{ ...S.input, cursor: "pointer" }}>
-                            {[["whatsapp","💬 WhatsApp"],["phone","📞 Telefon"],["empfehlung","🤝 Empfehlung"],["manuell","✏️ Manuell"]].map(([v,l]) => (
+                            {[["whatsapp","WhatsApp"],["phone","Telefon"],["empfehlung","Empfehlung"],["manuell","Manuell"]].map(([v,l]) => (
                               <option key={v} value={v}>{l}</option>
                             ))}
                           </select>
@@ -1700,9 +1691,9 @@ export default function KundeDetailPage() {
                             setAddLeadOpen(false);
                             setAddLeadForm({ contact_name: "", phone: "", email: "", source: "manuell", notes: "" });
                             await load();
-                          } else flash("❌ " + (d.error || "Fehler"));
+                          } else flash(d.error || "Fehler");
                         }} style={{ ...S.btn, flex: 1, opacity: addLeadSaving || !addLeadForm.contact_name.trim() ? .5 : 1 }}>
-                          {addLeadSaving ? "⏳ Speichert…" : "Lead speichern"}
+                          {addLeadSaving ? "Speichert…" : "Lead speichern"}
                         </button>
                       </div>
                     </div>
@@ -1751,7 +1742,6 @@ export default function KundeDetailPage() {
                     {openChannel === "google-maps" && (
                       <div>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
-                          <span style={{ fontSize: 18 }}>📍</span>
                           <span style={{ fontWeight: 600, fontSize: 15, color: "var(--ink)" }}>Google Maps</span>
                         </div>
                         <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 18 }}>Leads aus der globalen Toolbox zuweisen oder neue Suche starten</p>
@@ -1777,7 +1767,6 @@ export default function KundeDetailPage() {
                     {openChannel === "landing-page" && (
                       <div>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
-                          <span style={{ fontSize: 18 }}>🌐</span>
                           <span style={{ fontWeight: 600, fontSize: 15, color: "var(--ink)" }}>Landing Page</span>
                         </div>
                         <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 16 }}>URL der aktiven Landing Page für {client.name}</p>
@@ -1804,7 +1793,6 @@ export default function KundeDetailPage() {
                       return (
                         <div>
                           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                            <span style={{ fontSize: 18 }}>✉</span>
                             <span style={{ fontWeight: 600, fontSize: 15, color: "var(--ink)" }}>E-Mail</span>
                           </div>
 
@@ -1815,14 +1803,14 @@ export default function KundeDetailPage() {
                               </p>
                               <a href={`/api/social/gmail/connect?client_id=${id}`}
                                 style={{ ...S.btn, display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none" }}>
-                                ✉ Mit Gmail verbinden
+                                Mit Gmail verbinden
                               </a>
                             </div>
                           ) : (
                             <div>
                               {/* Status + Tabs */}
                               <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 14px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 10, marginBottom: 14 }}>
-                                <span>✅</span>
+                                <span style={{ fontSize: 11, fontWeight: 700, color: "#15803d" }}>Verbunden</span>
                                 <span style={{ fontWeight: 600, fontSize: 13, color: "#15803d", flex: 1 }}>{gmailConn.account_name}</span>
                                 <button onClick={async () => {
                                   if (!confirm("Gmail-Verbindung trennen?")) return;
@@ -1838,7 +1826,7 @@ export default function KundeDetailPage() {
                                 {["inbox","compose"].map(v => (
                                   <button key={v} onClick={() => { setGmailView(v); if (v === "inbox" && !gmailMessages.length) { setGmailLoadingInbox(true); apiFetch(`/api/social/gmail/messages?client_id=${id}`).then(d => { setGmailMessages(d.data || []); setGmailLoadingInbox(false); }); } }}
                                     style={{ flex: 1, padding: "6px 0", border: "none", borderRadius: 6, fontSize: 13, fontWeight: gmailView === v ? 600 : 400, background: gmailView === v ? "var(--ink)" : "transparent", color: gmailView === v ? "#fff" : "var(--text-secondary)", cursor: "pointer" }}>
-                                    {v === "inbox" ? "📥 Posteingang" : "✉️ Verfassen"}
+                                    {v === "inbox" ? "Posteingang" : "Verfassen"}
                                   </button>
                                 ))}
                               </div>
@@ -1846,7 +1834,7 @@ export default function KundeDetailPage() {
                               {/* Posteingang */}
                               {gmailView === "inbox" && (
                                 <div>
-                                  {gmailLoadingInbox && <div style={{ fontSize: 13, color: "var(--text-secondary)", padding: "20px 0", textAlign: "center" }}>⏳ Lade Posteingang…</div>}
+                                  {gmailLoadingInbox && <div style={{ fontSize: 13, color: "var(--text-secondary)", padding: "20px 0", textAlign: "center" }}>Lade Posteingang…</div>}
                                   {!gmailLoadingInbox && gmailMessages.length === 0 && (
                                     <div style={{ textAlign: "center", padding: "20px 0" }}>
                                       <button onClick={() => { setGmailLoadingInbox(true); apiFetch(`/api/social/gmail/messages?client_id=${id}`).then(d => { setGmailMessages(d.data || []); setGmailLoadingInbox(false); }); }}
@@ -1903,14 +1891,14 @@ export default function KundeDetailPage() {
                                       setGmailSending(true); setGmailSendMsg("");
                                       const d = await apiFetch("/api/social/gmail/messages", { method: "POST", body: JSON.stringify({ client_id: id, ...gmailCompose }) });
                                       setGmailSending(false);
-                                      if (d.ok) { setGmailSendMsg("✅ Gesendet!"); setGmailCompose({ to: "", subject: "", body: "" }); }
-                                      else setGmailSendMsg("❌ " + (d.error || "Fehler"));
+                                      if (d.ok) { setGmailSendMsg("Gesendet!"); setGmailCompose({ to: "", subject: "", body: "" }); }
+                                      else setGmailSendMsg(d.error || "Fehler");
                                     }} disabled={gmailSending || !gmailCompose.to || !gmailCompose.body}
                                       style={{ ...S.btn, opacity: gmailSending || !gmailCompose.to || !gmailCompose.body ? .5 : 1 }}>
-                                      {gmailSending ? "⏳ Sendet…" : "Senden →"}
+                                      {gmailSending ? "Sendet…" : "Senden →"}
                                     </button>
                                   </div>
-                                  {gmailSendMsg && <div style={{ fontSize: 13, fontWeight: 500, color: gmailSendMsg.startsWith("✅") ? "#15803d" : "var(--accent)" }}>{gmailSendMsg}</div>}
+                                  {gmailSendMsg && <div style={{ fontSize: 13, fontWeight: 500, color: gmailSendMsg.includes("Fehler") ? "var(--accent)" : "#15803d" }}>{gmailSendMsg}</div>}
                                 </div>
                               )}
                             </div>
@@ -1924,7 +1912,6 @@ export default function KundeDetailPage() {
                       return (
                         <div>
                           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                            <span style={{ fontSize: 18 }}>🔗</span>
                             <span style={{ fontWeight: 600, fontSize: 15, color: "var(--ink)" }}>LinkedIn</span>
                           </div>
 
@@ -1932,7 +1919,7 @@ export default function KundeDetailPage() {
                             <div>
                               {/* Verbunden-Badge */}
                               <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 10, marginBottom: 20 }}>
-                                <span style={{ fontSize: 16 }}>✅</span>
+                                <span style={{ fontSize: 11, fontWeight: 700, color: "#15803d" }}>Verbunden</span>
                                 <div style={{ flex: 1 }}>
                                   <div style={{ fontWeight: 600, fontSize: 13, color: "#15803d" }}>Verbunden als {conn.account_name}</div>
                                   <div style={{ fontSize: 11, color: "#166534", marginTop: 1 }}>Seit {new Date(conn.connected_at).toLocaleDateString("de-DE")}</div>
@@ -1973,19 +1960,19 @@ export default function KundeDetailPage() {
                                           method: "POST",
                                           body: JSON.stringify({ client_id: id, text: liPostText }),
                                         });
-                                        if (d.error) { setLiPostMsg("❌ " + d.error); return; }
-                                        setLiPostMsg("✅ Beitrag veröffentlicht!");
+                                        if (d.error) { setLiPostMsg(d.error); return; }
+                                        setLiPostMsg("Beitrag veröffentlicht!");
                                         setLiPostText("");
-                                      } catch { setLiPostMsg("❌ Netzwerkfehler"); }
+                                      } catch { setLiPostMsg("Netzwerkfehler"); }
                                       finally { setLiPosting(false); }
                                     }}
                                     disabled={liPosting || !liPostText.trim()}
                                     style={{ ...S.btn, opacity: liPosting || !liPostText.trim() ? .5 : 1, cursor: liPosting || !liPostText.trim() ? "not-allowed" : "pointer" }}>
-                                    {liPosting ? "⏳ Wird gepostet…" : "Auf LinkedIn posten →"}
+                                    {liPosting ? "Wird gepostet…" : "Auf LinkedIn posten →"}
                                   </button>
                                 </div>
                                 {liPostMsg && (
-                                  <div style={{ marginTop: 10, fontSize: 13, fontWeight: 500, color: liPostMsg.startsWith("✅") ? "#15803d" : "var(--accent)" }}>
+                                  <div style={{ marginTop: 10, fontSize: 13, fontWeight: 500, color: liPostMsg.includes("Fehler") ? "var(--accent)" : "#15803d" }}>
                                     {liPostMsg}
                                   </div>
                                 )}
@@ -1999,7 +1986,7 @@ export default function KundeDetailPage() {
                               <a
                                 href={`/api/social/linkedin/connect?client_id=${id}`}
                                 style={{ ...S.btn, display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none" }}>
-                                🔗 Mit LinkedIn verbinden
+                                Mit LinkedIn verbinden
                               </a>
                             </div>
                           )}
@@ -2012,19 +1999,17 @@ export default function KundeDetailPage() {
                       const conn      = socialConnections.find(c => c.platform === platform);
                       const metaConn  = socialConnections.find(c => c.platform === "messenger");
                       const label     = platform === "messenger" ? "Messenger" : "Instagram DM";
-                      const emoji     = platform === "messenger" ? "💬" : "📸";
                       const color     = platform === "messenger" ? "#0084FF" : "#E1306C";
                       return (
                         <div>
                           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                            <span style={{ fontSize: 18 }}>{emoji}</span>
                             <span style={{ fontWeight: 600, fontSize: 15, color: "var(--ink)" }}>{label}</span>
                           </div>
 
                           {conn ? (
                             <div>
                               <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 10, marginBottom: 16 }}>
-                                <span>✅</span>
+                                <span style={{ fontSize: 11, fontWeight: 700, color: "#15803d" }}>Verbunden</span>
                                 <div style={{ flex: 1 }}>
                                   <div style={{ fontWeight: 600, fontSize: 13, color: "#15803d" }}>Verbunden als {conn.account_name}</div>
                                   {conn.connected_at && <div style={{ fontSize: 11, color: "#166534", marginTop: 1 }}>Seit {new Date(conn.connected_at).toLocaleDateString("de-DE")}</div>}
@@ -2038,10 +2023,10 @@ export default function KundeDetailPage() {
                                 </button>
                               </div>
                               <div style={{ padding: "12px 14px", background: "var(--bg)", borderRadius: 10, border: "1px solid var(--border)", fontSize: 13, color: "var(--text-secondary)" }}>
-                                💬 Eingehende Nachrichten werden automatisch als Leads im Hub gespeichert, sobald der Webhook aktiv ist.
+                                Eingehende Nachrichten werden automatisch als Leads im Hub gespeichert, sobald der Webhook aktiv ist.
                                 {platform === "instagram" && !metaConn && (
                                   <div style={{ marginTop: 8, color: "var(--accent)", fontWeight: 500 }}>
-                                    ⚠️ Instagram nutzt den gleichen Facebook-Login — über Messenger-Kachel verbinden.
+                                    Instagram nutzt den gleichen Facebook-Login — über Messenger-Kachel verbinden.
                                   </div>
                                 )}
                               </div>
@@ -2055,7 +2040,7 @@ export default function KundeDetailPage() {
                               </p>
                               <a href={`/api/social/meta/connect?client_id=${id}`}
                                 style={{ ...S.btn, display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none", background: color, color: "#fff" }}>
-                                💬 Mit Facebook / Meta verbinden
+                                Mit Facebook / Meta verbinden
                               </a>
                               {platform === "instagram" && (
                                 <p style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 10 }}>

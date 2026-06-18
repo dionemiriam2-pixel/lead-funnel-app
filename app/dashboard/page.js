@@ -7,21 +7,21 @@ import { apiFetch } from "@/lib/api";
 
 /* ── Kanal-Badge-Farben ────────────────────────────────────── */
 const SRC = {
-  landingpage: { bg: "#dcfce7", color: "#16a34a", icon: "🌐" },
-  whatsapp:    { bg: "#dcfce7", color: "#15803d", icon: "💬" },
-  messenger:   { bg: "#dbeafe", color: "#1d4ed8", icon: "💙" },
-  instagram:   { bg: "#fce7f3", color: "#be185d", icon: "📸" },
-  manuell:     { bg: "#f3f4f6", color: "#6b7280", icon: "✏️" },
-  phone:       { bg: "#fef9c3", color: "#854d0e", icon: "📞" },
-  empfehlung:  { bg: "#ede9fe", color: "#7c3aed", icon: "🤝" },
+  landingpage: { bg: "#dcfce7", color: "#16a34a" },
+  whatsapp:    { bg: "#dcfce7", color: "#15803d" },
+  messenger:   { bg: "#dbeafe", color: "#1d4ed8" },
+  instagram:   { bg: "#fce7f3", color: "#be185d" },
+  manuell:     { bg: "#f3f4f6", color: "#6b7280" },
+  phone:       { bg: "#fef9c3", color: "#854d0e" },
+  empfehlung:  { bg: "#ede9fe", color: "#7c3aed" },
 };
-function srcStyle(s) { return SRC[s] || { bg: "#f3f4f6", color: "#6b7280", icon: "📌" }; }
+function srcStyle(s) { return SRC[s] || { bg: "#f3f4f6", color: "#6b7280" }; }
 
 function SourceBadge({ src }) {
   const st = srcStyle(src);
   return (
     <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 99, background: st.bg, color: st.color, whiteSpace: "nowrap" }}>
-      {st.icon} {src || "unbekannt"}
+      {src || "unbekannt"}
     </span>
   );
 }
@@ -82,7 +82,7 @@ export default function DashboardPage() {
         {/* ── Greeting ───────────────────────────────────────── */}
         <div style={{ marginBottom: 28 }}>
           <h1 style={{ fontFamily: "var(--font-serif)", fontSize: 28, fontWeight: 500, color: "var(--ink)", margin: 0, lineHeight: 1.2 }}>
-            {greeting} 👋
+            {greeting}
           </h1>
           <p style={{ color: "var(--text-secondary)", fontSize: 13, marginTop: 4 }}>{dateStr}</p>
         </div>
@@ -90,14 +90,13 @@ export default function DashboardPage() {
         {/* ── KPI-Streifen ───────────────────────────────────── */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
           {[
-            { icon: "👥", label: "Kunden",      val: clients.length,  sub: "aktiv",      hi: false },
-            { icon: "⚡", label: "Neu heute",   val: newToday.length, sub: "letzte 24h", hi: newToday.length > 0 },
-            { icon: "↗",  label: "Diese Woche", val: thisWeek.length, sub: "neue Leads", hi: false },
-            { icon: "🔥", label: "Hot Leads",   val: hotLeads.length, sub: "Score ≥ 7",  hi: hotLeads.length > 0 },
-          ].map(({ icon, label, val, sub, hi }) => (
+            { label: "Kunden",      val: clients.length,  sub: "aktiv",      hi: false },
+            { label: "Neu heute",   val: newToday.length, sub: "letzte 24h", hi: newToday.length > 0 },
+            { label: "Diese Woche", val: thisWeek.length, sub: "neue Leads", hi: false },
+            { label: "Hot Leads",   val: hotLeads.length, sub: "Score ≥ 7",  hi: hotLeads.length > 0 },
+          ].map(({ label, val, sub, hi }) => (
             <div key={label} style={{ ...S.card, padding: "18px 20px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-                <span style={{ color: hi ? "var(--accent)" : "var(--text-tertiary)" }}>{icon}</span>
                 <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em", color: hi ? "var(--accent)" : "var(--text-tertiary)" }}>{label}</span>
               </div>
               <div style={{ fontSize: 36, fontWeight: 700, lineHeight: 1, color: hi && val > 0 ? "var(--accent)" : "var(--ink)", marginBottom: 4 }}>{val}</div>
@@ -125,8 +124,7 @@ export default function DashboardPage() {
             <div style={{ ...S.card, overflow: "hidden" }}>
               {recentFeed.length === 0 ? (
                 <div style={{ padding: "48px 32px", textAlign: "center" }}>
-                  <div style={{ fontSize: 36, marginBottom: 12 }}>📭</div>
-                  <div style={{ fontWeight: 600, color: "var(--ink)", marginBottom: 6 }}>Noch keine Leads</div>
+                    <div style={{ fontWeight: 600, color: "var(--ink)", marginBottom: 6 }}>Noch keine Leads</div>
                   <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 20 }}>
                     Leads kommen über Landing Pages, WhatsApp, Messenger oder manuell herein.
                   </div>
@@ -194,16 +192,15 @@ export default function DashboardPage() {
                 <span style={S.label}>Schnellaktionen</span>
               </div>
               {[
-                { label: "Alle Kunden",      sub: `${clients.length} Kunden`, icon: "👥", href: "/kunden" },
-                { label: "Outreach starten", sub: "E-Mail / LinkedIn",        icon: "✉",  href: "/outreach" },
-                { label: "Toolbox",          sub: "Bot & Scraping",           icon: "⚡", href: "/toolbox" },
-                { label: "Analytics",        sub: "Auswertungen",             icon: "↗",  href: "/analytics" },
-              ].map(({ label, sub, icon, href }) => (
+                { label: "Alle Kunden",      sub: `${clients.length} Kunden`, href: "/kunden" },
+                { label: "Outreach starten", sub: "E-Mail / LinkedIn",        href: "/outreach" },
+                { label: "Toolbox",          sub: "Bot & Scraping",           href: "/toolbox" },
+                { label: "Analytics",        sub: "Auswertungen",             href: "/analytics" },
+              ].map(({ label, sub, href }) => (
                 <button key={label} onClick={() => router.push(href)}
                   style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "11px 18px", border: "none", borderTop: "1px solid var(--border)", background: "transparent", cursor: "pointer", textAlign: "left" }}
                   onMouseEnter={e => e.currentTarget.style.background = "var(--bg)"}
                   onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                  <span style={{ color: "var(--text-tertiary)" }}>{icon}</span>
                   <span style={{ flex: 1 }}>
                     <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)", display: "block" }}>{label}</span>
                     <span style={{ fontSize: 11, color: "var(--text-tertiary)" }}>{sub}</span>

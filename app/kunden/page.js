@@ -39,7 +39,7 @@ function ClientCard({ c, onDelete, onClick }) {
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {analysed && (
             <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, color: "#2E6FD6", background: "#2E6FD610", padding: "2px 8px", borderRadius: 99 }}>
-              ⚡ KI
+              KI
             </span>
           )}
           <button onClick={e => { e.stopPropagation(); onDelete(c.id); }}
@@ -58,7 +58,6 @@ function ClientCard({ c, onDelete, onClick }) {
       <div style={{ display: "flex", flexDirection: "column", gap: 3, marginBottom: 10 }}>
         {c.region && (
           <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: "var(--text-secondary)" }}>
-            📍
             {c.region}
           </div>
         )}
@@ -172,7 +171,6 @@ export default function KundenPage() {
           <div style={{ color: "var(--text-tertiary)", padding: 20 }}>Lade…</div>
         ) : clients.length === 0 ? (
           <div style={{ padding: "60px 0", textAlign: "center" }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>🏢</div>
             <div style={{ fontSize: 16, fontWeight: 600, color: "var(--ink)", marginBottom: 6 }}>Noch keine Kunden</div>
             <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 20 }}>Lege deinen ersten Kunden an und starte die KI-Analyse.</div>
             <button onClick={() => setShowNew(true)}

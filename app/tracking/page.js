@@ -107,7 +107,6 @@ export default function TrackingPage() {
         {/* ── State: Laden ───────────────────────────────────── */}
         {clientId && loading && (
           <div style={{ padding: "60px 0", textAlign: "center", color: "var(--text-tertiary)", fontSize: 14 }}>
-            <div style={{ fontSize: 24, marginBottom: 10 }}>⏳</div>
             Daten werden geladen…
           </div>
         )}
