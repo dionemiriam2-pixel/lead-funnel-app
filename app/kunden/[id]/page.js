@@ -7,6 +7,7 @@ import { apiFetch, authHeaders } from "@/lib/api";
 import CustomerDashboard from "@/components/CustomerDashboard";
 import ContentTab from "@/components/ContentTab";
 import MarkeCITab from "@/components/MarkeCITab";
+import { ExternalLink } from "lucide-react";
 
 /* ─── Konstanten ─────────────────────────────────────────── */
 const TABS = ["Übersicht", "Dashboard", "Profil", "Marke / CI", "Content", "Marketing", "Landing Pages", "Webseite", "Pipeline", "Leads", "Kanäle"];
