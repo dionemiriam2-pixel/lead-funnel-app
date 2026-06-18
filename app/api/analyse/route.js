@@ -441,21 +441,26 @@ Antworte NUR mit rohem JSON:
     ...(socialLinks.linkedin  && !client.linkedin  ? { linkedin:  socialLinks.linkedin  } : {}),
     ...(socialLinks.tiktok    && !client.tiktok    ? { tiktok:    socialLinks.tiktok    } : {}),
     ...(socialLinks.youtube   && !client.youtube   ? { youtube:   socialLinks.youtube   } : {}),
-    // Marke & CI
-    ...(ciResult.tonalitaet    ? { tonalitaet:     ciResult.tonalitaet    } : {}),
-    ...(ciResult.anrede        ? { anrede:         ciResult.anrede        } : {}),
-    ...(ciResult.claim         ? { claim:          ciResult.claim         } : {}),
-    ...(ciResult.sprache_dos   ? { sprache_dos:    ciResult.sprache_dos   } : {}),
-    ...(ciResult.sprache_donts ? { sprache_donts:  ciResult.sprache_donts } : {}),
-    ...(ciResult.mission       ? { mission:        ciResult.mission       } : {}),
-    ...(ciResult.werte         ? { werte:          ciResult.werte         } : {}),
-    ...(ciResult.kernbotschaften && Array.isArray(ciResult.kernbotschaften) ? { kernbotschaften: ciResult.kernbotschaften } : {}),
-    ...(ciResult.persona       ? { persona:        ciResult.persona       } : {}),
-    ...(ciResult.wettbewerb    ? { wettbewerb:     ciResult.wettbewerb    } : {}),
-    ...(ciResult.bildstil      ? { bildstil:       ciResult.bildstil      } : {}),
-    ...(ciResult.ueber_uns     ? { ueber_uns:      ciResult.ueber_uns     } : {}),
-    ...(ciResult.brand_font    ? { brand_font:     ciResult.brand_font    } : {}),
-    ...(ciResult.body_font     ? { body_font:      ciResult.body_font     } : {}),
+    // Marke & CI — in die ci JSONB-Spalte schreiben (wie MarkeCITab es erwartet)
+    ...(Object.keys(ciResult).length > 0 ? {
+      ci: {
+        ...(client.ci || {}),
+        ...(ciResult.tonalitaet    ? { tonalitaet:     ciResult.tonalitaet    } : {}),
+        ...(ciResult.anrede        ? { anrede:         ciResult.anrede        } : {}),
+        ...(ciResult.claim         ? { claim:          ciResult.claim         } : {}),
+        ...(ciResult.sprache_dos   ? { sprache_dos:    ciResult.sprache_dos   } : {}),
+        ...(ciResult.sprache_donts ? { sprache_donts:  ciResult.sprache_donts } : {}),
+        ...(ciResult.mission       ? { mission:        ciResult.mission       } : {}),
+        ...(ciResult.werte         ? { werte:          ciResult.werte         } : {}),
+        ...(ciResult.kernbotschaften && Array.isArray(ciResult.kernbotschaften) ? { kernbotschaften: ciResult.kernbotschaften } : {}),
+        ...(ciResult.persona       ? { persona:        ciResult.persona       } : {}),
+        ...(ciResult.wettbewerb    ? { wettbewerb:     ciResult.wettbewerb    } : {}),
+        ...(ciResult.bildstil      ? { bildstil:       ciResult.bildstil      } : {}),
+        ...(ciResult.ueber_uns     ? { ueber_uns:      ciResult.ueber_uns     } : {}),
+      },
+      ...(ciResult.brand_font ? { brand_font: ciResult.brand_font } : {}),
+      ...(ciResult.body_font  ? { body_font:  ciResult.body_font  } : {}),
+    } : {}),
   };
 
   const { error: saveErr } = await sb.from("clients").update(update).eq("id", client_id);
