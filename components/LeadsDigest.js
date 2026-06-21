@@ -76,6 +76,26 @@ export default function LeadsDigest() {
               : `${data.total} neue Lead${data.total !== 1 ? "s" : ""} in den letzten 24 Stunden`}
           </div>
 
+          {/* Gmail-Postfach: unverarbeitete Anfragen */}
+          {data.gmailUnprocessed?.length > 0 && (
+            <div style={{ marginBottom: 20, padding: "12px 16px", background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 10 }}>
+              <div style={{ fontWeight: 600, fontSize: 13, color: "#4338ca", marginBottom: 8 }}>
+                📩 Gmail-Postfach — noch nicht verarbeitet
+              </div>
+              {data.gmailUnprocessed.map(({ client_id, kunde, count }) => (
+                <div key={client_id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                  <span style={{ fontSize: 13, color: "#3730a3" }}>
+                    <strong>{kunde}:</strong> {count} mögliche Anfrage{count !== 1 ? "n" : ""}
+                  </span>
+                  <a href={`/kunden/${client_id}?tab=Kan%C3%A4le`}
+                    style={{ fontSize: 12, color: "#4338ca", fontWeight: 600, textDecoration: "none" }}>
+                    → Postfach öffnen
+                  </a>
+                </div>
+              ))}
+            </div>
+          )}
+
           {data.total > 0 && (
             <>
               {/* Pro-Kunde-Zeilen */}
