@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import { apiFetch } from "@/lib/api";
+import LeadsDigest from "@/components/LeadsDigest";
 
 /* ── Kanal-Badge-Farben ────────────────────────────────────── */
 const SRC = {
@@ -103,6 +104,11 @@ export default function DashboardPage() {
               <div style={{ fontSize: 11, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: ".06em" }}>{sub}</div>
             </div>
           ))}
+        </div>
+
+        {/* ── Leads-Digest ───────────────────────────────────── */}
+        <div style={{ marginBottom: 24 }}>
+          <LeadsDigest />
         </div>
 
         {/* ── Zwei Spalten ───────────────────────────────────── */}
