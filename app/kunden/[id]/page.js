@@ -11,17 +11,17 @@ import { ExternalLink } from "lucide-react";
 
 /* ─── Konstanten ─────────────────────────────────────────── */
 const TABS = [
-  { key: "Übersicht",     label: "Überbl."  },
-  { key: "Dashboard",     label: "Dash."    },
-  { key: "Profil",        label: "Profil"   },
-  { key: "Marke / CI",    label: "CI"       },
-  { key: "Content",       label: "Content"  },
-  { key: "Marketing",     label: "Mktg."    },
-  { key: "Landing Pages", label: "LPs"      },
-  { key: "Webseite",      label: "Web"      },
-  { key: "Pipeline",      label: "Pipeline" },
-  { key: "Leads",         label: "Leads"    },
-  { key: "Kanäle",        label: "Kanäle"   },
+  { key: "Übersicht",     label: "Übersicht"  },
+  { key: "Dashboard",     label: "Dashboard"  },
+  { key: "Profil",        label: "Profil"     },
+  { key: "Marke / CI",    label: "Marke / CI" },
+  { key: "Content",       label: "Content"    },
+  { key: "Marketing",     label: "Marketing"  },
+  { key: "Landing Pages", label: "Land. Pages"},
+  { key: "Webseite",      label: "Webseite"   },
+  { key: "Pipeline",      label: "Pipeline"   },
+  { key: "Leads",         label: "Leads"      },
+  { key: "Kanäle",        label: "Kanäle"     },
 ];
 
 const TEMPLATE_SOURCES = [
@@ -672,7 +672,7 @@ export default function KundeDetailPage() {
             <div style={{ display: "flex", gap: 2, flexWrap: "nowrap", overflowX: "auto", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "5px 7px", marginBottom: 20, scrollbarWidth: "none" }}>
               {TABS.map(({ key, label }) => (
                 <button key={key} onClick={() => setTab(key)} style={{
-                  padding: "6px 10px", border: "none", borderRadius: 7, fontSize: 12, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0,
+                  padding: "6px 11px", border: "none", borderRadius: 7, fontSize: 12, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0,
                   background: tab === key ? "var(--ink)" : "transparent",
                   color:      tab === key ? "#fff"       : "var(--text-secondary)",
                   fontWeight: tab === key ? 600           : 400,
