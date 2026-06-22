@@ -1949,6 +1949,73 @@ export default function KundeDetailPage() {
                         </div>
                       )}
 
+                      {/* Pipeline-Fortschrittsbalken (HubSpot-Style) */}
+                      {(() => {
+                        const steps = PIPELINE.filter(p => p.key !== "verloren");
+                        const curIdx = steps.findIndex(p => p.key === (leadForm.pipeline_status || "kalt"));
+                        const isLost = leadForm.pipeline_status === "verloren";
+                        async function jumpToStage(key) {
+                          const patch = { ...leadForm, pipeline_status: key };
+                          if (key === "gewonnen" && leadForm.pipeline_status !== "gewonnen") patch.won_at = new Date().toISOString();
+                          if (key === "verloren" && leadForm.pipeline_status !== "verloren") patch.lost_at = new Date().toISOString();
+                          if (!leadForm.first_contact_at && key !== "kalt") patch.first_contact_at = new Date().toISOString();
+                          setLeadForm(patch);
+                          setLeadSaving(true);
+                          await apiFetch("/api/leads", { method: "PATCH", body: JSON.stringify(patch) });
+                          setLeads(prev => prev.map(l => l.id === patch.id ? { ...l, ...patch } : l));
+                          setSelectedLead(s => ({ ...s, ...patch }));
+                          setLeadSaving(false);
+                          flash(`✓ Pipeline: ${PIPELINE.find(p => p.key === key)?.label}`);
+                        }
+                        return (
+                          <div style={{ margin: "16px 24px 0", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 12, padding: "14px 16px" }}>
+                            <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: .5, marginBottom: 12 }}>Pipeline-Status</div>
+                            {/* Steps */}
+                            <div style={{ display: "flex", alignItems: "center", gap: 0, marginBottom: 10 }}>
+                              {steps.map((step, i) => {
+                                const done    = !isLost && i < curIdx;
+                                const current = !isLost && i === curIdx;
+                                const future  = isLost || i > curIdx;
+                                return (
+                                  <div key={step.key} style={{ display: "flex", alignItems: "center", flex: i < steps.length - 1 ? 1 : "none" }}>
+                                    <button onClick={() => jumpToStage(step.key)} title={step.label} style={{
+                                      display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+                                      background: "none", border: "none", cursor: "pointer", padding: "0 4px",
+                                    }}>
+                                      <div style={{
+                                        width: 28, height: 28, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, flexShrink: 0,
+                                        background: done ? "#16a34a" : current ? "#6366f1" : "var(--surface)",
+                                        border: `2px solid ${done ? "#16a34a" : current ? "#6366f1" : "var(--border)"}`,
+                                        color: done || current ? "#fff" : "var(--text-tertiary)",
+                                        transition: "all .2s",
+                                      }}>
+                                        {done ? "✓" : i + 1}
+                                      </div>
+                                      <span style={{ fontSize: 10, fontWeight: current ? 700 : 400, color: done ? "#16a34a" : current ? "#6366f1" : "var(--text-tertiary)", whiteSpace: "nowrap" }}>
+                                        {step.label}
+                                      </span>
+                                    </button>
+                                    {i < steps.length - 1 && (
+                                      <div style={{ flex: 1, height: 2, background: done ? "#16a34a" : "var(--border)", margin: "0 2px", marginBottom: 18, transition: "background .2s" }} />
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            {/* Verloren Button */}
+                            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                              <button onClick={() => jumpToStage(isLost ? "kalt" : "verloren")} style={{
+                                fontSize: 11, padding: "4px 12px", borderRadius: 99, border: `1px solid ${isLost ? "#6366f1" : "#fca5a5"}`,
+                                background: isLost ? "#6366f1" : "transparent", color: isLost ? "#fff" : "#dc2626",
+                                cursor: "pointer", fontWeight: 500,
+                              }}>
+                                {isLost ? "↩ Wiedereröffnen" : "✕ Als verloren markieren"}
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })()}
+
                       {/* Felder */}
                       <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 20, flex: 1 }}>
 
@@ -2014,9 +2081,9 @@ export default function KundeDetailPage() {
                             </div>
                             <div>
                               <label style={S.label}>Pipeline-Status</label>
-                              <select value={leadForm.pipeline_status || "kalt"} onChange={e => setLeadForm(f => ({ ...f, pipeline_status: e.target.value }))} style={{ ...S.input, cursor: "pointer" }}>
-                                {PIPELINE.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
-                              </select>
+                              <div style={{ ...S.input, background: "var(--bg)", color: "var(--text-secondary)", display: "flex", alignItems: "center" }}>
+                                {PIPELINE.find(p => p.key === (leadForm.pipeline_status || "kalt"))?.label || "Kalt"}
+                              </div>
                             </div>
                             <div style={{ gridColumn: "1 / -1" }}>
                               <label style={S.label}>Follow-up Datum</label>
