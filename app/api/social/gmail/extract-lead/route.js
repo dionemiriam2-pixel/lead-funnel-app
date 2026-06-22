@@ -5,7 +5,7 @@ export async function POST(req) {
   if (!await verifyAuth(req)) return NextResponse.json({ error: "Unauth" }, { status: 401 });
 
   const { client_id, message_id, subject, from: fromHeader, body } = await req.json();
-  if (!client_id || !body) return NextResponse.json({ error: "client_id und body erforderlich" }, { status: 400 });
+  if (!client_id) return NextResponse.json({ error: "client_id erforderlich" }, { status: 400 });
 
   /* ── KI: Kontaktdaten aus Mail-Body extrahieren ─────────── */
   const prompt = `Extrahiere Kontaktdaten aus dieser E-Mail und antworte NUR als JSON.

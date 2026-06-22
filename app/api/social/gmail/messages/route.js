@@ -52,13 +52,17 @@ export async function GET(req) {
     if (!res.ok) return NextResponse.json({ error: "Nachricht nicht gefunden" }, { status: 404 });
     const d       = await res.json();
     const headers = Object.fromEntries((d.payload?.headers || []).map(h => [h.name, h.value]));
-    let body = "";
+    let body = "", htmlBody = "";
     function extractBody(part) {
       if (part.mimeType === "text/plain" && part.body?.data)
         body = Buffer.from(part.body.data, "base64").toString("utf-8");
+      if (part.mimeType === "text/html" && part.body?.data && !htmlBody)
+        htmlBody = Buffer.from(part.body.data, "base64").toString("utf-8");
       if (part.parts) part.parts.forEach(extractBody);
     }
     extractBody(d.payload || {});
+    if (!body && htmlBody)
+      body = htmlBody.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 3000);
     return NextResponse.json({ data: {
       id: d.id, subject: headers.Subject || "(kein Betreff)",
       from: headers.From || "", to: headers.To || "",
