@@ -249,16 +249,22 @@ export default function KundeDetailPage() {
     const patch = { ...leadForm };
     const prevStatus = selectedLead.pipeline_status;
     const newStatus  = patch.pipeline_status;
-    if (newStatus === "gewonnen" && prevStatus !== "gewonnen") patch.won_at  = new Date().toISOString();
-    if (newStatus === "verloren" && prevStatus !== "verloren") patch.lost_at = new Date().toISOString();
-    if (newStatus !== "kalt" && newStatus !== "neu" && !selectedLead.first_contact_at) {
+    // Beim Speichern automatisch von "kalt" auf "kontaktiert" — Lead gilt als bearbeitet
+    if (!newStatus || newStatus === "kalt" || newStatus === "neu" || newStatus === "new") {
+      patch.pipeline_status = "kontaktiert";
+    }
+    if (patch.pipeline_status === "gewonnen" && prevStatus !== "gewonnen") patch.won_at  = new Date().toISOString();
+    if (patch.pipeline_status === "verloren" && prevStatus !== "verloren") patch.lost_at = new Date().toISOString();
+    if (!selectedLead.first_contact_at) {
       patch.first_contact_at = new Date().toISOString();
     }
     await apiFetch("/api/leads", { method: "PATCH", body: JSON.stringify(patch) });
     setLeads(prev => prev.map(l => l.id === patch.id ? { ...l, ...patch } : l));
     setSelectedLead(s => ({ ...s, ...patch }));
     setLeadSaving(false);
-    flash("✓ Lead gespeichert");
+    flash(patch.pipeline_status === "kontaktiert" && (!prevStatus || prevStatus === "kalt" || prevStatus === "neu" || prevStatus === "new")
+      ? "✓ Lead gespeichert & als Kontaktiert markiert"
+      : "✓ Lead gespeichert");
   }
 
   async function scoreLead() {
