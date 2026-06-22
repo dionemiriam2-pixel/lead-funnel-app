@@ -12,7 +12,7 @@ export async function POST(req) {
 
   const { data: client, error } = await db
     .from("clients")
-    .select("name, industry, region, target_audience, usp, keywords, vibe, brand_color, accent_color, description")
+    .select("name, industry, region, target_audience, usp, keywords, brand_color, accent_color, description")
     .eq("id", client_id)
     .single();
 
@@ -31,7 +31,7 @@ KUNDENPROFIL:
 - Zielgruppe: ${client.target_audience || "–"}
 - USP: ${client.usp || "–"}
 - Keywords: ${client.keywords || "–"}
-- Stil/Vibe: ${client.vibe || "professionell, nahbar"}
+- Stil/Vibe: professionell, nahbar
 
 Erstelle 5 Social-Media-Posts für die Woche (${weekLabel}).
 Verteile: 2× LinkedIn, 2× Instagram, 1× Facebook.
