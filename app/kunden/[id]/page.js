@@ -802,7 +802,7 @@ export default function KundeDetailPage() {
                       <span>⚠</span>
                       {unprocessed.length} Lead{unprocessed.length !== 1 ? "s" : ""} warten auf Bearbeitung
                     </div>
-                    <button onClick={() => { setTab("Leads"); setStatusFilter("kalt"); }}
+                    <button onClick={() => { setTab("Leads"); const first = unprocessed[0]; if (first) setTimeout(() => openLeadDetail(first), 50); }}
                       style={{ fontSize: 12, padding: "5px 12px", border: "1px solid var(--accent)", borderRadius: 6, background: "transparent", color: "var(--accent)", cursor: "pointer" }}>
                       Jetzt bearbeiten →
                     </button>
@@ -1729,7 +1729,7 @@ export default function KundeDetailPage() {
                       <span>⚠</span>
                       {unprocessed.length} Lead{unprocessed.length !== 1 ? "s" : ""} warten auf Bearbeitung
                     </div>
-                    <button onClick={() => setStatusFilter("kalt")} style={{ fontSize: 12, padding: "5px 12px", border: "1px solid var(--accent)", borderRadius: 6, background: "transparent", color: "var(--accent)", cursor: "pointer" }}>
+                    <button onClick={() => { const first = unprocessed[0]; if (first) openLeadDetail(first); }} style={{ fontSize: 12, padding: "5px 12px", border: "1px solid var(--accent)", borderRadius: 6, background: "transparent", color: "var(--accent)", cursor: "pointer" }}>
                       Jetzt bearbeiten →
                     </button>
                   </div>
