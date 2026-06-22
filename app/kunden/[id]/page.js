@@ -11,7 +11,6 @@ import { ExternalLink } from "lucide-react";
 
 /* ─── Konstanten ─────────────────────────────────────────── */
 const TABS = [
-  { key: "Übersicht",     label: "Übersicht"  },
   { key: "Dashboard",     label: "Dashboard"  },
   { key: "Profil",        label: "Profil"     },
   { key: "Marke / CI",    label: "Marke / CI" },
@@ -126,7 +125,7 @@ export default function KundeDetailPage() {
 
   /* UI */
   const [logoErr,      setLogoErr]      = useState(false);
-  const [tab,          setTab]          = useState("Übersicht");
+  const [tab,          setTab]          = useState("Dashboard");
   const [form,         setForm]         = useState({});
   const [openChannel,  setOpenChannel]  = useState(null);
   const [sourceFilter, setSourceFilter] = useState(null);
@@ -716,100 +715,6 @@ export default function KundeDetailPage() {
             )}
 
             {/* ═══════════ ÜBERSICHT ══════════════════════ */}
-            {tab === "Übersicht" && (
-              <div>
-                {/* KPI-Kacheln */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12, marginBottom: 16 }}>
-                  {[
-                    { label: "Leads",         val: leads.length,       sub: "insgesamt",     hi: leads.length > 0 },
-                    { label: "In Pipeline",   val: inPipeline.length,  sub: "aktive Deals",  hi: inPipeline.length > 0 },
-                    { label: "Landing Pages", val: landingPages.length, sub: "erstellt",      hi: landingPages.length > 0 },
-                  ].map(({ label, val, sub, hi }) => (
-                    <div key={label} style={{ ...S.card, padding: "18px 20px" }}>
-                      <div style={{ fontSize: 34, fontWeight: 700, lineHeight: 1, marginBottom: 4, color: hi ? "var(--ink)" : "var(--text-tertiary)" }}>{val}</div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", marginBottom: 2 }}>{label}</div>
-                      <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--text-tertiary)" }}>{sub}</div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Nächste Schritte */}
-                <div style={S.card}>
-                  <div style={{ fontWeight: 700, fontSize: 15, color: "var(--ink)", marginBottom: 14 }}>Nächste Schritte</div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-                    {[
-                      {
-                        label: "Profil angelegt",
-                        done: true,
-                        sub: client.name + " ist eingerichtet",
-                      },
-                      {
-                        label: "Website analysieren",
-                        done: !!client.analyzed_at,
-                        sub: client.analyzed_at
-                          ? "Analysiert am " + new Date(client.analyzed_at).toLocaleDateString("de-DE")
-                          : "KI liest Website und füllt Zielgruppe, USP & Keywords aus",
-                        action: () => { setTab("Profil"); },
-                        actionLabel: "Start →",
-                      },
-                      {
-                        label: "Erste Landing Page erstellen",
-                        done: landingPages.length > 0,
-                        sub: landingPages.length > 0
-                          ? landingPages.length + " Seite" + (landingPages.length !== 1 ? "n" : "") + " vorhanden"
-                          : "KI generiert Texte & Struktur automatisch",
-                        action: () => setTab("Landing Pages"),
-                        actionLabel: "Erstellen →",
-                      },
-                      {
-                        label: "Leads zuweisen",
-                        done: leads.length > 0,
-                        sub: leads.length > 0
-                          ? leads.length + " Lead" + (leads.length !== 1 ? "s" : "") + " vorhanden"
-                          : "Erste Leads aus Google Maps oder anderen Quellen holen",
-                        action: () => setTab("Leads"),
-                        actionLabel: "Leads ansehen →",
-                      },
-                    ].map(({ label, done, sub, action, actionLabel }, i, arr) => (
-                      <div key={label} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "14px 0", borderBottom: i < arr.length - 1 ? "1px solid var(--border)" : "none" }}>
-                        <div style={{ marginTop: 1, flexShrink: 0 }}>
-                          {done
-                            ? <span style={{ fontSize: 16, color: "#15803d" }}>✓</span>
-                            : <span style={{ fontSize: 16, color: "var(--border)" }}>○</span>
-                          }
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontWeight: 600, fontSize: 13, color: done ? "var(--text-secondary)" : "var(--ink)", textDecoration: done ? "line-through" : "none", marginBottom: 2 }}>
-                            {label}
-                          </div>
-                          <div style={{ fontSize: 12, color: "var(--text-tertiary)", lineHeight: 1.5 }}>{sub}</div>
-                        </div>
-                        {!done && action && (
-                          <button onClick={action}
-                            style={{ ...S.btnSm, flexShrink: 0, padding: "6px 14px", fontWeight: 600 }}>
-                            {actionLabel}
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Unbearbeitet-Banner */}
-                {unprocessed.length > 0 && (
-                  <div style={{ ...S.card, marginTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--bg)" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 7, color: "var(--accent)", fontSize: 13, fontWeight: 500 }}>
-                      <span>⚠</span>
-                      {unprocessed.length} Lead{unprocessed.length !== 1 ? "s" : ""} warten auf Bearbeitung
-                    </div>
-                    <button onClick={() => { setTab("Leads"); const first = unprocessed[0]; if (first) setTimeout(() => openLeadDetail(first), 50); }}
-                      style={{ fontSize: 12, padding: "5px 12px", border: "1px solid var(--accent)", borderRadius: 6, background: "transparent", color: "var(--accent)", cursor: "pointer" }}>
-                      Jetzt bearbeiten →
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
 
             {/* ═══════════ PROFIL ══════════════════════════ */}
             {tab === "Profil" && (
