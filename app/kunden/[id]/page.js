@@ -923,6 +923,21 @@ export default function KundeDetailPage() {
             {tab === "Marketing" && (
               <div>
 
+                {/* Funnel-Strategie */}
+                <div style={{ ...S.card, marginBottom: 16 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                    <div style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)" }}>Funnel-Strategie & Überlegungen</div>
+                    <button onClick={async () => { await apiFetch("/api/clients", { method: "PATCH", body: JSON.stringify({ id: client.id, strategy_notes: form.strategy_notes }) }); flash("✓ Strategie gespeichert"); }} style={{ ...S.btnSm }}>Speichern</button>
+                  </div>
+                  <textarea
+                    value={form.strategy_notes || ""}
+                    onChange={e => setForm(f => ({ ...f, strategy_notes: e.target.value }))}
+                    rows={10}
+                    style={{ ...S.input, resize: "vertical", fontFamily: "monospace", fontSize: 12, lineHeight: 1.7 }}
+                    placeholder="Funnel-Konzept, Stufen, offene Punkte, nächste Schritte…"
+                  />
+                </div>
+
                 {/* CI → jetzt im Profil */}
                 <div style={{ ...S.card, marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "14px 18px" }}>
                   <div>
