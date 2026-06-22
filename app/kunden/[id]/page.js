@@ -137,9 +137,10 @@ export default function KundeDetailPage() {
   const [addLeadForm,  setAddLeadForm]  = useState({ contact_name: "", phone: "", email: "", source: "manuell", notes: "" });
   const [addLeadSaving,setAddLeadSaving]= useState(false);
   const [selectedLead, setSelectedLead] = useState(null);
-  const [leadForm,     setLeadForm]     = useState({});
-  const [leadSaving,   setLeadSaving]   = useState(false);
-  const [leadScoring,  setLeadScoring]  = useState(false);
+  const [leadForm,      setLeadForm]      = useState({});
+  const [leadSaving,    setLeadSaving]    = useState(false);
+  const [leadScoring,   setLeadScoring]   = useState(false);
+  const [leadDetailTab, setLeadDetailTab] = useState("übersicht");
   const [kiStrategie,  setKiStrategie]  = useState(null);
   const [kiStratLoading, setKiStratLoading] = useState(false);
   const [msg,          setMsg]          = useState("");
@@ -237,10 +238,8 @@ export default function KundeDetailPage() {
 
   function openLeadDetail(lead) {
     setSelectedLead(lead);
-    setLeadForm({
-      ...lead,
-      qualifizierung: lead.qualifizierung || {},
-    });
+    setLeadForm({ ...lead, qualifizierung: lead.qualifizierung || {} });
+    setLeadDetailTab("übersicht");
   }
 
   async function saveLead() {
@@ -1824,234 +1823,324 @@ export default function KundeDetailPage() {
                   </div>
                 )}
 
-                {/* ── Lead-Detail-Drawer ──────────────────────── */}
+                {/* ── Lead-Detail-Modal (HubSpot-Style) ──────── */}
                 {selectedLead && (
-                  <div onClick={() => setSelectedLead(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.45)", zIndex: 300, display: "flex", justifyContent: "flex-end" }}>
-                    <div onClick={e => e.stopPropagation()} style={{ width: "min(520px, 100vw)", height: "100%", background: "var(--surface)", boxShadow: "-8px 0 40px rgba(0,0,0,.2)", overflowY: "auto", display: "flex", flexDirection: "column" }}>
+                  <div onClick={() => setSelectedLead(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px 16px" }}>
+                    <div onClick={e => e.stopPropagation()} style={{ width: "min(960px, 100%)", maxHeight: "90vh", background: "var(--surface)", borderRadius: 16, boxShadow: "0 24px 80px rgba(0,0,0,.25)", display: "flex", flexDirection: "column", overflow: "hidden" }}>
 
                       {/* Header */}
-                      <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexShrink: 0 }}>
-                        <div>
-                          <div style={{ fontWeight: 700, fontSize: 16, color: "var(--ink)", marginBottom: 2 }}>{selectedLead.company_name || selectedLead.contact_name || "Lead"}</div>
-                          <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{selectedLead.contact_name}{selectedLead.city ? ` · ${selectedLead.city}` : ""}</div>
-                        </div>
-                        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                          <button onClick={scoreLead} disabled={leadScoring} style={{ ...S.btnSm, background: leadScoring ? "var(--border)" : "#6366f1", color: "#fff", padding: "6px 14px", display: "flex", alignItems: "center", gap: 5 }}>
-                            {leadScoring ? "…" : "✦"} KI-Score
-                          </button>
-                          <button onClick={() => setSelectedLead(null)} style={{ border: "none", background: "none", fontSize: 22, cursor: "pointer", color: "var(--text-tertiary)", lineHeight: 1 }}>×</button>
-                        </div>
-                      </div>
-
-                      {/* KI-Score Anzeige */}
-                      {leadForm.score != null && (
-                        <div style={{ margin: "16px 24px 0", padding: "12px 16px", background: leadForm.score >= 70 ? "#f0fdf4" : leadForm.score >= 40 ? "#fefce8" : "#fef2f2", border: `1px solid ${leadForm.score >= 70 ? "#bbf7d0" : leadForm.score >= 40 ? "#fde68a" : "#fecaca"}`, borderRadius: 10 }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: leadForm.score_reason ? 6 : 0 }}>
-                            <span style={{ fontSize: 28, fontWeight: 800, color: leadForm.score >= 70 ? "#16a34a" : leadForm.score >= 40 ? "#d97706" : "#dc2626" }}>{leadForm.score}</span>
-                            <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>/ 100 KI-Score</span>
+                      <div style={{ padding: "18px 24px 14px", borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
+                          <div>
+                            <div style={{ fontWeight: 700, fontSize: 18, color: "var(--ink)", marginBottom: 3 }}>{selectedLead.company_name || selectedLead.contact_name || "Lead"}</div>
+                            <div style={{ fontSize: 12, color: "var(--text-secondary)", display: "flex", gap: 10 }}>
+                              {selectedLead.contact_name && <span>{selectedLead.contact_name}</span>}
+                              {selectedLead.source && <span style={{ padding: "1px 8px", borderRadius: 99, background: "var(--bg)", border: "1px solid var(--border)" }}>{selectedLead.source}</span>}
+                              {selectedLead.created_at && <span>{new Date(selectedLead.created_at).toLocaleDateString("de-DE")}</span>}
+                            </div>
                           </div>
-                          {leadForm.score_reason && <div style={{ fontSize: 12, color: "var(--text-secondary)", fontStyle: "italic" }}>{leadForm.score_reason}</div>}
+                          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                            <button onClick={scoreLead} disabled={leadScoring} style={{ ...S.btnSm, background: leadScoring ? "var(--border)" : "#6366f1", color: "#fff", padding: "6px 14px", display: "flex", alignItems: "center", gap: 5 }}>
+                              {leadScoring ? "…" : "✦"} KI-Score
+                            </button>
+                            <button onClick={() => setSelectedLead(null)} style={{ border: "none", background: "none", fontSize: 24, cursor: "pointer", color: "var(--text-tertiary)", lineHeight: 1, padding: "0 4px" }}>×</button>
+                          </div>
                         </div>
-                      )}
-
-                      {/* Pipeline-Fortschrittsbalken (HubSpot-Style) */}
-                      {(() => {
-                        const steps = PIPELINE.filter(p => p.key !== "verloren");
-                        const curIdx = steps.findIndex(p => p.key === (leadForm.pipeline_status || "kalt"));
-                        const isLost = leadForm.pipeline_status === "verloren";
-                        async function jumpToStage(key) {
-                          const patch = { ...leadForm, pipeline_status: key };
-                          if (key === "gewonnen" && leadForm.pipeline_status !== "gewonnen") patch.won_at = new Date().toISOString();
-                          if (key === "verloren" && leadForm.pipeline_status !== "verloren") patch.lost_at = new Date().toISOString();
-                          if (!leadForm.first_contact_at && key !== "kalt") patch.first_contact_at = new Date().toISOString();
-                          setLeadForm(patch);
-                          setLeadSaving(true);
-                          await apiFetch("/api/leads", { method: "PATCH", body: JSON.stringify(patch) });
-                          setLeads(prev => prev.map(l => l.id === patch.id ? { ...l, ...patch } : l));
-                          setSelectedLead(s => ({ ...s, ...patch }));
-                          setLeadSaving(false);
-                          flash(`✓ Pipeline: ${PIPELINE.find(p => p.key === key)?.label}`);
-                        }
-                        return (
-                          <div style={{ margin: "16px 24px 0", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 12, padding: "14px 16px" }}>
-                            <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: .5, marginBottom: 12 }}>Pipeline-Status</div>
-                            {/* Steps */}
-                            <div style={{ display: "flex", alignItems: "center", gap: 0, marginBottom: 10 }}>
+                        {/* Pipeline-Balken im Header */}
+                        {(() => {
+                          const steps = PIPELINE.filter(p => p.key !== "verloren");
+                          const curIdx = steps.findIndex(p => p.key === (leadForm.pipeline_status || "kalt"));
+                          const isLost = leadForm.pipeline_status === "verloren";
+                          async function jumpToStage(key) {
+                            const patch = { ...leadForm, pipeline_status: key };
+                            if (key === "gewonnen" && leadForm.pipeline_status !== "gewonnen") patch.won_at = new Date().toISOString();
+                            if (key === "verloren" && leadForm.pipeline_status !== "verloren") patch.lost_at = new Date().toISOString();
+                            if (!leadForm.first_contact_at && key !== "kalt") patch.first_contact_at = new Date().toISOString();
+                            setLeadForm(patch);
+                            setLeadSaving(true);
+                            await apiFetch("/api/leads", { method: "PATCH", body: JSON.stringify(patch) });
+                            setLeads(prev => prev.map(l => l.id === patch.id ? { ...l, ...patch } : l));
+                            setSelectedLead(s => ({ ...s, ...patch }));
+                            setLeadSaving(false);
+                            flash(`✓ Pipeline: ${PIPELINE.find(p => p.key === key)?.label}`);
+                          }
+                          return (
+                            <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
                               {steps.map((step, i) => {
                                 const done    = !isLost && i < curIdx;
                                 const current = !isLost && i === curIdx;
-                                const future  = isLost || i > curIdx;
                                 return (
                                   <div key={step.key} style={{ display: "flex", alignItems: "center", flex: i < steps.length - 1 ? 1 : "none" }}>
-                                    <button onClick={() => jumpToStage(step.key)} title={step.label} style={{
-                                      display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
-                                      background: "none", border: "none", cursor: "pointer", padding: "0 4px",
-                                    }}>
-                                      <div style={{
-                                        width: 28, height: 28, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, flexShrink: 0,
-                                        background: done ? "#16a34a" : current ? "#6366f1" : "var(--surface)",
-                                        border: `2px solid ${done ? "#16a34a" : current ? "#6366f1" : "var(--border)"}`,
-                                        color: done || current ? "#fff" : "var(--text-tertiary)",
-                                        transition: "all .2s",
-                                      }}>
+                                    <button onClick={() => jumpToStage(step.key)} title={step.label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, background: "none", border: "none", cursor: "pointer", padding: "0 6px" }}>
+                                      <div style={{ width: 26, height: 26, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, flexShrink: 0, background: done ? "#16a34a" : current ? "#6366f1" : "var(--bg)", border: `2px solid ${done ? "#16a34a" : current ? "#6366f1" : "var(--border)"}`, color: done || current ? "#fff" : "var(--text-tertiary)", transition: "all .2s" }}>
                                         {done ? "✓" : i + 1}
                                       </div>
-                                      <span style={{ fontSize: 10, fontWeight: current ? 700 : 400, color: done ? "#16a34a" : current ? "#6366f1" : "var(--text-tertiary)", whiteSpace: "nowrap" }}>
-                                        {step.label}
-                                      </span>
+                                      <span style={{ fontSize: 10, fontWeight: current ? 700 : 400, color: done ? "#16a34a" : current ? "#6366f1" : "var(--text-tertiary)", whiteSpace: "nowrap" }}>{step.label}</span>
                                     </button>
-                                    {i < steps.length - 1 && (
-                                      <div style={{ flex: 1, height: 2, background: done ? "#16a34a" : "var(--border)", margin: "0 2px", marginBottom: 18, transition: "background .2s" }} />
-                                    )}
+                                    {i < steps.length - 1 && <div style={{ flex: 1, height: 2, background: done ? "#16a34a" : "var(--border)", margin: "0 2px", marginBottom: 16, transition: "background .2s" }} />}
                                   </div>
                                 );
                               })}
-                            </div>
-                            {/* Verloren Button */}
-                            <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                              <button onClick={() => jumpToStage(isLost ? "kalt" : "verloren")} style={{
-                                fontSize: 11, padding: "4px 12px", borderRadius: 99, border: `1px solid ${isLost ? "#6366f1" : "#fca5a5"}`,
-                                background: isLost ? "#6366f1" : "transparent", color: isLost ? "#fff" : "#dc2626",
-                                cursor: "pointer", fontWeight: 500,
-                              }}>
-                                {isLost ? "↩ Wiedereröffnen" : "✕ Als verloren markieren"}
+                              <button onClick={() => jumpToStage(isLost ? "kalt" : "verloren")} style={{ marginLeft: 12, marginBottom: 16, fontSize: 11, padding: "3px 10px", borderRadius: 99, border: `1px solid ${isLost ? "#6366f1" : "#fca5a5"}`, background: isLost ? "#6366f1" : "transparent", color: isLost ? "#fff" : "#dc2626", cursor: "pointer", fontWeight: 500, whiteSpace: "nowrap" }}>
+                                {isLost ? "↩ Wieder öffnen" : "✕ Verloren"}
                               </button>
                             </div>
-                          </div>
-                        );
-                      })()}
-
-                      {/* Felder */}
-                      <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 20, flex: 1 }}>
-
-                        {/* Herkunft */}
-                        <div>
-                          <div style={S.sectionHd}>Herkunft</div>
-                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                            <div>
-                              <label style={S.label}>Quelle</label>
-                              <select value={leadForm.source || ""} onChange={e => setLeadForm(f => ({ ...f, source: e.target.value }))} style={{ ...S.input, cursor: "pointer" }}>
-                                {["landingpage","google-maps","linkedin","facebook","instagram","whatsapp","messenger","email","empfehlung","manuell"].map(v => <option key={v} value={v}>{v}</option>)}
-                              </select>
-                            </div>
-                            <div>
-                              <label style={S.label}>Quelle Detail</label>
-                              <input value={leadForm.source_detail || ""} onChange={e => setLeadForm(f => ({ ...f, source_detail: e.target.value }))} style={S.input} placeholder="z.B. Google Ads – Retargeting" />
-                            </div>
-                            <div>
-                              <label style={S.label}>Landing Page</label>
-                              <input value={leadForm.lp || ""} onChange={e => setLeadForm(f => ({ ...f, lp: e.target.value }))} style={S.input} placeholder="LP-Slug oder URL" />
-                            </div>
-                            <div>
-                              <label style={S.label}>Kampagne</label>
-                              <input value={leadForm.campaign || ""} onChange={e => setLeadForm(f => ({ ...f, campaign: e.target.value }))} style={S.input} placeholder="z.B. Sommer-Aktion 2026" />
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Qualifizierung */}
-                        <div>
-                          <div style={S.sectionHd}>Qualifizierung</div>
-                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                            <div>
-                              <label style={S.label}>Budget</label>
-                              <input value={leadForm.qualifizierung?.budget || ""} onChange={e => setLeadForm(f => ({ ...f, qualifizierung: { ...f.qualifizierung, budget: e.target.value } }))} style={S.input} placeholder="z.B. 5.000–10.000 EUR" />
-                            </div>
-                            <div>
-                              <label style={S.label}>Bedarf</label>
-                              <input value={leadForm.qualifizierung?.bedarf || ""} onChange={e => setLeadForm(f => ({ ...f, qualifizierung: { ...f.qualifizierung, bedarf: e.target.value } }))} style={S.input} placeholder="z.B. Website-Relaunch" />
-                            </div>
-                            <div>
-                              <label style={S.label}>Zeitrahmen</label>
-                              <input value={leadForm.qualifizierung?.zeitrahmen || ""} onChange={e => setLeadForm(f => ({ ...f, qualifizierung: { ...f.qualifizierung, zeitrahmen: e.target.value } }))} style={S.input} placeholder="z.B. Q3 2026" />
-                            </div>
-                            <div>
-                              <label style={S.label}>Entscheider?</label>
-                              <select value={leadForm.qualifizierung?.entscheider === true ? "ja" : leadForm.qualifizierung?.entscheider === false ? "nein" : ""} onChange={e => setLeadForm(f => ({ ...f, qualifizierung: { ...f.qualifizierung, entscheider: e.target.value === "ja" ? true : e.target.value === "nein" ? false : null } }))} style={{ ...S.input, cursor: "pointer" }}>
-                                <option value="">Unbekannt</option>
-                                <option value="ja">Ja</option>
-                                <option value="nein">Nein</option>
-                              </select>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Wert & Status */}
-                        <div>
-                          <div style={S.sectionHd}>Wert & Status</div>
-                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                            <div>
-                              <label style={S.label}>Geschätzter Auftragswert (EUR)</label>
-                              <input type="number" value={leadForm.estimated_value ?? ""} onChange={e => setLeadForm(f => ({ ...f, estimated_value: e.target.value === "" ? null : Number(e.target.value) }))} style={S.input} placeholder="0" />
-                            </div>
-                            <div>
-                              <label style={S.label}>Pipeline-Status</label>
-                              <div style={{ ...S.input, background: "var(--bg)", color: "var(--text-secondary)", display: "flex", alignItems: "center" }}>
-                                {PIPELINE.find(p => p.key === (leadForm.pipeline_status || "kalt"))?.label || "Kalt"}
-                              </div>
-                            </div>
-                            <div style={{ gridColumn: "1 / -1" }}>
-                              <label style={S.label}>Follow-up Datum</label>
-                              <input type="date" value={leadForm.follow_up_date || ""} onChange={e => setLeadForm(f => ({ ...f, follow_up_date: e.target.value }))} style={S.input} />
-                            </div>
-                          </div>
-
-                          {/* Verloren-Grund */}
-                          {leadForm.pipeline_status === "verloren" && (
-                            <div style={{ marginTop: 10 }}>
-                              <label style={S.label}>Verloren-Grund</label>
-                              <textarea value={leadForm.lost_reason || ""} onChange={e => setLeadForm(f => ({ ...f, lost_reason: e.target.value }))} rows={2} style={{ ...S.input, resize: "vertical" }} placeholder="z.B. Preis zu hoch, Entscheidung vertagt …" />
-                            </div>
-                          )}
-
-                          {/* Gewonnen-Info */}
-                          {leadForm.pipeline_status === "gewonnen" && (
-                            <div style={{ marginTop: 10, padding: "10px 14px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 8, fontSize: 12, color: "#16a34a" }}>
-                              ✓ Gewonnen {selectedLead.won_at ? `am ${new Date(selectedLead.won_at).toLocaleDateString("de-DE")}` : "— won_at wird beim Speichern gesetzt"}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Notizen */}
-                        <div>
-                          <label style={S.label}>Notizen</label>
-                          <textarea value={leadForm.notes || ""} onChange={e => setLeadForm(f => ({ ...f, notes: e.target.value }))} rows={3} style={{ ...S.input, resize: "vertical" }} />
-                        </div>
-
-                        {/* Kontakt */}
-                        <div>
-                          <div style={S.sectionHd}>Kontakt</div>
-                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                            <div>
-                              <label style={S.label}>Name</label>
-                              <input value={leadForm.contact_name || ""} onChange={e => setLeadForm(f => ({ ...f, contact_name: e.target.value }))} style={S.input} />
-                            </div>
-                            <div>
-                              <label style={S.label}>Telefon</label>
-                              <input value={leadForm.phone || ""} onChange={e => setLeadForm(f => ({ ...f, phone: e.target.value }))} style={S.input} />
-                            </div>
-                            <div>
-                              <label style={S.label}>E-Mail</label>
-                              <input value={leadForm.email || ""} onChange={e => setLeadForm(f => ({ ...f, email: e.target.value }))} style={S.input} />
-                            </div>
-                            <div>
-                              <label style={S.label}>Website</label>
-                              <input value={leadForm.website || ""} onChange={e => setLeadForm(f => ({ ...f, website: e.target.value }))} style={S.input} />
-                            </div>
-                          </div>
-                        </div>
+                          );
+                        })()}
                       </div>
 
-                      {/* Footer */}
-                      <div style={{ padding: "16px 24px", borderTop: "1px solid var(--border)", display: "flex", gap: 10, flexShrink: 0 }}>
-                        <button onClick={() => setSelectedLead(null)} style={{ ...S.btnOutline, flex: 1 }}>Schließen</button>
-                        <button onClick={saveLead} disabled={leadSaving} style={{ ...S.btn, flex: 2, opacity: leadSaving ? .6 : 1 }}>
-                          {leadSaving ? "Speichert…" : "Speichern"}
-                        </button>
+                      {/* Body: Links Kontaktkarte + Rechts Tabs */}
+                      <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+
+                        {/* Linke Sidebar: Kontaktdaten */}
+                        <div style={{ width: 240, flexShrink: 0, borderRight: "1px solid var(--border)", padding: "20px 18px", overflowY: "auto", background: "var(--bg)", display: "flex", flexDirection: "column", gap: 20 }}>
+                          {/* Avatar + Name */}
+                          <div style={{ textAlign: "center", paddingBottom: 16, borderBottom: "1px solid var(--border)" }}>
+                            <div style={{ width: 52, height: 52, borderRadius: "50%", background: "#6366f1", color: "#fff", fontSize: 20, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px" }}>
+                              {(selectedLead.company_name || selectedLead.contact_name || "?")[0].toUpperCase()}
+                            </div>
+                            <div style={{ fontWeight: 700, fontSize: 14, color: "var(--ink)", marginBottom: 2 }}>{selectedLead.company_name || selectedLead.contact_name || "–"}</div>
+                            {selectedLead.company_name && selectedLead.contact_name && <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{selectedLead.contact_name}</div>}
+                            {/* KI-Score Badge */}
+                            {leadForm.score != null && (
+                              <div style={{ marginTop: 8, display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 10px", borderRadius: 99, background: leadForm.score >= 70 ? "#f0fdf4" : leadForm.score >= 40 ? "#fefce8" : "#fef2f2", border: `1px solid ${leadForm.score >= 70 ? "#bbf7d0" : leadForm.score >= 40 ? "#fde68a" : "#fecaca"}` }}>
+                                <span style={{ fontSize: 16, fontWeight: 800, color: leadForm.score >= 70 ? "#16a34a" : leadForm.score >= 40 ? "#d97706" : "#dc2626" }}>{leadForm.score}</span>
+                                <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>KI-Score</span>
+                              </div>
+                            )}
+                          </div>
+                          {/* Kontaktdaten */}
+                          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                            {[
+                              { icon: "✉", label: "E-Mail",   val: selectedLead.email   },
+                              { icon: "☎", label: "Telefon",  val: selectedLead.phone   },
+                              { icon: "🌐", label: "Website", val: selectedLead.website  },
+                              { icon: "📍", label: "Stadt",   val: selectedLead.city    },
+                            ].map(({ icon, label, val }) => val ? (
+                              <div key={label}>
+                                <div style={{ fontSize: 10, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: .4, marginBottom: 2 }}>{label}</div>
+                                <div style={{ fontSize: 12, color: "var(--ink)", wordBreak: "break-all" }}>{icon} {val}</div>
+                              </div>
+                            ) : null)}
+                          </div>
+                          {/* Metadaten */}
+                          <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingTop: 12, borderTop: "1px solid var(--border)" }}>
+                            <div>
+                              <div style={{ fontSize: 10, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: .4, marginBottom: 2 }}>Quelle</div>
+                              <div style={{ fontSize: 12, color: "var(--ink)" }}>{selectedLead.source || "–"}{selectedLead.source_detail ? ` · ${selectedLead.source_detail}` : ""}</div>
+                            </div>
+                            <div>
+                              <div style={{ fontSize: 10, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: .4, marginBottom: 2 }}>Eingegangen</div>
+                              <div style={{ fontSize: 12, color: "var(--ink)" }}>{selectedLead.created_at ? new Date(selectedLead.created_at).toLocaleString("de-DE", { day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit" }) : "–"}</div>
+                            </div>
+                            {selectedLead.estimated_value > 0 && (
+                              <div>
+                                <div style={{ fontSize: 10, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: .4, marginBottom: 2 }}>Auftragswert</div>
+                                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--ink)" }}>{Number(selectedLead.estimated_value).toLocaleString("de-DE")} €</div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Rechte Seite: Tabs */}
+                        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+                          {/* Tab-Bar */}
+                          <div style={{ display: "flex", gap: 2, padding: "12px 20px 0", borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
+                            {[{ key: "übersicht", label: "Übersicht" }, { key: "bearbeiten", label: "Bearbeiten" }].map(t => (
+                              <button key={t.key} onClick={() => setLeadDetailTab(t.key)} style={{ padding: "7px 18px", border: "none", background: "none", cursor: "pointer", fontSize: 13, fontWeight: leadDetailTab === t.key ? 700 : 400, color: leadDetailTab === t.key ? "var(--ink)" : "var(--text-secondary)", borderBottom: `2px solid ${leadDetailTab === t.key ? "var(--ink)" : "transparent"}`, marginBottom: -1 }}>
+                                {t.label}
+                              </button>
+                            ))}
+                          </div>
+
+                          {/* Tab-Inhalt */}
+                          <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px" }}>
+
+                            {/* ── ÜBERSICHT ── */}
+                            {leadDetailTab === "übersicht" && (
+                              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                                {leadForm.score_reason && (
+                                  <div style={{ padding: "12px 16px", background: leadForm.score >= 70 ? "#f0fdf4" : leadForm.score >= 40 ? "#fefce8" : "#fef2f2", border: `1px solid ${leadForm.score >= 70 ? "#bbf7d0" : leadForm.score >= 40 ? "#fde68a" : "#fecaca"}`, borderRadius: 10, fontSize: 13, color: "var(--ink)", fontStyle: "italic" }}>
+                                    "{leadForm.score_reason}"
+                                  </div>
+                                )}
+                                {/* Qualifizierung Summary */}
+                                {(leadForm.qualifizierung?.budget || leadForm.qualifizierung?.bedarf || leadForm.qualifizierung?.zeitrahmen) && (
+                                  <div style={{ ...S.card, padding: 16 }}>
+                                    <div style={{ fontWeight: 600, fontSize: 13, color: "var(--ink)", marginBottom: 10 }}>Qualifizierung</div>
+                                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                                      {[
+                                        { label: "Budget",     val: leadForm.qualifizierung?.budget },
+                                        { label: "Bedarf",     val: leadForm.qualifizierung?.bedarf },
+                                        { label: "Zeitrahmen", val: leadForm.qualifizierung?.zeitrahmen },
+                                        { label: "Entscheider", val: leadForm.qualifizierung?.entscheider === true ? "Ja" : leadForm.qualifizierung?.entscheider === false ? "Nein" : null },
+                                      ].filter(x => x.val).map(({ label, val }) => (
+                                        <div key={label}>
+                                          <div style={{ fontSize: 10, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: .4, marginBottom: 2 }}>{label}</div>
+                                          <div style={{ fontSize: 13, color: "var(--ink)" }}>{val}</div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                                {/* Notizen */}
+                                {leadForm.notes && (
+                                  <div style={{ ...S.card, padding: 16 }}>
+                                    <div style={{ fontWeight: 600, fontSize: 13, color: "var(--ink)", marginBottom: 8 }}>Notizen</div>
+                                    <div style={{ fontSize: 13, color: "var(--text-secondary)", whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{leadForm.notes}</div>
+                                  </div>
+                                )}
+                                {/* Follow-up */}
+                                {leadForm.follow_up_date && (
+                                  <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 8, fontSize: 13 }}>
+                                    <span>📅</span>
+                                    <span style={{ color: "var(--ink)" }}>Follow-up: <strong>{new Date(leadForm.follow_up_date).toLocaleDateString("de-DE")}</strong></span>
+                                  </div>
+                                )}
+                                {/* Keine Daten */}
+                                {!leadForm.score_reason && !leadForm.notes && !leadForm.follow_up_date && !leadForm.qualifizierung?.budget && (
+                                  <div style={{ textAlign: "center", padding: "40px 20px", color: "var(--text-tertiary)", fontSize: 13 }}>
+                                    Noch keine Details — wechsle zu <strong>Bearbeiten</strong> um Infos einzutragen.
+                                  </div>
+                                )}
+                                <button onClick={() => setLeadDetailTab("bearbeiten")} style={{ ...S.btn, alignSelf: "flex-start" }}>Bearbeiten →</button>
+                              </div>
+                            )}
+
+                            {/* ── BEARBEITEN ── */}
+                            {leadDetailTab === "bearbeiten" && (
+                              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+
+                                {/* Herkunft */}
+                                <div>
+                                  <div style={S.sectionHd}>Herkunft</div>
+                                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                                    <div>
+                                      <label style={S.label}>Quelle</label>
+                                      <select value={leadForm.source || ""} onChange={e => setLeadForm(f => ({ ...f, source: e.target.value }))} style={{ ...S.input, cursor: "pointer" }}>
+                                        {["landingpage","google-maps","linkedin","facebook","instagram","whatsapp","messenger","email","empfehlung","manuell"].map(v => <option key={v} value={v}>{v}</option>)}
+                                      </select>
+                                    </div>
+                                    <div>
+                                      <label style={S.label}>Quelle Detail</label>
+                                      <input value={leadForm.source_detail || ""} onChange={e => setLeadForm(f => ({ ...f, source_detail: e.target.value }))} style={S.input} placeholder="z.B. Google Ads – Retargeting" />
+                                    </div>
+                                    <div>
+                                      <label style={S.label}>Landing Page</label>
+                                      <input value={leadForm.lp || ""} onChange={e => setLeadForm(f => ({ ...f, lp: e.target.value }))} style={S.input} placeholder="LP-Slug oder URL" />
+                                    </div>
+                                    <div>
+                                      <label style={S.label}>Kampagne</label>
+                                      <input value={leadForm.campaign || ""} onChange={e => setLeadForm(f => ({ ...f, campaign: e.target.value }))} style={S.input} placeholder="z.B. Sommer-Aktion 2026" />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Qualifizierung */}
+                                <div>
+                                  <div style={S.sectionHd}>Qualifizierung</div>
+                                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                                    <div>
+                                      <label style={S.label}>Budget</label>
+                                      <input value={leadForm.qualifizierung?.budget || ""} onChange={e => setLeadForm(f => ({ ...f, qualifizierung: { ...f.qualifizierung, budget: e.target.value } }))} style={S.input} placeholder="z.B. 5.000–10.000 EUR" />
+                                    </div>
+                                    <div>
+                                      <label style={S.label}>Bedarf</label>
+                                      <input value={leadForm.qualifizierung?.bedarf || ""} onChange={e => setLeadForm(f => ({ ...f, qualifizierung: { ...f.qualifizierung, bedarf: e.target.value } }))} style={S.input} placeholder="z.B. Website-Relaunch" />
+                                    </div>
+                                    <div>
+                                      <label style={S.label}>Zeitrahmen</label>
+                                      <input value={leadForm.qualifizierung?.zeitrahmen || ""} onChange={e => setLeadForm(f => ({ ...f, qualifizierung: { ...f.qualifizierung, zeitrahmen: e.target.value } }))} style={S.input} placeholder="z.B. Q3 2026" />
+                                    </div>
+                                    <div>
+                                      <label style={S.label}>Entscheider?</label>
+                                      <select value={leadForm.qualifizierung?.entscheider === true ? "ja" : leadForm.qualifizierung?.entscheider === false ? "nein" : ""} onChange={e => setLeadForm(f => ({ ...f, qualifizierung: { ...f.qualifizierung, entscheider: e.target.value === "ja" ? true : e.target.value === "nein" ? false : null } }))} style={{ ...S.input, cursor: "pointer" }}>
+                                        <option value="">Unbekannt</option>
+                                        <option value="ja">Ja</option>
+                                        <option value="nein">Nein</option>
+                                      </select>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Wert & Status */}
+                                <div>
+                                  <div style={S.sectionHd}>Wert & Status</div>
+                                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                                    <div>
+                                      <label style={S.label}>Geschätzter Auftragswert (EUR)</label>
+                                      <input type="number" value={leadForm.estimated_value ?? ""} onChange={e => setLeadForm(f => ({ ...f, estimated_value: e.target.value === "" ? null : Number(e.target.value) }))} style={S.input} placeholder="0" />
+                                    </div>
+                                    <div>
+                                      <label style={S.label}>Pipeline-Status</label>
+                                      <div style={{ ...S.input, background: "var(--bg)", color: "var(--text-secondary)", display: "flex", alignItems: "center" }}>
+                                        {PIPELINE.find(p => p.key === (leadForm.pipeline_status || "kalt"))?.label || "Kalt"}
+                                      </div>
+                                    </div>
+                                    <div style={{ gridColumn: "1 / -1" }}>
+                                      <label style={S.label}>Follow-up Datum</label>
+                                      <input type="date" value={leadForm.follow_up_date || ""} onChange={e => setLeadForm(f => ({ ...f, follow_up_date: e.target.value }))} style={S.input} />
+                                    </div>
+                                  </div>
+                                  {leadForm.pipeline_status === "verloren" && (
+                                    <div style={{ marginTop: 10 }}>
+                                      <label style={S.label}>Verloren-Grund</label>
+                                      <textarea value={leadForm.lost_reason || ""} onChange={e => setLeadForm(f => ({ ...f, lost_reason: e.target.value }))} rows={2} style={{ ...S.input, resize: "vertical" }} placeholder="z.B. Preis zu hoch, Entscheidung vertagt …" />
+                                    </div>
+                                  )}
+                                  {leadForm.pipeline_status === "gewonnen" && (
+                                    <div style={{ marginTop: 10, padding: "10px 14px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 8, fontSize: 12, color: "#16a34a" }}>
+                                      ✓ Gewonnen {selectedLead.won_at ? `am ${new Date(selectedLead.won_at).toLocaleDateString("de-DE")}` : ""}
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Notizen */}
+                                <div>
+                                  <label style={S.label}>Notizen</label>
+                                  <textarea value={leadForm.notes || ""} onChange={e => setLeadForm(f => ({ ...f, notes: e.target.value }))} rows={4} style={{ ...S.input, resize: "vertical" }} />
+                                </div>
+
+                                {/* Kontakt */}
+                                <div>
+                                  <div style={S.sectionHd}>Kontakt</div>
+                                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                                    <div>
+                                      <label style={S.label}>Name</label>
+                                      <input value={leadForm.contact_name || ""} onChange={e => setLeadForm(f => ({ ...f, contact_name: e.target.value }))} style={S.input} />
+                                    </div>
+                                    <div>
+                                      <label style={S.label}>Telefon</label>
+                                      <input value={leadForm.phone || ""} onChange={e => setLeadForm(f => ({ ...f, phone: e.target.value }))} style={S.input} />
+                                    </div>
+                                    <div>
+                                      <label style={S.label}>E-Mail</label>
+                                      <input value={leadForm.email || ""} onChange={e => setLeadForm(f => ({ ...f, email: e.target.value }))} style={S.input} />
+                                    </div>
+                                    <div>
+                                      <label style={S.label}>Website</label>
+                                      <input value={leadForm.website || ""} onChange={e => setLeadForm(f => ({ ...f, website: e.target.value }))} style={S.input} />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Speichern */}
+                                <div style={{ display: "flex", gap: 10, paddingTop: 8 }}>
+                                  <button onClick={() => setSelectedLead(null)} style={{ ...S.btnOutline, flex: 1 }}>Schließen</button>
+                                  <button onClick={saveLead} disabled={leadSaving} style={{ ...S.btn, flex: 2, opacity: leadSaving ? .6 : 1 }}>
+                                    {leadSaving ? "Speichert…" : "Speichern"}
+                                  </button>
+                                </div>
+
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 )}
+
               </div>
             )}
 
