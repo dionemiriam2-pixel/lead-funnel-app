@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import AppShell from "@/components/AppShell";
 import { apiFetch } from "@/lib/api";
-import { TrendingUp, Award } from "lucide-react";
+import { TrendingUp, Award, BarChart3 } from "lucide-react";
 
 function Bar({ label, val, max, accent }) {
   const pct = max > 0 ? Math.round((val / max) * 100) : 0;
@@ -42,6 +42,36 @@ export default function AnalyticsPage() {
   const avgScore   = leads.length ? (leads.reduce((s, l) => s + (Number(l.score) || 0), 0) / leads.length).toFixed(1) : 0;
   const topLeads   = [...leads].sort((a, b) => (b.score || 0) - (a.score || 0)).slice(0, 5);
 
+  // --- Report-Kennzahlen ---
+  const won  = leads.filter(l => l.pipeline_status === "gewonnen").length;
+  const lost = leads.filter(l => l.pipeline_status === "verloren").length;
+  const conversion = leads.length ? Math.round((won / leads.length) * 100) : 0;
+
+  // --- Neue Leads pro Monat (letzte 6 Monate) ---
+  const months = [];
+  const now = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`, label: d.toLocaleDateString("de-DE", { month: "short" }), count: 0 });
+  }
+  leads.forEach(l => {
+    if (!l.created_at) return;
+    const d = new Date(l.created_at);
+    if (isNaN(d)) return;
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const m = months.find(x => x.key === key);
+    if (m) m.count++;
+  });
+  const maxMonth = Math.max(...months.map(m => m.count), 1);
+
+  // --- Funnel (Pipeline-Verteilung) ---
+  const funnel = [
+    { s: "neu", v: byStatus["neu"] || 0 },
+    { s: "kontaktiert", v: byStatus["kontaktiert"] || 0 },
+    { s: "angebot", v: byStatus["angebot"] || 0 },
+    { s: "gewonnen", v: byStatus["gewonnen"] || 0 },
+  ];
+
   const card = { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: 22 };
 
   return (
@@ -49,25 +79,62 @@ export default function AnalyticsPage() {
       <div style={{ padding: "28px 32px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
           <TrendingUp size={20} strokeWidth={1.5} color="var(--text-secondary)" />
-          <h1 style={{ fontFamily: "var(--font-serif)", fontSize: 26, fontWeight: 500, color: "var(--ink)", margin: 0 }}>Analytics</h1>
+          <h1 style={{ fontFamily: "var(--font-serif)", fontSize: 26, fontWeight: 500, color: "var(--ink)", margin: 0 }}>Reports</h1>
         </div>
-        <p style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 24 }}>Auswertung aller Lead-Quellen und Produkte</p>
+        <p style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 24 }}>Conversion, Verlauf und Auswertung deiner Leads</p>
 
         {loading ? <div style={{ color: "var(--text-tertiary)" }}>Lade…</div> : (
           <>
             {/* KPI-Zeile */}
-            <div style={{ display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
               {[
-                { label: "Leads gesamt",  val: leads.length },
-                { label: "Ø Score",       val: avgScore },
-                { label: "Gewonnen",      val: leads.filter(l => l.pipeline_status === "gewonnen").length },
-                { label: "Top-Leads ≥ 8", val: leads.filter(l => l.score >= 8).length },
+                { label: "Leads gesamt", val: leads.length },
+                { label: "Conversion",   val: conversion + "%" },
+                { label: "Gewonnen",     val: won },
+                { label: "Verloren",     val: lost },
+                { label: "Ø Score",      val: avgScore },
               ].map(s => (
-                <div key={s.label} style={{ ...card, flex: "1 1 130px", padding: "18px 20px" }}>
+                <div key={s.label} style={{ ...card, flex: "1 1 120px", padding: "18px 20px" }}>
                   <div style={{ fontFamily: "var(--font-serif)", fontSize: 32, fontWeight: 500, color: "var(--ink)", lineHeight: 1 }}>{s.val}</div>
                   <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 6, textTransform: "uppercase", letterSpacing: ".06em" }}>{s.label}</div>
                 </div>
               ))}
+            </div>
+
+            {/* Neue Leads pro Monat */}
+            <div style={{ ...card, marginBottom: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+                <BarChart3 size={16} strokeWidth={1.5} color="var(--text-secondary)" />
+                <h2 style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", margin: 0 }}>Neue Leads pro Monat</h2>
+              </div>
+              <div style={{ display: "flex", alignItems: "flex-end", gap: 10, height: 170 }}>
+                {months.map(m => (
+                  <div key={m.key} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", height: "100%" }}>
+                    <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 4 }}>{m.count}</div>
+                    <div style={{ width: "55%", maxWidth: 46, height: Math.round((m.count / maxMonth) * 120) + "px", minHeight: m.count > 0 ? 6 : 2, background: m.count > 0 ? "var(--accent)" : "var(--border)", borderRadius: "6px 6px 0 0", transition: "height .5s ease" }} />
+                    <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginTop: 8 }}>{m.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Funnel */}
+            <div style={{ ...card, marginBottom: 16 }}>
+              <h2 style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", marginBottom: 16 }}>Verkaufs-Funnel</h2>
+              {funnel.map((f, i) => {
+                const pct = leads.length ? Math.round((f.v / leads.length) * 100) : 0;
+                return (
+                  <div key={f.s} style={{ marginBottom: 10 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
+                      <span style={{ color: "var(--ink)", fontWeight: 500, textTransform: "capitalize" }}>{f.s}</span>
+                      <span style={{ color: "var(--text-secondary)" }}>{f.v} ({pct}%)</span>
+                    </div>
+                    <div style={{ height: 14, background: "var(--border)", borderRadius: 6 }}>
+                      <div style={{ height: 14, width: pct + "%", background: f.s === "gewonnen" ? "var(--accent)" : "var(--ink)", borderRadius: 6, opacity: 1 - i * 0.15, transition: "width .5s ease" }} />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Charts */}
